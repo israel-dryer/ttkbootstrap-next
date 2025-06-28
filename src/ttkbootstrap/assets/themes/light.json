@@ -1,0 +1,116 @@
+{
+  "body": {
+    "bg": "#f8f9fa",
+    "text": "#212529",
+    "border": "#dee2e6"
+  },
+  "text": {
+    "default": "#212529",
+    "muted": "#6c757d",
+    "inverse": "#ffffff"
+  },
+  "layers": {
+    "0": "#f8f9fa",
+    "1": "#ffffff",
+    "2": "#e9ecef"
+  },
+  "gray": {
+    "gray_100": "#f8f9fa",
+    "gray_200": "#e9ecef",
+    "gray_300": "#dee2e6",
+    "gray_400": "#ced4da",
+    "gray_500": "#adb5bd",
+    "gray_600": "#6c757d",
+    "gray_700": "#495057",
+    "gray_800": "#343a40",
+    "gray_900": "#212529"
+  },
+  "primary": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "secondary": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "success": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "danger": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "warning": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "info": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "light": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  },
+  "dark": {
+    "bg": "#000000",
+    "bg_hover": "#111111",
+    "bg_active": "#222222",
+    "bg_disabled": "#333333",
+    "text": "#ffffff",
+    "text_disabled": "#aaaaaa",
+    "border": "#444444",
+    "border_hover": "#555555",
+    "border_active": "#666666"
+  }
+}
