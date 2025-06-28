@@ -1,0 +1,58 @@
+# Library Structure
+
+- core
+  - app
+  - signal
+  - window
+- localization
+- icons
+  - bootstrap_icon
+- style
+  - typography
+  - colors
+  - theme
+  - element
+  - builders
+    - button
+    - frame...
+- utils
+- image
+- dialog
+  - color_picker
+  - date_picker
+  - font_picker
+  - dialog
+  - message_dialog
+  - input_dialog
+- widgets
+  - accordion
+  - badge
+  - button
+  - button_group
+  - canvas
+  - checkbox
+  - combobox
+  - date_entry
+  - entry
+  - icon_button
+  - label
+  - label_frame
+  - list
+  - menu_button
+  - meter
+  - notebook
+  - number_entry
+  - paned_window
+  - password_entry
+  - progressbar
+  - radiobutton
+  - scrollbar
+  - separator
+  - size_grip
+  - slider
+  - spinbox
+  - spinner
+  - tag
+  - toast
+  - tooltip
+  - treeview
