@@ -1,15 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
+
+from ttkbootstrap.core import App
 from ttkbootstrap.style.typography import Typography
 
-root = tk.Tk()
-root.title("Typography Demo")
-
-Typography.use_fonts()
+root = App("Typography Demo")
 
 for token in Typography.all()._fields:
-    font = Typography.get_font(token)
-    label = ttk.Label(root, text=token.replace("_", " ").title(), font=font)
+    label = ttk.Label(root, text=token.replace("_", " ").title(), font=token)
     label.pack(anchor="w", pady=2)
 
-root.mainloop()
+ttk.Label(root, text="Demo", font="display_lg").pack()
+
+root.run()

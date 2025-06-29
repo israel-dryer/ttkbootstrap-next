@@ -16,7 +16,7 @@ Key Features:
 import platform
 from tkinter.font import Font
 from typing import Literal, NamedTuple
-from tkinter import font
+from tkinter import Misc, font
 
 
 class FontSpec(NamedTuple):
@@ -96,6 +96,8 @@ class Typography:
 
     _fonts: FontTokens = DEFAULT_FONT_TOKENS
     _use_fallback: bool = False
+    _root: Misc
+    _named_fonts: dict[str, Font] = {}
 
     @classmethod
     def use_fonts(cls, fonts: FontTokens = DEFAULT_FONT_TOKENS, *, fallback: bool = False) -> None:
@@ -150,13 +152,13 @@ class Typography:
         """Register each semantic token as a named font if not already present."""
         for name in cls._fonts._fields:
             spec = getattr(cls._fonts, name)
-            if name not in font.names():
-                Font(
-                    name=name,
-                    family=spec.font if not cls._use_fallback else FALLBACK_FONT,
-                    size=spec.size,
-                    weight=spec.weight,
-                )
+            f = Font(
+                name=name,
+                family=spec.font if not cls._use_fallback else FALLBACK_FONT,
+                size=spec.size,
+                weight=spec.weight,
+            )
+            cls._named_fonts[name] = f
 
     @classmethod
     def _override_tk_fonts(cls) -> None:
