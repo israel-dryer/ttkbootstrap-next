@@ -1,3 +1,4 @@
+import weakref
 from typing import TYPE_CHECKING
 from ..event_aliases import EVENT_ALIASES
 
@@ -10,19 +11,20 @@ from typing import Callable, Union
 
 
 class BindingMixin:
-    """Mixin that provides alias-aware event binding utilities."""
+    """Mixin that provides alias-aware event binding with weak reference tracking."""
 
     widget: Union["BaseWidget", Misc]
-    _bound_events: dict[str, list[str]]  # event sequence → list of func ids
+    _bound_events: dict[str, list[str]]  # event sequence → list of func IDs
+    _callbacks: weakref.WeakValueDictionary[str, Callable]  # funcid → func
 
     def __init__(self):
-        """Initialize the event tracking system for the widget.
+        """Initialize the binding mixin with weakref tracking and alias resolution.
 
-        This mixin enables alias-aware `bind`, `unbind`, and `event_generate`
-        functionality on any widget that implements the `tkinter.Misc` interface.
-        All bound event handler IDs are tracked internally for reliable unbinding.
+        Tracks function IDs for safe unbinding, supports event alias normalization,
+        and prevents memory leaks by using weak references for handlers.
         """
         self._bound_events = defaultdict(list)
+        self._callbacks = weakref.WeakValueDictionary()
 
     @staticmethod
     def _normalize(event: str) -> str:
@@ -51,6 +53,7 @@ class BindingMixin:
         func_id = self.widget.bind(sequence, func, add=add)
         if func_id:
             self._bound_events[sequence].append(func_id)
+            self._callbacks[func_id] = func
         return func_id
 
     def unbind(self, event: str, func_id: str | None = None):
@@ -66,11 +69,14 @@ class BindingMixin:
             if sequence in self._bound_events:
                 try:
                     self._bound_events[sequence].remove(func_id)
+                    self._callbacks.pop(func_id, None)
                     if not self._bound_events[sequence]:
                         del self._bound_events[sequence]
                 except ValueError:
                     pass
         else:
+            for fid in self._bound_events.get(sequence, []):
+                self._callbacks.pop(fid, None)
             self._bound_events.pop(sequence, None)
 
     def unbind_all(self, event: str):
@@ -82,6 +88,7 @@ class BindingMixin:
         sequence = self._normalize(event)
         for func_id in self._bound_events.get(sequence, []):
             self.widget.unbind(sequence, func_id)
+            self._callbacks.pop(func_id, None)
         self._bound_events.pop(sequence, None)
 
     def list_bindings(self) -> dict[str, list[str]]:
