@@ -2,52 +2,47 @@
 
 ## Overview
 
-This document defines a scalable and semantically rich color theming strategy for Tkinter applications, inspired by the
-**Fluent 2 Design System**. It leverages flat token mappings to represent foregrounds, backgrounds, strokes, and roles
-like `brand`, `neutral`, and `status`. The system supports light, dark, and high contrast themes using a unified token
-approach.
+This document defines a scalable and semantically rich color theming strategy for Tkinter applications, inspired by the **Fluent 2 Design System**. It leverages **flat camelCase token mappings** to represent foregrounds, backgrounds, strokes, and semantic roles like `brand`, `neutral`, and `status`. The system supports light, dark, and high contrast themes using a unified naming and loading strategy.
 
 ---
 
 ## Core Principles
 
-* **Token-Based Design**: Each color is assigned a flat semantic token name such as `colorBrandBackgroundHover`.
-* **State Awareness**: Stateful variants (hover, active, disabled) are built into token names.
-* **Thematic Layers**: Neutral layers (`colorNeutralLayer1`, `colorNeutralLayerFloating`) support elevation and surface
-  composition.
-* **Brand & Status Roles**: Tokens cover brand (`colorBrandBackground`, `colorBrandForeground1`) and status use cases (
-  `colorPaletteRedBackground3`).
-* **Grayscale & Neutral Tones**: `colorNeutralForeground1`, `colorNeutralStroke1`, etc. provide system-wide neutral
-  mappings.
-* **Focus & Accessibility**: Dedicated tokens like `colorStrokeFocus2` and `colorNeutralForegroundDisabled` support
-  keyboard navigation and accessibility.
+* **Token-Based Design**: Each color is referenced via a flat, camelCase token such as `primaryButtonHoverBackground`.
+* **State Awareness**: Stateful variants (`hover`, `pressed`, `disabled`, `focus`, etc.) are built directly into token names.
+* **Neutral & Surface Layers**: Background layering is expressed via tokens like `calendarBackground`, `teachingBubbleRestBackground`, and others.
+* **Role-Based Semantics**: Tokens cover interaction roles such as `primaryButton`, `dangerButton`, `checkBox`, and `statusBar`.
+* **Accessibility Support**: Tokens like `controlOutlinesFocus`, `textDisabled`, and `sliderActiveDisabledBackground` support inclusive design.
+* **Cross-Theme Consistency**: All themes expose the same token names with values adapted to the current theme variant.
 
 ---
 
 ## Token Format
 
-Tokens follow the Fluent naming pattern:
+Themes are represented as flat JSON mappings using camelCase keys:
 
 ```json
 {
-  "colorBrandBackground": "#0078D4",
-  "colorBrandForegroundLink": "#016AFF",
-  "colorNeutralBackground1": "#FFFFFF",
-  "colorNeutralForegroundDisabled": "#C8C6C4",
-  "colorPaletteRedBackground3": "#F1707B",
-  "colorStrokeFocus2": "#605E5C"
+  "background": "#1b1a19",
+  "primaryButtonHoverBackground": "#106EBE",
+  "primaryButtonPressedText": "#FFFFFF",
+  "statusBarBorderWarning": "#4F2A0F",
+  "textHyperlink": "#2899f5",
+  "checkBoxRestHoverText": "#FAF9F8"
 }
 ```
 
-All theme modes (light, dark, high contrast) use the same token names and remap values accordingly.
+All theme modes (light, dark, high contrast) use the **same token names** but assign different color values for optimal contrast and expression.
 
 ---
 
 ## Python Access Model
 
-A `ColorTheme` class can load these tokens from a JSON file:
+Color themes are accessed through a `ColorTheme` class which wraps token dictionaries and provides strongly typed properties:
 
 ```python
+from theme_loader import load_json  # your custom JSON loader
+
 class ColorTheme:
     def __init__(self, tokens: dict):
         self.tokens = tokens
@@ -55,40 +50,52 @@ class ColorTheme:
     def get(self, name: str) -> str:
         return self.tokens.get(name, "#000000")
 
+    @property
+    def primary_button_hover_background(self) -> str:
+        return self.tokens.get("primaryButtonHoverBackground", "#000000")
 
-# Example
-theme = ColorTheme(load_json("Fluent2AzureLightTokens.json"))
-bg = theme.get("colorBrandBackgroundHover")
+# Example usage
+tokens = load_json("Fluent2AzureLightTokens.json")
+theme = ColorTheme(tokens)
+print(theme.primary_button_hover_background)
 ```
 
-You may also wrap access with properties (e.g., `theme.brand_background_hover`).
+Properties mirror the camelCase tokens defined in the JSON files, but use Python-style snake\_case naming to access them conveniently.
 
 ---
 
 ## Theme Files
 
-Each theme is stored as a flat JSON file of token-value pairs:
+Color themes should be stored as flat `.json` files under a project directory such as `assets/` or `ttkbootstrap/assets/themes`. Examples:
 
-* `Fluent2AzureLightTokens.json`
-* `Fluent2AzureDarkTokens.json`
-* `Fluent2AzureHighContrastLightTokens.json`
-* `Fluent2AzureHighContrastDarkTokens.json`
+* `assets/Fluent2AzureLightTokens.json`
+* `assets/Fluent2AzureDarkTokens.json`
+* `assets/Fluent2AzureHighContrastLightTokens.json`
+* `assets/Fluent2AzureHighContrastDarkTokens.json`
+
+Each file should:
+
+* Use camelCase token names matching the `ColorTheme` class
+* Contain only valid 6-digit hex values (no `rgba()`, no `BaseColors.*`)
+* Include all required keys used in the application
 
 ---
 
 ## Benefits
 
-* 🌗 Unified token access across all themes
-* 🔁 Seamless light/dark switching
-* 🧠 Semantic, accessible, and scalable
-* 🧩 Easy to bind to canvas elements or widget styles
-* 🌍 Aligns with Fluent UI, Figma, and web platforms
+✅ **Consistent access pattern** across all themes
+🌗 **Seamless light/dark/high-contrast switching**
+🔍 **Semantic, accessible, and designer-aligned**
+🎯 **Direct integration with Canvas and ttk styling**
+🧠 **Self-documenting through Python property mapping**
+🌍 **Fluent Design-compatible**
 
 ---
 
 ## Future Extensions
 
-* Support for custom token remapping
-* Runtime blending for surface layers
-* Visual token explorer for theme visualization
-* Typography token integration
+* Custom token aliasing or overrides per application
+* Layered surface management with background elevation
+* Runtime color blending utilities for dynamic rendering
+* Developer-facing theme visualizer
+* Integration of **typography tokens** for font and scale control
