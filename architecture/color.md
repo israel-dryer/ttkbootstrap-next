@@ -1,93 +1,94 @@
-# Bootstrap-Inspired Color Theming Strategy for Tkinter
+# Color Theming Strategy for Tkinter
 
 ## Overview
 
-This document outlines a semantic and scalable color theming strategy for Tkinter applications, inspired by Bootstrap
-5.3. The system uses structured JSON theme files and a Python `Color` class for intuitive access to color roles and
-states. It supports light and dark modes, state-aware variants, and layering.
+This document defines a scalable and semantically rich color theming strategy for Tkinter applications, inspired by the
+**Fluent 2 Design System**. It leverages flat token mappings to represent foregrounds, backgrounds, strokes, and roles
+like `brand`, `neutral`, and `status`. The system supports light, dark, and high contrast themes using a unified token
+approach.
 
 ---
 
 ## Core Principles
 
-* **Semantic Naming**: Colors are grouped by role (e.g., `primary`, `danger`, `body`) and use consistent state keys (
-  `bg_hover`, `text_disabled`, etc.).
-* **State Awareness**: Each color role includes default, hover, active, and disabled variants.
-* **Light and Dark Modes**: Each theme defines a parallel structure for both `light` and `dark` modes.
-* **Surface Layers**: Layered surfaces (`layer-0`, `layer-1`, `layer-2`) enable elevation-based UI composition.
-* **Grayscale Palette**: Grays `gray_100` through `gray_900` provide neutral tones for borders, text, and surfaces.
-* **Focus Ring Support**: An explicit focus color is defined to support accessibility and keyboard navigation.
+* **Token-Based Design**: Each color is assigned a flat semantic token name such as `colorBrandBackgroundHover`.
+* **State Awareness**: Stateful variants (hover, active, disabled) are built into token names.
+* **Thematic Layers**: Neutral layers (`colorNeutralLayer1`, `colorNeutralLayerFloating`) support elevation and surface
+  composition.
+* **Brand & Status Roles**: Tokens cover brand (`colorBrandBackground`, `colorBrandForeground1`) and status use cases (
+  `colorPaletteRedBackground3`).
+* **Grayscale & Neutral Tones**: `colorNeutralForeground1`, `colorNeutralStroke1`, etc. provide system-wide neutral
+  mappings.
+* **Focus & Accessibility**: Dedicated tokens like `colorStrokeFocus2` and `colorNeutralForegroundDisabled` support
+  keyboard navigation and accessibility.
 
 ---
 
-## Theme File Structure
+## Token Format
 
-Each theme (`light.json`, `dark.json`) includes:
-
-### Top-Level Keys:
-
-* `body`: Background, text, and border for the main surface.
-* `text`: Standard and muted text colors.
-* `layers`: Layered surface backgrounds.
-* `gray`: Grayscale palette.
-
-### Role Definitions:
-
-Each role (e.g. `primary`, `danger`) includes:
+Tokens follow the Fluent naming pattern:
 
 ```json
-"primary": {
-"bg": "#0d6efd",
-"bg_hover": "#0b5ed7",
-"bg_active": "#0a58ca",
-"bg_disabled": "#cfe2ff",
-"text": "#ffffff",
-"text_disabled": "#adb5bd",
-"border": "#9ec5fe",
-"border_hover": "#86b7fe",
-"border_active": "#5c9fe8"
+{
+  "colorBrandBackground": "#0078D4",
+  "colorBrandForegroundLink": "#016AFF",
+  "colorNeutralBackground1": "#FFFFFF",
+  "colorNeutralForegroundDisabled": "#C8C6C4",
+  "colorPaletteRedBackground3": "#F1707B",
+  "colorStrokeFocus2": "#605E5C"
 }
 ```
 
----
-
-## Color Access via Python Class
-
-A `Color` class loads the theme and provides named tuple access:
-
-```python
-color = Color(mode="light")
-button.configure(bg=color.primary.bg, fg=color.primary.text)
-```
-
-Supports theme switching via:
-
-```python
-color.switch("dark")
-```
+All theme modes (light, dark, high contrast) use the same token names and remap values accordingly.
 
 ---
 
-## File Structure
+## Python Access Model
 
-* `assets/light.json`
-* `assets/dark.json`
-* `color.py` (contains `Color` class)
+A `ColorTheme` class can load these tokens from a JSON file:
+
+```python
+class ColorTheme:
+    def __init__(self, tokens: dict):
+        self.tokens = tokens
+
+    def get(self, name: str) -> str:
+        return self.tokens.get(name, "#000000")
+
+
+# Example
+theme = ColorTheme(load_json("Fluent2AzureLightTokens.json"))
+bg = theme.get("colorBrandBackgroundHover")
+```
+
+You may also wrap access with properties (e.g., `theme.brand_background_hover`).
+
+---
+
+## Theme Files
+
+Each theme is stored as a flat JSON file of token-value pairs:
+
+* `Fluent2AzureLightTokens.json`
+* `Fluent2AzureDarkTokens.json`
+* `Fluent2AzureHighContrastLightTokens.json`
+* `Fluent2AzureHighContrastDarkTokens.json`
 
 ---
 
 ## Benefits
 
-* 🔁 Easy theme switching
-* 🎯 Clean semantic access to role/state combinations
-* 🌙 Full light/dark mode support
-* 🧩 Compatible with custom Tkinter widget styling and canvas drawing
+* 🌗 Unified token access across all themes
+* 🔁 Seamless light/dark switching
+* 🧠 Semantic, accessible, and scalable
+* 🧩 Easy to bind to canvas elements or widget styles
+* 🌍 Aligns with Fluent UI, Figma, and web platforms
 
 ---
 
 ## Future Extensions
 
-* Typography tokens
-* Elevation tokens with transparency blending
-* Custom user themes with overrides
-* Automatic contrast checking for accessibility
+* Support for custom token remapping
+* Runtime blending for surface layers
+* Visual token explorer for theme visualization
+* Typography token integration
