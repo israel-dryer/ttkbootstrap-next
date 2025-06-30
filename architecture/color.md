@@ -2,100 +2,120 @@
 
 ## Overview
 
-This document defines a scalable and semantically rich color theming strategy for Tkinter applications, inspired by the **Fluent 2 Design System**. It leverages **flat camelCase token mappings** to represent foregrounds, backgrounds, strokes, and semantic roles like `brand`, `neutral`, and `status`. The system supports light, dark, and high contrast themes using a unified naming and loading strategy.
+This document outlines a semantically rich and state-aware color theming strategy for Tkinter applications, inspired by
+the **Bootstrap 5** color model and enhanced with dynamic theming logic. Themes are based on simple color tokens (e.g.,
+`primary`, `danger`, `background`, `foreground`), from which **shades**, **states**, and **surface-layer variants** are
+programmatically derived.
 
 ---
 
 ## Core Principles
 
-* **Token-Based Design**: Each color is referenced via a flat, camelCase token such as `primaryButtonHoverBackground`.
-* **State Awareness**: Stateful variants (`hover`, `pressed`, `disabled`, `focus`, etc.) are built directly into token names.
-* **Neutral & Surface Layers**: Background layering is expressed via tokens like `calendarBackground`, `teachingBubbleRestBackground`, and others.
-* **Role-Based Semantics**: Tokens cover interaction roles such as `primaryButton`, `dangerButton`, `checkBox`, and `statusBar`.
-* **Accessibility Support**: Tokens like `controlOutlinesFocus`, `textDisabled`, and `sliderActiveDisabledBackground` support inclusive design.
-* **Cross-Theme Consistency**: All themes expose the same token names with values adapted to the current theme variant.
+* **Token Simplicity**: Themes are defined using flat tokens (e.g., `primary`, `info`, `background`, `foreground`) in
+  camelCase or snake\_case.
+* **State Derivation**: Colors for `hovered`, `pressed`, `disabled`, `focused`, etc. are automatically computed using
+  tint/shade logic.
+* **Semantic Layers**: Surface-related colors (e.g., `surfacePrimary`, `surfaceSubtle`, `onSurfacePrimary`) are derived
+  based on context and theme mode.
+* **Light/Dark Awareness**: The `ColorTheme` engine adjusts all derived values based on `mode` (`light` or `dark`).
+* **Accessibility-Friendly**: Foreground-on-background contrast is calculated using WCAG-compliant contrast formulas.
 
 ---
 
-## Token Format
+## Theme Format
 
-Themes are represented as flat JSON mappings using camelCase keys:
+Themes are defined as JSON files like this:
 
 ```json
 {
-  "background": "#1b1a19",
-  "primaryButtonHoverBackground": "#106EBE",
-  "primaryButtonPressedText": "#FFFFFF",
-  "statusBarBorderWarning": "#4F2A0F",
-  "textHyperlink": "#2899f5",
-  "checkBoxRestHoverText": "#FAF9F8"
+  "name": "light",
+  "mode": "light",
+  "colors": {
+    "primary": "#0d6efd",
+    "secondary": "#6c757d",
+    "success": "#198754",
+    "danger": "#dc3545",
+    "info": "#0dcaf0",
+    "warning": "#ffc107",
+    "background": "#ffffff",
+    "foreground": "#000000",
+    "white": "#ffffff",
+    "black": "#000000",
+    "gray": "#adb5bd"
+  }
 }
 ```
 
-All theme modes (light, dark, high contrast) use the **same token names** but assign different color values for optimal contrast and expression.
+Each token defines a base color used for role-based UI elements. No pre-shaded or state-specific variants are stored —
+they are **generated at runtime**.
 
 ---
 
 ## Python Access Model
 
-Color themes are accessed through a `ColorTheme` class which wraps token dictionaries and provides strongly typed properties:
+The `ColorTheme` class wraps a theme JSON object and provides:
+
+* Direct access to tokens via `theme.color("primary")`
+* Spectrum access via `theme.spectrum("primary")[600]`
+* State-aware variants: `hovered()`, `pressed()`, `subtle()`, etc.
+* Surface-level and foreground-access utilities: `on_surface()`, `surface_primary()`, etc.
+
+### Example
 
 ```python
-from theme_loader import load_json  # your custom JSON loader
+from ttkbootstrap.style.theme import ColorTheme, load_json
 
-class ColorTheme:
-    def __init__(self, tokens: dict):
-        self.tokens = tokens
-
-    def get(self, name: str) -> str:
-        return self.tokens.get(name, "#000000")
-
-    @property
-    def primary_button_hover_background(self) -> str:
-        return self.tokens.get("primaryButtonHoverBackground", "#000000")
-
-# Example usage
-tokens = load_json("Fluent2AzureLightTokens.json")
-theme = ColorTheme(tokens)
-print(theme.primary_button_hover_background)
+theme = ColorTheme(load_json("light.json"))
+print(theme.hovered("primary"))  # shaded blue
+print(theme.on_surface())  # "#fff" or "#000" based on contrast
+print(theme.surface_subtle())  # lightly tinted background
 ```
 
-Properties mirror the camelCase tokens defined in the JSON files, but use Python-style snake\_case naming to access them conveniently.
+### Function Naming
+
+* `hovered(token)` → hover state color
+* `pressed(token)` → pressed state color
+* `focused(token)` → focus ring color
+* `disabled(token)` → muted tone
+* `on_surface()` → best contrast foreground for surface
+* `surface_primary()` → base UI surface
+* `surface_subtle()` → low emphasis surface
+* `surface_emphasis()` → elevated surfaces (e.g., dialogs)
+
+---
+
+## Token Names and Derived Semantics
+
+| Token Type     | Examples                           | Usage                                  |
+|----------------|------------------------------------|----------------------------------------|
+| Base Colors    | `primary`, `success`, `info`       | Buttons, indicators, semantic feedback |
+| Grayscale      | `white`, `black`, `gray`           | General layout + contrast pairing      |
+| Surface Colors | `background`, `foreground`         | Base UI background/text layers         |
+| State Helpers  | `hovered()`, `pressed()`, etc.     | Auto-shaded/tinted per theme mode      |
+| Surface Roles  | `surface_subtle()`, `on_surface()` | Derived layer styling                  |
 
 ---
 
 ## Theme Files
 
-Color themes should be stored as flat `.json` files under a project directory such as `assets/` or `ttkbootstrap/assets/themes`. Examples:
+Stored as `.json` under a folder like `assets/themes/`:
 
-* `assets/Fluent2AzureLightTokens.json`
-* `assets/Fluent2AzureDarkTokens.json`
-* `assets/Fluent2AzureHighContrastLightTokens.json`
-* `assets/Fluent2AzureHighContrastDarkTokens.json`
+* `light.json`
+* `dark.json`
 
-Each file should:
+Each must include:
 
-* Use camelCase token names matching the `ColorTheme` class
-* Contain only valid 6-digit hex values (no `rgba()`, no `BaseColors.*`)
-* Include all required keys used in the application
+* `"mode"`: either `"light"` or `"dark"`
+* `"colors"`: a dict of token names to hex values
+
+No state variants need to be stored — they are **calculated** by `ColorTheme`.
 
 ---
 
 ## Benefits
 
-✅ **Consistent access pattern** across all themes
-🌗 **Seamless light/dark/high-contrast switching**
-🔍 **Semantic, accessible, and designer-aligned**
-🎯 **Direct integration with Canvas and ttk styling**
-🧠 **Self-documenting through Python property mapping**
-🌍 **Fluent Design-compatible**
-
----
-
-## Future Extensions
-
-* Custom token aliasing or overrides per application
-* Layered surface management with background elevation
-* Runtime color blending utilities for dynamic rendering
-* Developer-facing theme visualizer
-* Integration of **typography tokens** for font and scale control
+- ✅ Minimal maintenance per theme file
+- 🎨 Semantic roles + state coverage without duplication
+- 🌗 Seamless switching between light/dark modes
+- ♿ WCAG contrast-friendly text on surfaces
+- 🧠 Self-documenting and extensible API
