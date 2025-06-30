@@ -20,10 +20,12 @@ class FocusMixIn:
             self.widget.focus_force()
         else:
             self.widget.focus_set()
+        return self
 
     def blur(self):
         """Remove focus from the current widget."""
         self.widget.tk.call("focus", "")
+        return self
 
     def has_focus(self) -> bool:
         """Check if this widget currently has focus.

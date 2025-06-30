@@ -25,7 +25,8 @@ class ConfigureMixin:
         if option is not None:
             return self._get_config(option)
         else:
-            return self._set_config(**kwargs)
+            self._set_config(**kwargs)
+            return self
 
     def _set_config(self, **kwargs) -> None:
         """Apply configuration options to the widget.
