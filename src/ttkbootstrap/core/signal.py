@@ -33,23 +33,14 @@ class _SignalTrace:
         return tuple(self._traces.keys())
 
     def add(
-            self,
-            operation: TraceOperationType,
-            callback: Callable[[T], Any],
-            get_value: Callable[[], T],
+        self,
+        operation: TraceOperationType,
+        callback: Callable[[T], Any],
+        get_value: Callable[[], T],
     ) -> str:
         """
         Add a new trace that calls a callback when the variable is written.
-
-        Args:
-            operation: The trace type (typically "write").
-            callback: A function to call with the variable's current value.
-            get_value: A callable that returns the typed variable value.
-
-        Returns:
-            The trace ID string.
         """
-
         def traced_callback(name: str, index: str, mode: str) -> None:
             callback(get_value())
 
@@ -60,10 +51,6 @@ class _SignalTrace:
     def remove(self, operation: TraceOperationType, fid: str):
         """
         Remove a trace by ID.
-
-        Args:
-            operation: The trace type (typically "write").
-            fid: The trace ID returned by `add`.
         """
         self._var.trace_remove(operation, fid)
         self._traces.pop(fid, None)
@@ -73,20 +60,15 @@ class Signal(Generic[T]):
     """
     A reactive signal backed by a tkinter Variable.
 
-    Automatically notifies subscribers on value changes using Tcl variable traces.
-    Supports derived signals via `map()` and allows external update via `set()`.
+    Supports value access, transformation via `.map()`, and subscription
+    to change events via `.subscribe()`.
+
+    Can be passed to Tkinter widgets using `str(signal)` or `signal.name`.
     """
 
     _cnt = count(1)
 
     def __init__(self, value: T, name: str | None = None):
-        """
-        Initialize the signal with an initial value.
-
-        Args:
-            value: The initial value of the signal.
-            name: Optional explicit name for the internal Tcl variable.
-        """
         self._name = name or f"SIG{next(self._cnt)}"
         self._type: Type[T] = type(value)
         self._var = self._create_variable(value)
@@ -94,15 +76,6 @@ class Signal(Generic[T]):
         self._subscribers: dict[Callable[[T], None], str] = {}
 
     def _create_variable(self, value: T) -> tk.Variable:
-        """
-        Create an appropriate tkinter.Variable for the given value type.
-
-        Args:
-            value: The initial value to infer the variable type.
-
-        Returns:
-            An instance of a tkinter.Variable subclass.
-        """
         if isinstance(value, bool):
             return tk.BooleanVar(name=self._name, value=value)
         elif isinstance(value, int):
@@ -186,6 +159,19 @@ class Signal(Generic[T]):
             self._trace.remove("write", fid)
         self._subscribers.clear()
 
+    def __getattr__(self, name):
+        """
+        Proxy access to the underlying tk.Variable instance.
+        """
+        return getattr(self._var, name)
+
+    @property
+    def name(self) -> str:
+        """
+        Return the Tcl name of the variable (for use in widget `textvariable`).
+        """
+        return self._name
+
     @property
     def type(self) -> Type:
         """
@@ -200,4 +186,4 @@ class Signal(Generic[T]):
         return self._name
 
     def __repr__(self):
-        return str(self)
+        return f"<Signal name={self._name} type={self._type.__name__}>"
