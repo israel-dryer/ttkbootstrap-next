@@ -1,702 +1,258 @@
 import json
 import importlib.resources as resources
+from typing import Literal
+
+from PIL import ImageColor
 
 
 def load_json(filename: str, package: str = "ttkbootstrap.assets.themes") -> dict:
-    """
-    Load a JSON file from the given package using importlib.resources.
+    """Load a JSON file from the given package.
 
     Args:
-        filename (str): Name of the JSON file, e.g. 'Fluent2AzureLightTokens.json'
-        package (str): Dot-path to the package containing the file, default is 'assets'
+        filename: The name of the JSON file.
+        package: The package containing the file.
 
     Returns:
-        dict: Parsed JSON data.
+        A dictionary of the parsed JSON data.
     """
     with resources.files(package).joinpath(filename).open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
+def mix_colors(color1: str, color2: str, weight: float) -> str:
+    """Mix two colors by weight.
+
+    Args:
+        color1: The foreground color in hex format (e.g., '#FF0000').
+        color2: The background color in hex format.
+        weight: A float from 0 to 1, where 1 favors color1 and 0 favors color2.
+
+    Returns:
+        A hex color string representing the mixed result.
+    """
+    r1, g1, b1 = ImageColor.getrgb(color1)
+    r2, g2, b2 = ImageColor.getrgb(color2)
+
+    r = round(r1 * weight + r2 * (1 - weight))
+    g = round(g1 * weight + g2 * (1 - weight))
+    b = round(b1 * weight + b2 * (1 - weight))
+
+    return f"#{r:02X}{g:02X}{b:02X}"
+
+
+def tint_color(color: str, base_weight: float) -> str:
+    """Tint a color by mixing it with white.
+
+    Args:
+        color: The base color in hex.
+        base_weight: Amount of base color to retain (0–1).
+
+    Returns:
+        A tinted hex color string.
+    """
+    return mix_colors("#ffffff", color, base_weight)
+
+
+def shade_color(color: str, base_weight: float) -> str:
+    """Shade a color by mixing it with black.
+
+    Args:
+        color: The base color in hex.
+        base_weight: Amount of base color to retain (0–1).
+
+    Returns:
+        A shaded hex color string.
+    """
+    return mix_colors("#000000", color, base_weight)
+
+
+def relative_luminance(hex_color: str) -> float:
+    """Calculate the relative luminance of a color.
+
+    Args:
+        hex_color: A hex color string.
+
+    Returns:
+        The luminance value from 0 (black) to 1 (white).
+    """
+    r, g, b = [x / 255 for x in ImageColor.getrgb(hex_color)]
+
+    def adjust(c):
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = adjust(r), adjust(g), adjust(b)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast_ratio(color1: str, color2: str) -> float:
+    """Calculate the contrast ratio between two colors.
+
+    Args:
+        color1: First hex color.
+        color2: Second hex color.
+
+    Returns:
+        The contrast ratio as a float.
+    """
+    lum1 = relative_luminance(color1)
+    lum2 = relative_luminance(color2)
+    l1, l2 = max(lum1, lum2), min(lum1, lum2)
+    return (l1 + 0.05) / (l2 + 0.05)
+
+
+def best_foreground(bg_color: str, light: str = "#ffffff", dark: str = "#000000") -> str:
+    """Determine which foreground color has better contrast on a background.
+
+    Args:
+        bg_color: The background color in hex.
+        light: A light foreground candidate.
+        dark: A dark foreground candidate.
+
+    Returns:
+        The color with better contrast (either `light` or `dark`).
+    """
+    contrast_light = contrast_ratio(bg_color, light)
+    contrast_dark = contrast_ratio(bg_color, dark)
+    return light if contrast_light > contrast_dark else dark
+
+
+ColorTokenType = Literal[
+    'primary', 'secondary', 'success', 'info', 'warning', 'danger',
+    'dark', 'light', 'blue', 'indigo', 'purple', 'red', 'orange',
+    'yellow', 'green', 'teal', 'cyan', 'white', 'black', 'gray',
+    'foreground', 'background'
+]
+
+SurfaceRoleType = Literal['base', 'muted', 'subtle', 'emphasis', 'accent', 'inverse', 'overlay']
+
+ColorShadeType = Literal[100, 200, 300, 400, 500, 600, 700, 800, 900]
+
+ColorProgression = (0.80, 0.60, 0.40, 0.20)
+
+
 class ColorTheme:
-    def __init__(self, tokens: dict):
-        self.tokens = tokens
-
-    def get(self, name: str) -> str:
-        return self.tokens.get(name, "#000000")
-
-    @property
-    def background(self) -> str:
-        return self.tokens.get('background', '#000000')
-
-    @property
-    def calendar_background(self) -> str:
-        return self.tokens.get('calendarBackground', '#000000')
-
-    @property
-    def calendar_button_border(self) -> str:
-        return self.tokens.get('calendarButtonBorder', '#000000')
-
-    @property
-    def calendar_button_hover(self) -> str:
-        return self.tokens.get('calendarButtonHover', '#000000')
-
-    @property
-    def calendar_button_selected(self) -> str:
-        return self.tokens.get('calendarButtonSelected', '#000000')
-
-    @property
-    def calendar_text_disabled(self) -> str:
-        return self.tokens.get('calendarTextDisabled', '#000000')
-
-    @property
-    def calendar_text_hover(self) -> str:
-        return self.tokens.get('calendarTextHover', '#000000')
-
-    @property
-    def calendar_text_outside(self) -> str:
-        return self.tokens.get('calendarTextOutside', '#000000')
-
-    @property
-    def calendar_text_rest(self) -> str:
-        return self.tokens.get('calendarTextRest', '#000000')
-
-    @property
-    def check_box_checked_background(self) -> str:
-        return self.tokens.get('checkBoxCheckedBackground', '#000000')
-
-    @property
-    def check_box_checked_border(self) -> str:
-        return self.tokens.get('checkBoxCheckedBorder', '#000000')
-
-    @property
-    def check_box_checked_default(self) -> str:
-        return self.tokens.get('checkBoxCheckedDefault', '#000000')
-
-    @property
-    def check_box_checked_hover_background(self) -> str:
-        return self.tokens.get('checkBoxCheckedHoverBackground', '#000000')
-
-    @property
-    def check_box_checked_hover_border(self) -> str:
-        return self.tokens.get('checkBoxCheckedHoverBorder', '#000000')
-
-    @property
-    def check_box_disabled_background(self) -> str:
-        return self.tokens.get('checkBoxDisabledBackground', '#000000')
-
-    @property
-    def check_box_disabled_border(self) -> str:
-        return self.tokens.get('checkBoxDisabledBorder', '#000000')
-
-    @property
-    def check_box_indeterminate_circle_background(self) -> str:
-        return self.tokens.get('checkBoxIndeterminateCircleBackground', '#000000')
-
-    @property
-    def check_box_indeterminate_circle_hover_background(self) -> str:
-        return self.tokens.get('checkBoxIndeterminateCircleHoverBackground', '#000000')
-
-    @property
-    def check_box_rest_background(self) -> str:
-        return self.tokens.get('checkBoxRestBackground', '#000000')
-
-    @property
-    def check_box_rest_border(self) -> str:
-        return self.tokens.get('checkBoxRestBorder', '#000000')
-
-    @property
-    def check_box_rest_check(self) -> str:
-        return self.tokens.get('checkBoxRestCheck', '#000000')
-
-    @property
-    def check_box_rest_focus(self) -> str:
-        return self.tokens.get('checkBoxRestFocus', '#000000')
-
-    @property
-    def check_box_rest_hover(self) -> str:
-        return self.tokens.get('checkBoxRestHover', '#000000')
-
-    @property
-    def check_box_rest_hover_text(self) -> str:
-        return self.tokens.get('checkBoxRestHoverText', '#000000')
-
-    @property
-    def choice_group_circle_hover(self) -> str:
-        return self.tokens.get('choiceGroupCircleHover', '#000000')
-
-    @property
-    def choice_group_focus(self) -> str:
-        return self.tokens.get('choiceGroupFocus', '#000000')
-
-    @property
-    def command_bar_border(self) -> str:
-        return self.tokens.get('commandBarBorder', '#000000')
-
-    @property
-    def command_bar_button_disabled_color(self) -> str:
-        return self.tokens.get('commandBarButtonDisabledColor', '#000000')
-
-    @property
-    def command_bar_button_focus_border_color(self) -> str:
-        return self.tokens.get('commandBarButtonFocusBorderColor', '#000000')
-
-    @property
-    def command_bar_button_hover_background(self) -> str:
-        return self.tokens.get('commandBarButtonHoverBackground', '#000000')
-
-    @property
-    def command_bar_button_hover_color(self) -> str:
-        return self.tokens.get('commandBarButtonHoverColor', '#000000')
-
-    @property
-    def command_bar_button_hover_icon(self) -> str:
-        return self.tokens.get('commandBarButtonHoverIcon', '#000000')
-
-    @property
-    def command_bar_button_root_color(self) -> str:
-        return self.tokens.get('commandBarButtonRootColor', '#000000')
-
-    @property
-    def command_bar_button_selected_background(self) -> str:
-        return self.tokens.get('commandBarButtonSelectedBackground', '#000000')
-
-    @property
-    def command_bar_button_selected_icon(self) -> str:
-        return self.tokens.get('commandBarButtonSelectedIcon', '#000000')
-
-    @property
-    def command_bar_button_selected_hover_background(self) -> str:
-        return self.tokens.get('commandBarButtonSelectedHoverBackground', '#000000')
-
-    @property
-    def control_outlines_accent(self) -> str:
-        return self.tokens.get('controlOutlinesAccent', '#000000')
-
-    @property
-    def control_outlines_background(self) -> str:
-        return self.tokens.get('controlOutlinesBackground', '#000000')
-
-    @property
-    def control_outlines_dirty(self) -> str:
-        return self.tokens.get('controlOutlinesDirty', '#000000')
-
-    @property
-    def control_outlines_disabled(self) -> str:
-        return self.tokens.get('controlOutlinesDisabled', '#000000')
-
-    @property
-    def control_outlines_error(self) -> str:
-        return self.tokens.get('controlOutlinesError', '#000000')
-
-    @property
-    def control_outlines_focus(self) -> str:
-        return self.tokens.get('controlOutlinesFocus', '#000000')
-
-    @property
-    def control_outlines_hover(self) -> str:
-        return self.tokens.get('controlOutlinesHover', '#000000')
-
-    @property
-    def control_outlines_rest(self) -> str:
-        return self.tokens.get('controlOutlinesRest', '#000000')
-
-    @property
-    def danger_button_hover_background(self) -> str:
-        return self.tokens.get('dangerButtonHoverBackground', '#000000')
-
-    @property
-    def danger_button_hover_border(self) -> str:
-        return self.tokens.get('dangerButtonHoverBorder', '#000000')
-
-    @property
-    def danger_button_hover_text(self) -> str:
-        return self.tokens.get('dangerButtonHoverText', '#000000')
-
-    @property
-    def danger_button_pressed_background(self) -> str:
-        return self.tokens.get('dangerButtonPressedBackground', '#000000')
-
-    @property
-    def danger_button_pressed_border(self) -> str:
-        return self.tokens.get('dangerButtonPressedBorder', '#000000')
-
-    @property
-    def danger_button_pressed_text(self) -> str:
-        return self.tokens.get('dangerButtonPressedText', '#000000')
-
-    @property
-    def danger_button_rest_background(self) -> str:
-        return self.tokens.get('dangerButtonRestBackground', '#000000')
-
-    @property
-    def danger_button_rest_border(self) -> str:
-        return self.tokens.get('dangerButtonRestBorder', '#000000')
-
-    @property
-    def danger_button_rest_text(self) -> str:
-        return self.tokens.get('dangerButtonRestText', '#000000')
-
-    @property
-    def data_color_data_color1(self) -> str:
-        return self.tokens.get('dataColorDataColor1', '#000000')
-
-    @property
-    def data_color_data_color10(self) -> str:
-        return self.tokens.get('dataColorDataColor10', '#000000')
-
-    @property
-    def data_color_data_color2(self) -> str:
-        return self.tokens.get('dataColorDataColor2', '#000000')
-
-    @property
-    def data_color_data_color3(self) -> str:
-        return self.tokens.get('dataColorDataColor3', '#000000')
-
-    @property
-    def data_color_data_color4(self) -> str:
-        return self.tokens.get('dataColorDataColor4', '#000000')
-
-    @property
-    def data_color_data_color5(self) -> str:
-        return self.tokens.get('dataColorDataColor5', '#000000')
-
-    @property
-    def data_color_data_color6(self) -> str:
-        return self.tokens.get('dataColorDataColor6', '#000000')
-
-    @property
-    def data_color_data_color7(self) -> str:
-        return self.tokens.get('dataColorDataColor7', '#000000')
-
-    @property
-    def data_color_data_color8(self) -> str:
-        return self.tokens.get('dataColorDataColor8', '#000000')
-
-    @property
-    def data_color_data_color9(self) -> str:
-        return self.tokens.get('dataColorDataColor9', '#000000')
-
-    @property
-    def data_color_nodata1(self) -> str:
-        return self.tokens.get('dataColorNodata1', '#000000')
-
-    @property
-    def data_color_nodata2(self) -> str:
-        return self.tokens.get('dataColorNodata2', '#000000')
-
-    @property
-    def date_picker_disabled_border(self) -> str:
-        return self.tokens.get('datePickerDisabledBorder', '#000000')
-
-    @property
-    def date_picker_rest_selected(self) -> str:
-        return self.tokens.get('datePickerRestSelected', '#000000')
-
-    @property
-    def date_picker_rest_text(self) -> str:
-        return self.tokens.get('datePickerRestText', '#000000')
-
-    @property
-    def details_row_border(self) -> str:
-        return self.tokens.get('detailsRowBorder', '#000000')
-
-    @property
-    def details_row_focus(self) -> str:
-        return self.tokens.get('detailsRowFocus', '#000000')
-
-    @property
-    def details_row_hovered_background(self) -> str:
-        return self.tokens.get('detailsRowHoveredBackground', '#000000')
-
-    @property
-    def details_row_hovered_link(self) -> str:
-        return self.tokens.get('detailsRowHoveredLink', '#000000')
-
-    @property
-    def details_row_hovered_row_link(self) -> str:
-        return self.tokens.get('detailsRowHoveredRowLink', '#000000')
-
-    @property
-    def details_row_selected_hovered_link(self) -> str:
-        return self.tokens.get('detailsRowSelectedHoveredLink', '#000000')
-
-    @property
-    def details_row_selected_link(self) -> str:
-        return self.tokens.get('detailsRowSelectedLink', '#000000')
-
-    @property
-    def disabled_button_background(self) -> str:
-        return self.tokens.get('disabledButtonBackground', '#000000')
-
-    @property
-    def disabled_button_text(self) -> str:
-        return self.tokens.get('disabledButtonText', '#000000')
-
-    @property
-    def drop_down_background_hover(self) -> str:
-        return self.tokens.get('dropDownBackgroundHover', '#000000')
-
-    @property
-    def drop_down_background_rest(self) -> str:
-        return self.tokens.get('dropDownBackgroundRest', '#000000')
-
-    @property
-    def drop_down_text_hovered(self) -> str:
-        return self.tokens.get('dropDownTextHovered', '#000000')
-
-    @property
-    def item_hover(self) -> str:
-        return self.tokens.get('itemHover', '#000000')
-
-    @property
-    def item_select(self) -> str:
-        return self.tokens.get('itemSelect', '#000000')
-
-    @property
-    def item_select_hovered(self) -> str:
-        return self.tokens.get('itemSelectHovered', '#000000')
-
-    @property
-    def primary_button_disabled_background(self) -> str:
-        return self.tokens.get('primaryButtonDisabledBackground', '#000000')
-
-    @property
-    def primary_button_disabled_border(self) -> str:
-        return self.tokens.get('primaryButtonDisabledBorder', '#000000')
-
-    @property
-    def primary_button_disabled_text(self) -> str:
-        return self.tokens.get('primaryButtonDisabledText', '#000000')
-
-    @property
-    def primary_button_focus_text(self) -> str:
-        return self.tokens.get('primaryButtonFocusText', '#000000')
-
-    @property
-    def primary_button_hover_background(self) -> str:
-        return self.tokens.get('primaryButtonHoverBackground', '#000000')
-
-    @property
-    def primary_button_hover_text(self) -> str:
-        return self.tokens.get('primaryButtonHoverText', '#000000')
-
-    @property
-    def primary_button_pressed_background(self) -> str:
-        return self.tokens.get('primaryButtonPressedBackground', '#000000')
-
-    @property
-    def primary_button_pressed_text(self) -> str:
-        return self.tokens.get('primaryButtonPressedText', '#000000')
-
-    @property
-    def primary_button_rest_background(self) -> str:
-        return self.tokens.get('primaryButtonRestBackground', '#000000')
-
-    @property
-    def primary_button_rest_border(self) -> str:
-        return self.tokens.get('primaryButtonRestBorder', '#000000')
-
-    @property
-    def primary_button_rest_text(self) -> str:
-        return self.tokens.get('primaryButtonRestText', '#000000')
-
-    @property
-    def radio_button_circle_border_disabled(self) -> str:
-        return self.tokens.get('radioButtonCircleBorderDisabled', '#000000')
-
-    @property
-    def radio_button_circle_checked_disabled(self) -> str:
-        return self.tokens.get('radioButtonCircleCheckedDisabled', '#000000')
-
-    @property
-    def radio_button_circle_unchecked_rest(self) -> str:
-        return self.tokens.get('radioButtonCircleUncheckedRest', '#000000')
-
-    @property
-    def radio_button_pill_checked_hover(self) -> str:
-        return self.tokens.get('radioButtonPillCheckedHover', '#000000')
-
-    @property
-    def radio_button_pill_disabled(self) -> str:
-        return self.tokens.get('radioButtonPillDisabled', '#000000')
-
-    @property
-    def radio_button_pill_unchecked_disabled(self) -> str:
-        return self.tokens.get('radioButtonPillUncheckedDisabled', '#000000')
-
-    @property
-    def radio_button_pill_unchecked_hover(self) -> str:
-        return self.tokens.get('radioButtonPillUncheckedHover', '#000000')
-
-    @property
-    def secondary_button_focus_border(self) -> str:
-        return self.tokens.get('secondaryButtonFocusBorder', '#000000')
-
-    @property
-    def secondary_button_hover_background(self) -> str:
-        return self.tokens.get('secondaryButtonHoverBackground', '#000000')
-
-    @property
-    def secondary_button_hover_border(self) -> str:
-        return self.tokens.get('secondaryButtonHoverBorder', '#000000')
-
-    @property
-    def secondary_button_hover_color(self) -> str:
-        return self.tokens.get('secondaryButtonHoverColor', '#000000')
-
-    @property
-    def secondary_button_pressed_background(self) -> str:
-        return self.tokens.get('secondaryButtonPressedBackground', '#000000')
-
-    @property
-    def secondary_button_pressed_border(self) -> str:
-        return self.tokens.get('secondaryButtonPressedBorder', '#000000')
-
-    @property
-    def secondary_button_pressed_text(self) -> str:
-        return self.tokens.get('secondaryButtonPressedText', '#000000')
-
-    @property
-    def secondary_button_rest_background(self) -> str:
-        return self.tokens.get('secondaryButtonRestBackground', '#000000')
-
-    @property
-    def secondary_button_rest_border(self) -> str:
-        return self.tokens.get('secondaryButtonRestBorder', '#000000')
-
-    @property
-    def secondary_button_rest_text(self) -> str:
-        return self.tokens.get('secondaryButtonRestText', '#000000')
-
-    @property
-    def shimmer_primary(self) -> str:
-        return self.tokens.get('shimmerPrimary', '#000000')
-
-    @property
-    def shimmer_secondary(self) -> str:
-        return self.tokens.get('shimmerSecondary', '#000000')
-
-    @property
-    def slider_active_background(self) -> str:
-        return self.tokens.get('sliderActiveBackground', '#000000')
-
-    @property
-    def slider_active_background_hovered(self) -> str:
-        return self.tokens.get('sliderActiveBackgroundHovered', '#000000')
-
-    @property
-    def slider_active_background_pressed(self) -> str:
-        return self.tokens.get('sliderActiveBackgroundPressed', '#000000')
-
-    @property
-    def slider_active_disabled_background(self) -> str:
-        return self.tokens.get('sliderActiveDisabledBackground', '#000000')
-
-    @property
-    def slider_inactive_background_hovered(self) -> str:
-        return self.tokens.get('sliderInactiveBackgroundHovered', '#000000')
-
-    @property
-    def slider_inactive_disabled_background(self) -> str:
-        return self.tokens.get('sliderInactiveDisabledBackground', '#000000')
-
-    @property
-    def status_bar_background_error(self) -> str:
-        return self.tokens.get('statusBarBackgroundError', '#000000')
-
-    @property
-    def status_bar_background_information(self) -> str:
-        return self.tokens.get('statusBarBackgroundInformation', '#000000')
-
-    @property
-    def status_bar_background_success(self) -> str:
-        return self.tokens.get('statusBarBackgroundSuccess', '#000000')
-
-    @property
-    def status_bar_background_upsell(self) -> str:
-        return self.tokens.get('statusBarBackgroundUpsell', '#000000')
-
-    @property
-    def status_bar_background_warning(self) -> str:
-        return self.tokens.get('statusBarBackgroundWarning', '#000000')
-
-    @property
-    def status_bar_border_default(self) -> str:
-        return self.tokens.get('statusBarBorderDefault', '#000000')
-
-    @property
-    def status_bar_border_error(self) -> str:
-        return self.tokens.get('statusBarBorderError', '#000000')
-
-    @property
-    def status_bar_border_information(self) -> str:
-        return self.tokens.get('statusBarBorderInformation', '#000000')
-
-    @property
-    def status_bar_border_okay(self) -> str:
-        return self.tokens.get('statusBarBorderOkay', '#000000')
-
-    @property
-    def status_bar_border_upsell(self) -> str:
-        return self.tokens.get('statusBarBorderUpsell', '#000000')
-
-    @property
-    def status_bar_border_warning(self) -> str:
-        return self.tokens.get('statusBarBorderWarning', '#000000')
-
-    @property
-    def status_bar_icon_disabled(self) -> str:
-        return self.tokens.get('statusBarIconDisabled', '#000000')
-
-    @property
-    def status_bar_icon_error(self) -> str:
-        return self.tokens.get('statusBarIconError', '#000000')
-
-    @property
-    def status_bar_icon_information(self) -> str:
-        return self.tokens.get('statusBarIconInformation', '#000000')
-
-    @property
-    def status_bar_icon_success(self) -> str:
-        return self.tokens.get('statusBarIconSuccess', '#000000')
-
-    @property
-    def status_bar_icon_upsell(self) -> str:
-        return self.tokens.get('statusBarIconUpsell', '#000000')
-
-    @property
-    def status_bar_icon_warning(self) -> str:
-        return self.tokens.get('statusBarIconWarning', '#000000')
-
-    @property
-    def status_bar_link_hover(self) -> str:
-        return self.tokens.get('statusBarLinkHover', '#000000')
-
-    @property
-    def status_bar_link_rest(self) -> str:
-        return self.tokens.get('statusBarLinkRest', '#000000')
-
-    @property
-    def tabs_hover(self) -> str:
-        return self.tokens.get('tabsHover', '#000000')
-
-    @property
-    def tag_button_hover_background(self) -> str:
-        return self.tokens.get('tagButtonHoverBackground', '#000000')
-
-    @property
-    def tag_button_hover_border(self) -> str:
-        return self.tokens.get('tagButtonHoverBorder', '#000000')
-
-    @property
-    def tag_button_hover_text(self) -> str:
-        return self.tokens.get('tagButtonHoverText', '#000000')
-
-    @property
-    def tag_button_pressed_background(self) -> str:
-        return self.tokens.get('tagButtonPressedBackground', '#000000')
-
-    @property
-    def tag_button_pressed_border(self) -> str:
-        return self.tokens.get('tagButtonPressedBorder', '#000000')
-
-    @property
-    def tag_button_pressed_text(self) -> str:
-        return self.tokens.get('tagButtonPressedText', '#000000')
-
-    @property
-    def tag_button_rest_background(self) -> str:
-        return self.tokens.get('tagButtonRestBackground', '#000000')
-
-    @property
-    def tag_button_rest_border(self) -> str:
-        return self.tokens.get('tagButtonRestBorder', '#000000')
-
-    @property
-    def tag_button_rest_text(self) -> str:
-        return self.tokens.get('tagButtonRestText', '#000000')
-
-    @property
-    def teaching_bubble_hover_primary_button_background(self) -> str:
-        return self.tokens.get('teachingBubbleHoverPrimaryButtonBackground', '#000000')
-
-    @property
-    def teaching_bubble_rest_background(self) -> str:
-        return self.tokens.get('teachingBubbleRestBackground', '#000000')
-
-    @property
-    def teaching_bubble_rest_border(self) -> str:
-        return self.tokens.get('teachingBubbleRestBorder', '#000000')
-
-    @property
-    def teaching_bubble_rest_secondary_background(self) -> str:
-        return self.tokens.get('teachingBubbleRestSecondaryBackground', '#000000')
-
-    @property
-    def teaching_bubble_rest_text(self) -> str:
-        return self.tokens.get('teachingBubbleRestText', '#000000')
-
-    @property
-    def text_body(self) -> str:
-        return self.tokens.get('textBody', '#000000')
-
-    @property
-    def text_body_hovered(self) -> str:
-        return self.tokens.get('textBodyHovered', '#000000')
-
-    @property
-    def text_disabled(self) -> str:
-        return self.tokens.get('textDisabled', '#000000')
-
-    @property
-    def text_error(self) -> str:
-        return self.tokens.get('textError', '#000000')
-
-    @property
-    def text_heading(self) -> str:
-        return self.tokens.get('textHeading', '#000000')
-
-    @property
-    def text_hyperlink(self) -> str:
-        return self.tokens.get('textHyperlink', '#000000')
-
-    @property
-    def text_hyperlink_hovered(self) -> str:
-        return self.tokens.get('textHyperlink_hovered', '#000000')
-
-    @property
-    def text_icon(self) -> str:
-        return self.tokens.get('textIcon', '#000000')
-
-    @property
-    def text_label(self) -> str:
-        return self.tokens.get('textLabel', '#000000')
-
-    @property
-    def text_list(self) -> str:
-        return self.tokens.get('textList', '#000000')
-
-    @property
-    def text_placeholder(self) -> str:
-        return self.tokens.get('textPlaceholder', '#000000')
-
-    @property
-    def text_success(self) -> str:
-        return self.tokens.get('textSuccess', '#000000')
-
-    @property
-    def text_value(self) -> str:
-        return self.tokens.get('textValue', '#000000')
-
-    @property
-    def toggle_disabled_background(self) -> str:
-        return self.tokens.get('toggleDisabledBackground', '#000000')
-
-
-
-# Example
-theme = ColorTheme(load_json("Fluent2AzureLightTokens.json"))
-bg = theme.primary_button_hover_background
-
-print(bg)
-print(theme)
+    """Encapsulates theme tokens and provides utilities for derived color states."""
+
+    def __init__(self, theme: dict):
+        """Initialize the theme from a token dictionary.
+
+        Args:
+            theme: A dictionary containing 'name', 'mode', and 'colors'.
+        """
+        self.name = theme.get("name", "Unknown")
+        self.mode = theme.get("mode", "light")
+        self.tokens = theme.get("colors", {})
+
+    def color(self, token: ColorTokenType) -> str:
+        """Get the hex value of a token."""
+        return self.tokens.get(token)
+
+    def spectrum(self, token: ColorTokenType) -> dict[int, str]:
+        """Get the full color spectrum (tints, base, shades) for a token."""
+        base = self.color(token)
+        spectrum_names = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+        tints = [tint_color(base, w) for w in ColorProgression]
+        shades = [shade_color(base, w) for w in reversed(ColorProgression)]
+        spectrum_colors = [*tints, base, *shades]
+        return {name: color for name, color in zip(spectrum_names, spectrum_colors)}
+
+    def shade(self, token: ColorTokenType, shade: ColorShadeType = 500) -> str:
+        """Get a specific color shade from the spectrum."""
+        return self.spectrum(token)[shade]
+
+    def subtle(self, token: ColorTokenType) -> str:
+        """Get a subtle background tint for the token."""
+        base = self.color(token)
+        return tint_color(base, 0.20 if self.mode == "light" else 0.85)
+
+    def hovered(self, token: ColorTokenType) -> str:
+        """Get the color for a hovered state."""
+        base = self.color(token)
+        return shade_color(base, 0.90) if self.mode == "light" else tint_color(base, 0.60)
+
+    def pressed(self, token: ColorTokenType) -> str:
+        """Get the color for a pressed state."""
+        base = self.color(token)
+        return shade_color(base, 0.80) if self.mode == "light" else tint_color(base, 0.40)
+
+    def focused(self, token: ColorTokenType) -> str:
+        """Get the color for a focus ring."""
+        base = self.color(token)
+        return tint_color(base, 0.50) if self.mode == "light" else tint_color(base, 0.80)
+
+    def disabled(self, token: ColorTokenType) -> str:
+        """Get the color for a disabled state."""
+        base = self.color(token)
+        return tint_color(base, 0.70) if self.mode == "light" else shade_color(base, 0.50)
+
+    def border(self, token: ColorTokenType) -> str:
+        """Get the color for a border."""
+        base = self.color(token)
+        return tint_color(base, 0.30) if self.mode == "light" else tint_color(base, 0.60)
+
+    def emphasis(self, token: ColorTokenType) -> str:
+        """Get an emphasis color."""
+        base = self.color(token)
+        return shade_color(base, 0.60) if self.mode == "light" else shade_color(base, 0.30)
+
+    def surface_color(self, role: SurfaceRoleType) -> str:
+        """Return the surface color based on role"""
+        return {
+            "base": self.surface_base(),
+            "muted": self.surface_muted(),
+            "subtle": self.surface_subtle(),
+            "emphasis": self.surface_emphasis(),
+            "accent": self.surface_accent(),
+            "inverse": self.surface_inverse(),
+            "overlay": self.surface_overlay(),
+        }.get(role, self.surface_base())
+
+    def surface_base(self) -> str:
+        """Main surface (application background)."""
+        return self.color("background")
+
+    def surface_muted(self) -> str:
+        """Muted surface for content containers (cards, list rows)."""
+        bg = self.color("background")
+        return shade_color(bg, 0.97) if self.mode == "light" else tint_color(bg, 0.07)
+
+    def surface_subtle(self) -> str:
+        """Subtle elevation layer for grouped content."""
+        bg = self.color("background")
+        return shade_color(bg, 0.94) if self.mode == "light" else tint_color(bg, 0.10)
+
+    def surface_emphasis(self) -> str:
+        """Stronger surface for modals and foreground containers."""
+        bg = self.color("background")
+        return shade_color(bg, 0.88) if self.mode == "light" else tint_color(bg, 0.20)
+
+    def surface_accent(self) -> str:
+        """Accent surface based on primary role color."""
+        base = self.color("primary")
+        return tint_color(base, 0.15) if self.mode == "light" else tint_color(base, 0.65)
+
+    def surface_inverse(self) -> str:
+        """Surface with inverted background (e.g., footer or nav)."""
+        return self.color("foreground")
+
+    def surface_overlay(self) -> str:
+        """Overlay surface for dimming or modals."""
+        return "#00000080" if self.mode == "light" else "#FFFFFF33"
+
+    def on_surface(self) -> str:
+        """Get the default foreground color for content on the background surface."""
+        return best_foreground(self.color("background"))
+
+    def on_surface_medium(self) -> str:
+        """Get a muted foreground color for medium emphasis content."""
+        base = self.color("foreground")
+        return tint_color(base, 0.5 if self.mode == "light" else 1.5)
+
+    def on_surface_disabled(self) -> str:
+        """Get a disabled foreground color for content on surfaces."""
+        base = self.color("foreground")
+        return tint_color(base, 0.7 if self.mode == "light" else 0.4)
+
+    def on_surface_inverse(self) -> str:
+        """Get an inverse foreground color for surfaces with strong backgrounds."""
+        return best_foreground(self.color("background"))
