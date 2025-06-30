@@ -9,6 +9,8 @@ from ..exceptions import InvalidThemeError
 
 _registered_themes: dict[str, dict] = {}
 
+_current_theme: Optional["ColorTheme"] = None
+
 
 def register_user_theme(name: str, path: str):
     """Register a custom theme with a user-defined name.
@@ -169,7 +171,11 @@ Themes = Union[
 
 
 class ColorTheme:
-    """Encapsulates theme tokens and provides utilities for derived color states."""
+    """
+    Encapsulates theme tokens and provides utilities for derived color states.
+
+    Use ColorTheme.instance() to get the global singleton instance.
+    """
 
     def __init__(self, name: Themes = "light"):
         """Initialize the theme from a token dictionary.
@@ -203,6 +209,21 @@ class ColorTheme:
         register_user_theme(name, path)
 
     @staticmethod
+    def instance(name: Themes):
+        """Return the current global ColorTheme instance, initializing if necessary.
+
+        Args:
+            name: Optional theme name to load if not already initialized.
+
+        Returns:
+            A singleton ColorTheme instance.
+        """
+        global _current_theme
+        if _current_theme is None:
+            _current_theme = ColorTheme(name)
+        return _current_theme
+
+    @staticmethod
     def register_theme_definition(name: str, data: dict):
         """Register a new user defined theme from data object"""
         _registered_themes[name] = data
@@ -212,6 +233,10 @@ class ColorTheme:
         self._name = theme.get("name", "Unknown")
         self._mode = theme.get("mode", "light")
         self._tokens = theme.get("colors", {})
+
+        # sets base theme and generates <<ThemeChanged>> event
+        from tkinter.ttk import Style
+        Style().theme_use('clam')
 
     def color(self, token: ColorTokenType) -> str:
         """Get the hex value of a token."""
@@ -329,3 +354,5 @@ class ColorTheme:
 
     def __repr__(self):
         return f"<Theme name={self.name} mode={self.mode}>"
+
+load_default_themes()

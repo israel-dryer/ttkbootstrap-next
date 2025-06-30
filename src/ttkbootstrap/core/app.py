@@ -1,21 +1,26 @@
 from tkinter import Tk
-import tkinter as tk
-
+from ttkbootstrap.core.libtypes import ColorThemeType
+from ttkbootstrap.style.theme import ColorTheme
 from ttkbootstrap.style.typography import Typography
 
 
 class App:
 
-    def __init__(self, title="ttkbootstrap", use_default_fonts: bool = True):
+    def __init__(self, title="ttkbootstrap", theme: ColorThemeType = "light", use_default_fonts: bool = True):
         self._widget = Tk()
 
         # hide until ready to render
         self.widget.withdraw()
         self.widget.title(title)
+        self._theme = ColorTheme.instance(theme)
 
         # register fonts
         if use_default_fonts:
             Typography.use_fonts()
+
+    @property
+    def theme(self):
+        return self._theme
 
     @property
     def widget(self):

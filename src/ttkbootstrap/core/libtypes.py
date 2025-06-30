@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 
 BindScopeType = Literal['all', 'class', 'widget']
 TraceOperationType = Literal["array", "read", "write", "unset"]
@@ -10,3 +10,4 @@ ColorTokenType = Literal[
 ]
 SurfaceRoleType = Literal['base', 'muted', 'subtle', 'emphasis', 'accent', 'inverse', 'overlay']
 ColorShadeType = Literal[100, 200, 300, 400, 500, 600, 700, 800, 900]
+ColorThemeType = Union[Literal['light', 'dark'], str]
