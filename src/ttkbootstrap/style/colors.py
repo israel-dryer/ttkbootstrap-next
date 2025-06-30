@@ -1,8 +1,9 @@
 import json
 import importlib.resources as resources
-from typing import Literal
 
 from PIL import ImageColor
+
+from ..core.libtypes import ColorTokenType, SurfaceRoleType, ColorShadeType
 
 
 def load_json(filename: str, package: str = "ttkbootstrap.assets.themes") -> dict:
@@ -116,21 +117,10 @@ def best_foreground(bg_color: str, light: str = "#ffffff", dark: str = "#000000"
     return light if contrast_light > contrast_dark else dark
 
 
-ColorTokenType = Literal[
-    'primary', 'secondary', 'success', 'info', 'warning', 'danger',
-    'dark', 'light', 'blue', 'indigo', 'purple', 'red', 'orange',
-    'yellow', 'green', 'teal', 'cyan', 'white', 'black', 'gray',
-    'foreground', 'background'
-]
-
-SurfaceRoleType = Literal['base', 'muted', 'subtle', 'emphasis', 'accent', 'inverse', 'overlay']
-
-ColorShadeType = Literal[100, 200, 300, 400, 500, 600, 700, 800, 900]
-
 ColorProgression = (0.80, 0.60, 0.40, 0.20)
 
 
-class ColorTheme:
+class ColorTokens:
     """Encapsulates theme tokens and provides utilities for derived color states."""
 
     def __init__(self, theme: dict):

@@ -63,9 +63,9 @@ The `ColorTheme` class wraps a theme JSON object and provides:
 ### Example
 
 ```python
-from ttkbootstrap.style.theme import ColorTheme, load_json
+from ttkbootstrap.style.colors import ColorTokens, load_json
 
-theme = ColorTheme(load_json("light.json"))
+theme = ColorTokens(load_json("light.json"))
 print(theme.hovered("primary"))  # shaded blue
 print(theme.on_surface())  # "#fff" or "#000" based on contrast
 print(theme.surface_subtle())  # lightly tinted background
