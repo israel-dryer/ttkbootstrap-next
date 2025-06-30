@@ -1,12 +1,42 @@
 import json
 import importlib.resources as resources
+from typing import Optional, Union, Literal
 
 from PIL import ImageColor
 
 from ..core.libtypes import ColorTokenType, SurfaceRoleType, ColorShadeType
+from ..exceptions import InvalidThemeError
+
+_registered_themes: dict[str, dict] = {}
 
 
-def load_json(filename: str, package: str = "ttkbootstrap.assets.themes") -> dict:
+def register_user_theme(name: str, path: str):
+    """Register a custom theme with a user-defined name.
+
+    Args:
+        name: The name to associate with the theme.
+        path: The path to the user theme JSON file.
+    """
+    data = load_user_defined_theme(path)
+    _registered_themes[name] = data
+
+
+def get_theme(name: str):
+    if name in _registered_themes:
+        return _registered_themes[name]
+    else:
+        raise InvalidThemeError("Theme not registered or invalid", name)
+
+
+def load_default_themes():
+    for theme in ["dark.json", "light.json"]:
+        data = load_package_theme(theme)
+        name: Optional[str] = data.get('name', None)
+        if name is not None:
+            _registered_themes[name] = data
+
+
+def load_package_theme(filename: str, package: str = "ttkbootstrap.assets.themes") -> dict:
     """Load a JSON file from the given package.
 
     Args:
@@ -17,6 +47,19 @@ def load_json(filename: str, package: str = "ttkbootstrap.assets.themes") -> dic
         A dictionary of the parsed JSON data.
     """
     with resources.files(package).joinpath(filename).open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_user_defined_theme(path: str) -> dict:
+    """Load a JSON theme from a file path outside the package.
+
+    Args:
+        path: The absolute or relative path to the JSON theme file.
+
+    Returns:
+        A dictionary of the parsed theme JSON.
+    """
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -119,19 +162,56 @@ def best_foreground(bg_color: str, light: str = "#ffffff", dark: str = "#000000"
 
 ColorProgression = (0.80, 0.60, 0.40, 0.20)
 
+Themes = Union[
+    Literal['light', 'dark'],
+    str  # user defined themes
+]
 
-class ColorTokens:
+
+class ColorTheme:
     """Encapsulates theme tokens and provides utilities for derived color states."""
 
-    def __init__(self, theme: dict):
+    def __init__(self, name: Themes = "light"):
         """Initialize the theme from a token dictionary.
 
         Args:
-            theme: A dictionary containing 'name', 'mode', and 'colors'.
+            name: The theme name.
         """
-        self.name = theme.get("name", "Unknown")
-        self.mode = theme.get("mode", "light")
-        self.tokens = theme.get("colors", {})
+        self._name = "light"
+        self._mode = "light"
+        self._tokens = {}
+        self.use(name)
+
+    @property
+    def name(self):
+        """The theme name"""
+        return self._name
+
+    @property
+    def mode(self):
+        """indicates dark or light mode"""
+        return self._mode
+
+    @property
+    def tokens(self):
+        """A collection of theme color tokens"""
+        return self._tokens
+
+    @staticmethod
+    def register_theme_file(name: str, path: str):
+        """Register a new user defined theme from file source"""
+        register_user_theme(name, path)
+
+    @staticmethod
+    def register_theme_definition(name: str, data: dict):
+        """Register a new user defined theme from data object"""
+        _registered_themes[name] = data
+
+    def use(self, name: str):
+        theme = get_theme(name)
+        self._name = theme.get("name", "Unknown")
+        self._mode = theme.get("mode", "light")
+        self._tokens = theme.get("colors", {})
 
     def color(self, token: ColorTokenType) -> str:
         """Get the hex value of a token."""
@@ -246,3 +326,6 @@ class ColorTokens:
     def on_surface_inverse(self) -> str:
         """Get an inverse foreground color for surfaces with strong backgrounds."""
         return best_foreground(self.color("background"))
+
+    def __repr__(self):
+        return f"<Theme name={self.name} mode={self.mode}>"
