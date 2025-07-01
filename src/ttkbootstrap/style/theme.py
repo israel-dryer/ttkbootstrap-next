@@ -2,8 +2,8 @@ import json
 import importlib.resources as resources
 from typing import Optional, Union, Literal
 
-from PIL import ImageColor
-
+from .utils import darken_color, tint_color, shade_color, relative_luminance, best_foreground, lighten_color, \
+    should_darken, mix_colors
 from ..core.libtypes import ColorTokenType, SurfaceRoleType, ColorShadeType
 from ..exceptions import InvalidThemeError
 
@@ -65,104 +65,8 @@ def load_user_defined_theme(path: str) -> dict:
         return json.load(f)
 
 
-def mix_colors(color1: str, color2: str, weight: float) -> str:
-    """Mix two colors by weight.
-
-    Args:
-        color1: The foreground color in hex format (e.g., '#FF0000').
-        color2: The background color in hex format.
-        weight: A float from 0 to 1, where 1 favors color1 and 0 favors color2.
-
-    Returns:
-        A hex color string representing the mixed result.
-    """
-    r1, g1, b1 = ImageColor.getrgb(color1)
-    r2, g2, b2 = ImageColor.getrgb(color2)
-
-    r = round(r1 * weight + r2 * (1 - weight))
-    g = round(g1 * weight + g2 * (1 - weight))
-    b = round(b1 * weight + b2 * (1 - weight))
-
-    return f"#{r:02X}{g:02X}{b:02X}"
-
-
-def tint_color(color: str, base_weight: float) -> str:
-    """Tint a color by mixing it with white.
-
-    Args:
-        color: The base color in hex.
-        base_weight: Amount of base color to retain (0–1).
-
-    Returns:
-        A tinted hex color string.
-    """
-    return mix_colors("#ffffff", color, base_weight)
-
-
-def shade_color(color: str, base_weight: float) -> str:
-    """Shade a color by mixing it with black.
-
-    Args:
-        color: The base color in hex.
-        base_weight: Amount of base color to retain (0–1).
-
-    Returns:
-        A shaded hex color string.
-    """
-    return mix_colors("#000000", color, base_weight)
-
-
-def relative_luminance(hex_color: str) -> float:
-    """Calculate the relative luminance of a color.
-
-    Args:
-        hex_color: A hex color string.
-
-    Returns:
-        The luminance value from 0 (black) to 1 (white).
-    """
-    r, g, b = [x / 255 for x in ImageColor.getrgb(hex_color)]
-
-    def adjust(c):
-        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
-
-    r, g, b = adjust(r), adjust(g), adjust(b)
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-
-def contrast_ratio(color1: str, color2: str) -> float:
-    """Calculate the contrast ratio between two colors.
-
-    Args:
-        color1: First hex color.
-        color2: Second hex color.
-
-    Returns:
-        The contrast ratio as a float.
-    """
-    lum1 = relative_luminance(color1)
-    lum2 = relative_luminance(color2)
-    l1, l2 = max(lum1, lum2), min(lum1, lum2)
-    return (l1 + 0.05) / (l2 + 0.05)
-
-
-def best_foreground(bg_color: str, light: str = "#ffffff", dark: str = "#000000") -> str:
-    """Determine which foreground color has better contrast on a background.
-
-    Args:
-        bg_color: The background color in hex.
-        light: A light foreground candidate.
-        dark: A dark foreground candidate.
-
-    Returns:
-        The color with better contrast (either `light` or `dark`).
-    """
-    contrast_light = contrast_ratio(bg_color, light)
-    contrast_dark = contrast_ratio(bg_color, dark)
-    return light if contrast_light > contrast_dark else dark
-
-
-ColorProgression = (0.80, 0.60, 0.40, 0.20)
+TINT_WEIGHTS = (0.10, 0.25, 0.40, 0.55)
+SHADE_WEIGHTS = (0.90, 0.75, 0.60, 0.45)
 
 Themes = Union[
     Literal['light', 'dark'],
@@ -209,7 +113,7 @@ class ColorTheme:
         register_user_theme(name, path)
 
     @staticmethod
-    def instance(name: Themes):
+    def instance(name: Themes = "light"):
         """Return the current global ColorTheme instance, initializing if necessary.
 
         Args:
@@ -246,8 +150,8 @@ class ColorTheme:
         """Get the full color spectrum (tints, base, shades) for a token."""
         base = self.color(token)
         spectrum_names = [100, 200, 300, 400, 500, 600, 700, 800, 900]
-        tints = [tint_color(base, w) for w in ColorProgression]
-        shades = [shade_color(base, w) for w in reversed(ColorProgression)]
+        tints = [tint_color(base, w) for w in TINT_WEIGHTS]
+        shades = [shade_color(base, w) for w in SHADE_WEIGHTS]
         spectrum_colors = [*tints, base, *shades]
         return {name: color for name, color in zip(spectrum_names, spectrum_colors)}
 
@@ -255,35 +159,84 @@ class ColorTheme:
         """Get a specific color shade from the spectrum."""
         return self.spectrum(token)[shade]
 
-    def subtle(self, token: ColorTokenType) -> str:
-        """Get a subtle background tint for the token."""
-        base = self.color(token)
-        return tint_color(base, 0.20 if self.mode == "light" else 0.85)
+    def hovered(self, token: ColorTokenType):
+        """Boostrap style hover color"""
+        return self.state_color(token, "hover")
 
-    def hovered(self, token: ColorTokenType) -> str:
-        """Get the color for a hovered state."""
-        base = self.color(token)
-        return shade_color(base, 0.90) if self.mode == "light" else tint_color(base, 0.60)
-
-    def pressed(self, token: ColorTokenType) -> str:
-        """Get the color for a pressed state."""
-        base = self.color(token)
-        return shade_color(base, 0.80) if self.mode == "light" else tint_color(base, 0.40)
+    def pressed(self, token: ColorTokenType):
+        """Bootstrap style pressed color"""
+        return self.state_color(token, "active")
 
     def focused(self, token: ColorTokenType) -> str:
-        """Get the color for a focus ring."""
+        """Bootstrap-style focus color (darken 18%)"""
+        return self.state_color(token, 'focus')
+
+    def focused_border(self, token: ColorTokenType) -> str:
+        """Inner border color on focus (slightly adjusted for visibility)."""
         base = self.color(token)
-        return tint_color(base, 0.50) if self.mode == "light" else tint_color(base, 0.80)
+        lum = relative_luminance(base)
+        if self.mode == "dark":
+            # Lighten for dark tokens in dark theme
+            return lighten_color(base, 0.1)
+        else:
+            # Darken in light theme
+            return darken_color(base, 0.2 if lum > 0.5 else 0.1)
+
+    def focused_ring(self, token: ColorTokenType) -> str:
+        """Return a focus ring color with good contrast for the theme mode.
+
+        Light theme:
+            - Darken and mix with surface to create contrast.
+        Dark theme:
+            - Lighten and mix with surface to create contrast.
+        """
+        base = self.focused(token)
+        surface = self.surface_base()
+        lum = relative_luminance(base)
+
+        if self.mode == "dark":
+            # Brighten low-luminance colors for contrast on dark backgrounds
+            if lum < 0.3:
+                mixed = mix_colors(lighten_color(base, 0.2), surface, 0.2)
+            else:
+                mixed = mix_colors(base, surface, 0.3)
+        else:
+            # Darken high-luminance colors for contrast on light backgrounds
+            if lum > 0.5:
+                mixed = darken_color(mix_colors(base, surface, 0.2), 0.15)
+            else:
+                mixed = mix_colors(lighten_color(base, 0.25), surface, 0.25)
+
+        return mixed
+
+    def state_color(self, token: ColorTokenType, state: Literal["hover", "active", "focus"]) -> str:
+        """Return an adjusted button background color based on state and luminance.
+
+        Bootstrap lightens or darkens depending on base brightness:
+        - Light buttons darken on hover/active
+        - Dark buttons lighten on hover/active
+        """
+        base = self.color(token)
+        if state == "focus":
+            return base
+
+        delta = {
+            "hover": 0.08,
+            "active": 0.12,
+            "focus": 0.08
+        }[state]
+        lum = relative_luminance(base)
+        if lum < 0.5:
+            return lighten_color(base, delta)
+        return darken_color(base, delta)
 
     def disabled(self, token: ColorTokenType) -> str:
-        """Get the color for a disabled state."""
-        base = self.color(token)
-        return tint_color(base, 0.70) if self.mode == "light" else shade_color(base, 0.50)
+        return self.spectrum(token)[100 if self.mode == "light" else 900]
 
     def border(self, token: ColorTokenType) -> str:
-        """Get the color for a border."""
+        """Get the color for a border (Bootstrap-style: darken 20%)"""
         base = self.color(token)
-        return tint_color(base, 0.30) if self.mode == "light" else tint_color(base, 0.60)
+        return darken_color(base, 0.20)
 
     def emphasis(self, token: ColorTokenType) -> str:
         """Get an emphasis color."""
@@ -334,6 +287,11 @@ class ColorTheme:
         """Overlay surface for dimming or modals."""
         return "#00000080" if self.mode == "light" else "#FFFFFF33"
 
+    def on_color(self, token: ColorTokenType) -> str:
+        """Get a foreground color with best contrast for the given token background."""
+        bg = self.color(token)
+        return best_foreground(bg, self.color("background"), self.color("foreground"))
+
     def on_surface(self) -> str:
         """Get the default foreground color for content on the background surface."""
         return best_foreground(self.color("background"))
@@ -354,5 +312,6 @@ class ColorTheme:
 
     def __repr__(self):
         return f"<Theme name={self.name} mode={self.mode}>"
+
 
 load_default_themes()
