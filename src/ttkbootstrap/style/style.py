@@ -45,9 +45,11 @@ class Style:
         """Get or set style configuration options."""
         if lookup is not None:
             return self.ttk.configure(style, lookup)
-        else:
+        elif options:
             self.ttk.configure(style, **options)
             return self
+        else:
+            return self.ttk.configure(style)
 
     def map(self, style: str, lookup: str = None, **options):
         """Get or set dynamic state-based style options."""
@@ -57,9 +59,9 @@ class Style:
             self.ttk.map(style, **options)
             return self
 
-    def create_element(self, name: str, element_type: str, *args):
+    def create_element(self, name: str, element_type: str, *args, **kwargs):
         """Create a new element for use in a style layout."""
-        self.ttk.element_create(name, element_type, *args)
+        self.ttk.element_create(name, element_type, *args, **kwargs)
         return self
 
     def lookup_element_options(self, name: str):
@@ -72,4 +74,6 @@ class Style:
 
     def style_exists(self, style: str):
         """Return True if the style exists (has configuration data)."""
-        return bool(self.configure(style))
+
+        exists = bool(self.ttk.configure(style))
+        return exists
