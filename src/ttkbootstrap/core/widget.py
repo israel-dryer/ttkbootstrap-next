@@ -19,9 +19,11 @@ class BaseWidget(
 ):
     _widget: Union["BaseWidget", Misc]
 
-    def __init__(self, parent: Union["BaseWidget", Misc]):
+    def __init__(self, parent: Union["BaseWidget", Misc] = None, **kwargs):
         self._parent = parent
+        self._surface = kwargs.pop('surface', None)
         super().__init__()
+        self.bind('theme_changed', lambda _: self.update_style())
 
     @property
     def widget(self):
@@ -30,6 +32,10 @@ class BaseWidget(
     @property
     def tk(self):
         return self.widget.tk
+
+    @property
+    def surface(self):
+        return self._surface or self._parent.surface
 
     def is_ttk(self) -> bool:
         """Check if the underlying widget is a ttk widget.
@@ -55,24 +61,13 @@ class BaseWidget(
         """Apply theme styling"""
         if hasattr(self, "_style_builder"):
             if not self.is_ttk():
-                # background = self._style_builder.surface_color(self._layer)
-                # self.option(background=background)
+                background = self._style_builder.theme.surface_color(self.surface)
+                self.configure(background=background)
                 pass
             else:
-                # self._style_builder.level(self.layer)
-                # self._style_builder.theme(self.theme.name)
-                # style_name = self._style_builder.build()
-                # self.option(style=style_name)
-                pass
-
-    # def _get_background_color(self):
-    #     from tkinter.ttk import Style
-    #     style = Style()
-    #     if self.is_ttk():
-    #         ttk_style = self.widget.configure('background')
-    #         return style.configure(ttk_style, 'background')
-    #     else:
-    #         return self.widget.configure('background')
+                self._style_builder.surface(self.surface)
+                style_name = self._style_builder.build()
+                self.configure(style=style_name)
 
     def __str__(self):
         return str(self.widget)
