@@ -1,19 +1,41 @@
-from tkinter import ttk
-from typing import Optional, Union, List, Tuple, Iterable, Any
+from typing import Optional, Union, Tuple, Iterable, Any
 
 from ..core.image import ManagedImage
 
 
 class Element:
+    """
+    A style layout element for use in ttk-style widget construction.
+
+    Represents a named element within a widget layout. Each element can have
+    layout options (like `expand`, `side`, `sticky`, etc.) and nested children.
+
+    Attributes:
+        name (str): The name of this element (e.g., "Label.border").
+        parent (Optional[Element]): The parent element, if any.
+        _children (list[Element]): The list of child elements.
+        _options (dict): Layout configuration options for this element.
+    """
+
     def __init__(
             self,
             name: str,
             *,
-            expand: Optional[bool] = None,
+            expand: Optional[int] = None,
             side: Optional[str] = None,
             sticky: Optional[str] = None,
             border: Optional[int] = None,
     ):
+        """
+        Initialize a new layout Element.
+
+        Args:
+            name: The name of the element.
+            expand: Whether the element should expand to fill its parcel.
+            side: The side of the cavity to place the element.
+            sticky: How to align the element within its parcel (e.g., "nsew").
+            border: Border margin applied to the element.
+        """
         self.name = name
         self.parent: Optional[Element] = None
         self._children: list[Element] = []
@@ -24,15 +46,24 @@ class Element:
             "border": border,
         }
 
-    @property
-    def children(self) -> List["Element"]:
-        return self._children
-
     def add_parent(self, parent: "Element") -> None:
+        """
+        Set the parent element and register this element as its child.
+
+        Args:
+            parent: The parent Element to attach to.
+        """
         self.parent = parent
         parent._children.append(self)
 
-    def layout(self, layout: Iterable["Element"], style: ttk.Style) -> None:
+    def children(self, layout: Iterable["Element"]):
+        """
+        Add children to this layout
+
+        Args:
+            layout: A list of Elements or nested lists/tuples representing the hierarchy.
+        """
+
         def assign_parents(elements: Iterable[Any], parent: Optional[Element] = None):
             for i, item in enumerate(elements):
                 if isinstance(item, Element) and parent:
@@ -41,30 +72,41 @@ class Element:
                     assign_parents(item, elements[i - 1] if i > 0 else None)
 
         assign_parents(layout, self)
-        layout_script = self._to_script()
-        style.tk.call("ttk::style", "layout", self.name, layout_script)
+        return self
 
-    def _to_script(self) -> str:
-        return f"{{{self._element_script(self)}}}"
+    def spec(self):
+        """
+        Recursively build a Python layout spec compatible with ttk.Style().layout().
 
-    def _element_script(self, root: "Element") -> str:
-        tokens = [self.name]
-        for k, v in self._options.items():
-            if v is not None:
-                tokens.extend([f"-{k}", str(v).lower()])
+        Returns:
+            Tuple[str, dict]: A (name, options) pair for use in a layout tree.
+        """
+        options = {k: v for k, v in self._options.items() if v is not None}
 
-        if self.children:
-            tokens.append("-children")
-            children_scripts = [child._element_script(root) for child in self.children]
-            tokens.append(f"{{{''.join(f'{{{cs}}}' for cs in children_scripts)}}}")
-        return " ".join(tokens)
+        if self._children:
+            options["children"] = [child.spec() for child in self._children]
+
+        if options:
+            return self.name, options
+        else:
+            return (self.name,)
 
 
 class ElementImage:
+    """
+    An image-based element for styling ttk widgets.
+
+    Attributes:
+        _name (str): Name of the image element.
+        _image (str | ManagedImage): The default image.
+        _image_specs (list): List of state-specific overrides.
+        _options (dict): Element rendering options like width, padding, sticky, etc.
+    """
+
     def __init__(
             self,
             name: str,
-            image: Union[str, ManagedImage],
+            image: Union[ManagedImage, str],
             *,
             border: Optional[Union[int, Tuple[int, int]]] = None,
             height: Optional[int] = None,
@@ -72,6 +114,18 @@ class ElementImage:
             padding: Optional[Union[int, Tuple[int, ...]]] = None,
             sticky: Optional[str] = None,
     ):
+        """
+        Initialize a new image element.
+
+        Args:
+            name: The name of the element (e.g., "Button.border").
+            image: The default image object or image name.
+            border: Border definition for tiling/stretching (e.g., 2 or (2,2)).
+            height: Minimum height of the element.
+            width: Minimum width of the element.
+            padding: Interior padding within the element.
+            sticky: Alignment within the layout parcel (e.g., "nsew").
+        """
         self._name = name
         self._image = image
         self._image_specs: list[tuple[str, Union[str, ManagedImage]]] = []
@@ -85,29 +139,30 @@ class ElementImage:
 
     @property
     def name(self) -> str:
+        """
+        Return the name of the element.
+
+        Returns:
+            str: Element name.
+        """
         return self._name
 
     def add_spec(self, state: str, image: Union[str, ManagedImage]) -> None:
-        self._image_specs.append((state, image))
+        """
+        Add a state-specific image override.
 
-    def build(self, style: ttk.Style) -> None:
-        image_list = [str(self._image)]
-        for state, img in self._image_specs:
-            image_list.append(f"{{{state}}}")
-            image_list.append(str(img))
+        Args:
+            state: Widget state (e.g., "disabled", "active").
+            image: ManagedImage instance or registered image name.
+        """
+        self._image_specs.append((state, str(image)))
 
-        # Wrap in Tcl-style [list ...]
-        image_spec = style.tk.call("list", *image_list)
-
-        option_list = []
-        for k, v in self._options.items():
-            if v is not None:
-                val = " ".join(map(str, v)) if isinstance(v, (list, tuple)) else str(v)
-                option_list.extend(["-" + k, f"{{{val}}}"])
-
-        style.tk.call(
-            "ttk::style", "element", "create", self._name, "image", image_spec, *option_list
-        )
+    def build(self):
+        args: list[Any] = [str(self._image)]
+        for state, image in self._image_specs:
+            args.append(tuple([state, str(image)]))
+        options = {k: v for k, v in self._options.items() if v is not None}
+        return self.name, args, options
 
     def state_specs(self, specs: list[Tuple[str, Union[str, ManagedImage]]]):
         for spec in specs:
@@ -116,8 +171,3 @@ class ElementImage:
 
     def __str__(self) -> str:
         return self.name
-
-    def __call__(self, *specs: Tuple[str, Union[str, ManagedImage]]):
-        for spec in specs:
-            self.add_spec(*spec)
-        return self
