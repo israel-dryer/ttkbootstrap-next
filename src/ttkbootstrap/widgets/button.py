@@ -3,6 +3,7 @@ from typing import Callable, Optional
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
+from ..style.builders.button import ButtonStyleBuilder
 
 
 class Button(BaseWidget):
@@ -16,9 +17,11 @@ class Button(BaseWidget):
             self,
             parent,
             text: str,
+            color: str = "primary",
+            size: str = "md",
+            variant: str = "solid",
             icon: str = None,
-            color: str = None,
-            variant: str = None,
+            surface: str = "base",
             on_click: Callable = None,
             **kwargs
     ):
@@ -31,6 +34,7 @@ class Button(BaseWidget):
             icon: Optional icon identifier (not implemented).
             color: Optional color role.
             variant: Optional style variant.
+            size: Optional size.
             on_click: Callback function for click events.
             **kwargs: Additional ttk.Button options.
         """
@@ -40,7 +44,11 @@ class Button(BaseWidget):
 
         self._color = color
         self._variant = variant
+        self._size = size
         self._icon = icon
+        self._surface = surface
+
+        self._style_builder = ButtonStyleBuilder(color, variant, surface, size, icon)
 
         self._widget = ttk.Button(
             parent,
