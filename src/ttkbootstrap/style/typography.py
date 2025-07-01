@@ -34,6 +34,7 @@ class FontTokenNames:
     heading_xl: str = "heading_xl"
     heading_lg: str = "heading_lg"
     heading_md: str = "heading_md"
+    body_xl: str = "body_xl"
     body_lg: str = "body_lg"
     body: str = "body"
     body_sm: str = "body_sm"
@@ -47,6 +48,7 @@ class FontTokens(NamedTuple):
     heading_xl: FontSpec
     heading_lg: FontSpec
     heading_md: FontSpec
+    body_xl: FontSpec
     body_lg: FontSpec
     body: FontSpec
     body_sm: FontSpec
@@ -70,16 +72,17 @@ DEFAULT_FONT_TOKENS = FontTokens(
     heading_xl=FontSpec("Segoe UI", 16, "bold", 32),
     heading_lg=FontSpec("Segoe UI", 14, "bold", 28),
     heading_md=FontSpec("Segoe UI", 12, "bold", 24),
-    body_lg=FontSpec("Segoe UI", 11, "normal", 20),
-    body=FontSpec("Segoe UI", 10, "normal", 16),
-    body_sm=FontSpec("Segoe UI", 9, "normal", 14),
+    body_sm=FontSpec("Segoe UI", 10, "normal", 14),
+    body = FontSpec("Segoe UI", 11, "normal", 16),
+    body_lg = FontSpec("Segoe UI", 12, "normal", 18),
+    body_xl = FontSpec("Segoe UI", 13, "normal", 20),
     label=FontSpec("Segoe UI", 9, "bold", 14),
     caption=FontSpec("Segoe UI", 8, "normal", 12),
 )
 
 TK_FONT_OVERRIDES = {
-    "TkDefaultFont": "body",
-    "TkTextFont": "body_lg",
+    "TkDefaultFont": "body_lg",
+    "TkTextFont": "body",
     "TkHeadingFont": "heading_md",
     "TkCaptionFont": "caption",
     "TkFixedFont": "body_sm",

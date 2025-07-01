@@ -78,7 +78,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         disabled_img = recolor_image(f'btn-{self.size()}', disabled, disabled, surface)
 
         self.create_element(
-            ElementImage(f'{ttk_style}.border', normal_img, sticky="nsew", border=4, padding=6).state_specs(
+            ElementImage(f'{ttk_style}.border', normal_img, sticky="nsew", border=8, padding=6).state_specs(
                 [
                     ('disabled', disabled_img),
                     ('focus pressed', focused_pressed_img),
@@ -94,7 +94,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
             ])
         ]))
 
-        self.configure(ttk_style, background=surface, foreground=foreground)
+        self.configure(ttk_style, background=surface, foreground=foreground, font=get_font(self.size()))
         self.map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[])
 
     def outline_button(self):
@@ -120,3 +120,11 @@ def button_padding(size: str) -> tuple[int, int]:
         return 12, 4
     else:
         return 12, 12
+
+def get_font(size: str):
+    if size == "sm":
+        return "body"
+    elif size == "lg":
+        return "body_xl"
+    else:
+        return "body_lg"
