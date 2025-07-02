@@ -1,7 +1,9 @@
+from tkinter.font import nametofont
+
 from .base import StyleBuilderBase
 from ..element import Element, ElementImage
 from ..utils import recolor_image
-from ...core.image import ManagedImage
+from ...icons import BootstrapIcon
 
 _images = []
 
@@ -9,16 +11,26 @@ _images = []
 class ButtonStyleBuilder(StyleBuilderBase):
 
     def __init__(
-            self, color: str = "primary", variant: str = "solid", surface: str = None, size: str = "md",
-            icon: str = None):
+            self,
+            color: str = "primary",
+            variant: str = "solid",
+            surface: str = None,
+            size: str = "md"
+    ):
         super().__init__(
             "TButton",
             surface=surface,
             color=color,
             variant=variant,
-            size=size,
-            icon=icon
+            size=size
         )
+        self._stateful_icons: dict[str, BootstrapIcon] = dict()
+
+    @property
+    def stateful_icons(self):
+        return self._stateful_icons
+
+    # ----- style builder options ------
 
     def color(self, value: str = None):
         if value is None:
@@ -41,12 +53,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
             self.options.update(size=value)
             return self
 
-    def icon(self, value: str = None):
-        if value is None:
-            return self.options.get('icon', None)
-        else:
-            self.options.update(icon=value)
-            return self
+    # ----- variant style builders ------
 
     def register_style(self):
         if self.variant() == 'solid':
@@ -69,16 +76,20 @@ class ButtonStyleBuilder(StyleBuilderBase):
         disabled = self.theme.disabled(self.color())
         surface = self.theme.surface_color(self.surface())
 
+        # button element images
         normal_img = recolor_image(f'btn-{self.size()}', normal, normal, surface)
         pressed_img = recolor_image(f'btn-{self.size()}', pressed, pressed, surface)
         hovered_img = recolor_image(f'btn-{self.size()}', hovered, hovered, surface)
         focused_img = recolor_image(f'btn-{self.size()}', focused, focused_border, focused_ring)
         focused_hovered_img = recolor_image(f'btn-{self.size()}', hovered, focused_border, focused_ring)
         focused_pressed_img = recolor_image(f'btn-{self.size()}', pressed, focused_border, focused_ring)
-        disabled_img = recolor_image(f'btn-{self.size()}', disabled, disabled, surface)
+        disabled_img = recolor_image(f'btn-{self.size()}', disabled, disabled, surface, surface)
+        btn_padding = self.button_img_border()
 
+        # button element
         self.create_element(
-            ElementImage(f'{ttk_style}.border', normal_img, sticky="nsew", border=8, padding=6).state_specs(
+            ElementImage(
+                f'{ttk_style}.border', normal_img, sticky="nsew", border=btn_padding, padding=btn_padding).state_specs(
                 [
                     ('disabled', disabled_img),
                     ('focus pressed', focused_pressed_img),
@@ -88,14 +99,16 @@ class ButtonStyleBuilder(StyleBuilderBase):
                     ('hover', hovered_img),
                 ]))
 
-        self.style_layout(ttk_style, Element(f"{ttk_style}.border", sticky="nsew").children([
-            Element("Button.padding", sticky="nsew").children([
-                Element("Button.label", sticky="nsew", expand=1)
-            ])
-        ]))
+        self.create_button_style()
+        self.configure(
+            ttk_style,
+            background=surface,
+            foreground=foreground,
+            padding=self.button_padding(),
+            relief='flat',
+            font=self.get_font())
 
-        self.configure(ttk_style, background=surface, foreground=foreground, font=get_font(self.size()))
-        self.map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[])
+        self.map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[('disabled', disabled)])
 
     def outline_button(self):
         pass
@@ -103,28 +116,63 @@ class ButtonStyleBuilder(StyleBuilderBase):
     def link_button(self):
         pass
 
+    # ----- Button Style Utilities -----
 
-def label_sticky(size: str):
-    """Calculate label sticky based on button size"""
-    return "w" if size in ['sm', 'md'] else "nw"
+    def create_button_style(self):
+        ttk_style = self.resolve_name()
+        self.style_layout(
+            ttk_style, Element(f"{ttk_style}.border", sticky="nsew").children(
+                [
+                    Element("Button.padding", sticky="nsew").children(
+                        [
+                            Element("Button.label", sticky="")
+                        ])
+                ]))
 
+    def build_solid_icon_assets(self, icon: str):
+        foreground = self.theme.on_color(self.color())
+        foreground_disabled = self.theme.on_surface_disabled()
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground)
+        self.create_icon_asset(icon, 'pressed', foreground)
+        self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
-def icon_sticky(size: str):
-    """Calculate icon sticky based on button size"""
-    return "e" if size in ['sm', 'md'] else "ne"
+    def create_icon_asset(self, icon: str, state: str, color: str):
+        # create stateful icons to be mapped by the buttons event handling logic
+        self._stateful_icons[state] = BootstrapIcon(icon, self.icon_font_size(), color)
 
+    def button_padding(self) -> tuple[int, int] | tuple[int, int, int, int]:
+        """Calculate button padding based on button size"""
+        size = self.size()
+        if size == "sm":
+            return 0, 0
+        elif size == "md":
+            return 0, 0
+        else:
+            return 0, 0
 
-def button_padding(size: str) -> tuple[int, int]:
-    """Calculate button padding based on button size"""
-    if size == "sm":
-        return 12, 4
-    else:
-        return 12, 12
+    def icon_font_size(self) -> int:
+        """Return the icon size scaled from font size."""
+        factor = 0.72
+        fnt = self.get_font()
+        font_size = fnt.metrics('linespace')
+        return int(font_size * factor)
 
-def get_font(size: str):
-    if size == "sm":
-        return "body"
-    elif size == "lg":
-        return "body_xl"
-    else:
-        return "body_lg"
+    def get_font(self):
+        size = self.size()
+        if size == "sm":
+            return nametofont("body")
+        elif size == "lg":
+            return nametofont("body_xl")
+        else:
+            return nametofont("body_lg")
+
+    def button_img_border(self):
+        size = self.size()
+        if size == "sm":
+            return 6
+        elif size == "md":
+            return 8
+        else:
+            return 10
