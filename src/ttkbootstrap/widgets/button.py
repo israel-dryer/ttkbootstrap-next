@@ -173,8 +173,6 @@ class Button(BaseWidget):
     def _toggle_disable_icon(self, disable=True):
         icons = self._style_builder.stateful_icons
         if disable:
-            print('disabled_icon', icons['disabled'], self)
             self.configure(image=icons['disabled'])
         else:
-            print('regular_icon', icons['normal'])
             self.configure(image=icons['normal'])
