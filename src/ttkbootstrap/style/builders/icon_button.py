@@ -111,7 +111,57 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         self.map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[('disabled', disabled)])
 
     def outline_button(self):
-        pass
+        ttk_style = self.resolve_name()
+        foreground = self.theme.color(self.color())
+        foreground_disabled = self.theme.disabled(self.color())
+        foreground_active = self.theme.on_color(self.color())
+        normal = self.theme.surface_color(self.surface())
+        disabled = foreground_disabled
+        pressed = self.theme.hovered(self.color())
+        focused = hovered = pressed
+        focused_ring = self.theme.focused_ring(self.color())
+        focused_border = self.theme.focused_border(self.color())
+        surface = self.theme.surface_color(self.surface())
+
+        # button element images
+        normal_img = recolor_image(f'icon-btn-{self.size()}', normal, foreground, surface)
+        pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, pressed, surface)
+        hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, hovered, surface)
+        focused_img = recolor_image(f'icon-btn-{self.size()}', focused, focused_border, focused_ring)
+        focused_hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, focused_border, focused_ring)
+        focused_pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, focused_border, focused_ring)
+        disabled_img = recolor_image(f'icon-btn-{self.size()}', surface, disabled, surface, surface)
+        btn_padding = self.button_img_border()
+
+        # button element
+        self.create_element(
+            ElementImage(
+                f'{ttk_style}.border', normal_img, sticky="nsew", border=btn_padding, padding=btn_padding).state_specs(
+                [
+                    ('disabled', disabled_img),
+                    ('focus pressed', focused_pressed_img),
+                    ('focus hover', focused_hovered_img),
+                    ('focus', focused_img),
+                    ('pressed', pressed_img),
+                    ('hover', hovered_img),
+                ]))
+
+        self.create_button_style()
+        self.configure(
+            ttk_style,
+            background=surface,
+            foreground=foreground,
+            padding=self.button_padding(),
+            relief='flat',
+            font=self.get_font())
+
+        self.map(
+            ttk_style,
+            foreground=[
+                ('disabled', foreground_disabled),
+                ('focus', foreground_active),
+                ('hover', foreground_active),
+            ], background=[('disabled', surface)])
 
     def link_button(self):
         pass
@@ -129,6 +179,12 @@ class IconButtonStyleBuilder(StyleBuilderBase):
                         ])
                 ]))
 
+    def build_icon_assets(self, icon: str):
+        if self.variant() == 'solid':
+            self.build_solid_icon_assets(icon)
+        elif self.variant() == 'outline':
+            self.build_outline_icon_assets(icon)
+
     def build_solid_icon_assets(self, icon: str):
         foreground = self.theme.on_color(self.color())
         foreground_disabled = self.theme.on_surface_disabled()
@@ -136,6 +192,16 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'hover', foreground)
         self.create_icon_asset(icon, 'pressed', foreground)
         self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground_disabled)
+
+    def build_outline_icon_assets(self, icon: str):
+        foreground = self.theme.color(self.color())
+        foreground_disabled = self.theme.disabled(self.color())
+        foreground_active = self.theme.on_color(self.color())
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground_active)
+        self.create_icon_asset(icon, 'pressed', foreground_active)
+        self.create_icon_asset(icon, 'focus', foreground_active)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def create_icon_asset(self, icon: str, state: str, color: str):

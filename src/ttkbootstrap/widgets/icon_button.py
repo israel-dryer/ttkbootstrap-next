@@ -56,6 +56,10 @@ class IconButton(BaseWidget):
         super().__init__(parent)
         self._update_icon_assets()
 
+    def is_disabled(self):
+        """Indicates if button is in a disabled state"""
+        return "disabled" in self.widget.state()
+
     def on_click(self, func: Callable = None):
         """Get or set the button click handler."""
         if func is None:
@@ -120,11 +124,10 @@ class IconButton(BaseWidget):
             self._bind_stateful_icons()
 
     def _update_icon_assets(self):
-        self._style_builder.build_solid_icon_assets(self._icon)
+        self._style_builder.build_icon_assets(self._icon)
         if not self._stateful_icons_bound:
             self._bind_stateful_icons()
-        disabled = 'disabled' in self.widget.state()
-        self._toggle_disable_icon(disabled)
+        self._toggle_disable_icon(self.is_disabled())
 
     def _bind_stateful_icons(self):
         if self._stateful_icons_bound:
@@ -132,11 +135,29 @@ class IconButton(BaseWidget):
         icons = self._style_builder.stateful_icons
         self.configure(image=icons['normal'])
 
-        on_enter = lambda _: None if "disabled" in self.widget.state() else self.configure(image=icons['hover'])
-        on_leave = lambda _: None if "disabled" in self.widget.state() else self.configure(image=icons['normal'])
-        on_press = lambda _: None if "disabled" in self.widget.state() else self.configure(image=icons['pressed'])
-        on_focus_in = lambda _: None if "disabled" in self.widget.state() else self.configure(image=icons['focus'])
-        on_focus_out = lambda _: None if "disabled" in self.widget.state() else self.configure(image=icons['normal'])
+        def on_enter(_):
+            if self.is_disabled(): return
+            self.configure(image=icons['hover'])
+
+        def on_leave(_):
+            if self.is_disabled():
+                return
+            elif self.has_focus():
+                self.configure(image=icons['focus'])
+            else:
+                self.configure(image=icons['normal'])
+
+        def on_press(_):
+            if self.is_disabled(): return
+            self.configure(image=icons['pressed'])
+
+        def on_focus_in(_):
+            if self.is_disabled(): return
+            self.configure(image=icons['focus'])
+
+        def on_focus_out(_):
+            if self.is_disabled(): return
+            self.configure(image=icons['normal'])
 
         self.bind('<Enter>', on_enter)
         self.bind('<Leave>', on_leave)
@@ -146,8 +167,8 @@ class IconButton(BaseWidget):
         self._stateful_icons_bound = True
 
         # set disabled state
-        if 'disabled' in self.widget.state():
-            self.configure(image=icons['disabled'], compound="left")
+        if self.is_disabled():
+            self.configure(image=icons['disabled'])
 
     def _toggle_disable_icon(self, disable=True):
         icons = self._style_builder.stateful_icons
