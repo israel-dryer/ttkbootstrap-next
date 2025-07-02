@@ -7,14 +7,13 @@ from typing import Any, Optional
 from PIL import Image, ImageDraw, ImageFont
 from importlib.resources import files
 
-from PIL.ImageTk import PhotoImage
-
+from ttkbootstrap.core.image import ManagedImage
 from ttkbootstrap.logger import logger
 
 _transparent_image_cache = {}
 
 
-def create_transparent_icon(size: int = 16) -> PhotoImage:
+def create_transparent_icon(size: int = 16) -> ManagedImage:
     """
     Create a fully transparent PIL image of the given size.
 
@@ -27,9 +26,8 @@ def create_transparent_icon(size: int = 16) -> PhotoImage:
     if size in _transparent_image_cache:
         return _transparent_image_cache.get(size)
     else:
-
-        img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        pm = PhotoImage(image=img)
+        img = Image.new("RGBA", (size, size), (255, 0, 0, 0))
+        pm = ManagedImage(image=img)
         _transparent_image_cache[size] = pm
         return pm
 
@@ -37,7 +35,7 @@ def create_transparent_icon(size: int = 16) -> PhotoImage:
 class Icon(ABC):
     _icon_map: dict[str, str] = {}
     _font_path: Optional[str] = None
-    _cache: dict[tuple[str, int, str, str], PhotoImage] = {}
+    _cache: dict[tuple[str, int, str, str], ManagedImage] = {}
     _initialized: bool = False
     _icon_set: str = ""
 
@@ -56,7 +54,7 @@ class Icon(ABC):
         self.name = name
         self.size = size
         self.color = color
-        self._img: Optional[PhotoImage] = self._render()
+        self._img: Optional[ManagedImage] = self._render()
 
     @property
     def image(self):
@@ -111,7 +109,7 @@ class Icon(ABC):
         cls._font_path = font_path
         cls._initialized = True
 
-    def _render(self) -> PhotoImage:
+    def _render(self) -> ManagedImage:
         """
         Render the icon as a `PhotoImage`, using PIL and caching the result.
 
@@ -145,7 +143,7 @@ class Icon(ABC):
 
         draw.text((dx, dy), glyph, font=font, fill=self.color)
 
-        tk_img = PhotoImage(image=img)
+        tk_img = ManagedImage(image=img)
         Icon._cache[key] = tk_img
         return tk_img
 
