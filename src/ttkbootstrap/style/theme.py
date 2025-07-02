@@ -234,7 +234,7 @@ class ColorTheme:
         return darken_color(base, delta)
 
     def disabled(self, token: ColorTokenType) -> str:
-        return self.spectrum(token)[100 if self.mode == "light" else 900]
+        return self.spectrum(token)[300 if self.mode == "light" else 700]
 
     def border(self, token: ColorTokenType) -> str:
         """Get the color for a border (Bootstrap-style: darken 20%)"""
@@ -307,7 +307,7 @@ class ColorTheme:
     def on_surface_disabled(self) -> str:
         """Get a disabled foreground color for content on surfaces."""
         base = self.color("foreground")
-        return tint_color(base, 0.7 if self.mode == "light" else 0.4)
+        return tint_color(base, 0.9 if self.mode == "light" else 0.1)
 
     def on_surface_inverse(self) -> str:
         """Get an inverse foreground color for surfaces with strong backgrounds."""
