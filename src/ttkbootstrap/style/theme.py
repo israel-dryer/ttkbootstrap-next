@@ -137,8 +137,11 @@ class ColorTheme:
         self._name = theme.get("name", "Unknown")
         self._mode = theme.get("mode", "light")
         self._tokens = theme.get("colors", {})
+        self.update_theme_styles()
 
-        # sets base theme and generates <<ThemeChanged>> event
+    @staticmethod
+    def update_theme_styles():
+        """Trigger a style update on all widgets"""
         from tkinter.ttk import Style
         Style().theme_use('clam')
 

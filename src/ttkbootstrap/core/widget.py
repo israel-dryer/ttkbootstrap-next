@@ -20,10 +20,14 @@ class BaseWidget(
     _widget: Union["BaseWidget", Misc]
 
     def __init__(self, parent: Union["BaseWidget", Misc] = None, **kwargs):
-        self._parent = parent
-        self._surface = kwargs.pop('surface', None)
         super().__init__()
+        self._parent = parent
+        self._surface_token = None if parent is None else parent.surface_token
         self.bind('theme_changed', lambda _: self.update_style())
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def widget(self):
@@ -34,8 +38,11 @@ class BaseWidget(
         return self.widget.tk
 
     @property
-    def surface(self):
-        return self._surface or self._parent.surface
+    def surface_token(self):
+        if self._surface_token is None:
+            return self._surface_token
+        else:
+            return self._parent.surface_token
 
     def is_ttk(self) -> bool:
         """Check if the underlying widget is a ttk widget.
@@ -60,13 +67,11 @@ class BaseWidget(
     def update_style(self):
         """Apply theme styling"""
         if hasattr(self, "_style_builder"):
-            if not self.is_ttk():
-                background = self._style_builder.theme.surface_color(self.surface)
-                self.configure(background=background)
+            self._style_builder.surface(self.surface_token)
+            style_name = self._style_builder.build()
+            if "tkinter" in style_name:
                 pass
             else:
-                self._style_builder.surface(self.surface)
-                style_name = self._style_builder.build()
                 self.configure(style=style_name)
 
     def __str__(self):

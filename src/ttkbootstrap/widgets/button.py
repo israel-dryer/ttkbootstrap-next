@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import Callable, Optional, Literal
+from typing import Callable, Optional
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
@@ -47,8 +47,8 @@ class Button(BaseWidget):
         self._icon = icon
         self._surface = surface
         self._stateful_icons_bound = False
+        self._style_builder = ButtonStyleBuilder(color, variant, size)
 
-        self._style_builder = ButtonStyleBuilder(color, variant, surface, size)
 
         compound = kwargs.pop('compound', "left" if icon else "text")
 

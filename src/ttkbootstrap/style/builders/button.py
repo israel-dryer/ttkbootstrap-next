@@ -14,15 +14,15 @@ class ButtonStyleBuilder(StyleBuilderBase):
             self,
             color: str = "primary",
             variant: str = "solid",
-            surface: str = None,
-            size: str = "md"
+            size: str = "md",
+            **kwargs
     ):
         super().__init__(
             "TButton",
-            surface=surface,
             color=color,
             variant=variant,
-            size=size
+            size=size,
+            **kwargs
         )
         self._stateful_icons: dict[str, BootstrapIcon] = dict()
 

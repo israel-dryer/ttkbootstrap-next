@@ -5,9 +5,9 @@ from ..theme import ColorTheme
 
 class StyleBuilderBase:
 
-    def __init__(self, target_style: str, surface: str = None, **options):
+    def __init__(self, target_style: str, **options):
         self._target = target_style
-        self._surface = surface or "base"
+        self._surface = "base"
         self._theme = ColorTheme.instance()
         self._style = Style()
         self.options = options or dict()
@@ -36,7 +36,10 @@ class StyleBuilderBase:
     def build(self):
         """Build and return style name"""
         name = self.resolve_name()
-        if not self.exists():
+        if name == "tkinter":
+            self.register_style()
+            return name
+        elif not self.exists():
             self.register_style()
         return name
 
