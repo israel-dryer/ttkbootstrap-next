@@ -65,6 +65,7 @@ class Button(BaseWidget):
         self._update_icon_assets()
 
     def is_disabled(self):
+        """Indicates if button is in a disabled state"""
         return "disabled" in self.widget.state()
 
     def on_click(self, func: Callable = None):
@@ -161,8 +162,7 @@ class Button(BaseWidget):
             self._style_builder.build_icon_assets(self._icon)
             if not self._stateful_icons_bound:
                 self._bind_stateful_icons()
-            disabled = 'disabled' in self.widget.state()
-            self._toggle_disable_icon(disabled)
+            self._toggle_disable_icon(self.is_disabled())
 
     def _bind_stateful_icons(self):
         if self._stateful_icons_bound:
