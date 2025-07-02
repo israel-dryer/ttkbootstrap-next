@@ -251,12 +251,13 @@ def open_image(name: str) -> Image.Image:
 
 
 def recolor_image(
-        name: str,
-        white_color: str,
-        black_color: str = "#ffffff",
-        magenta_color: str | None = None,
-        *,
-        scale: float = 0.5
+    name: str,
+    white_color: str,
+    black_color: str = "#ffffff",
+    magenta_color: str | None = None,
+    transparent_color: str | None = None,
+    *,
+    scale: float = 0.5,
 ) -> ManagedImage:
     """
     Recolor a white-layout PNG image using luminance interpolation.
@@ -267,17 +268,18 @@ def recolor_image(
         black_color: Replace black with this color (hex string)
         magenta_color: Replace magenta (#ff00ff) with this color, if provided
         scale: Optional scaling factor for output image
+        transparent_color: Fill fully transparent areas with this color
 
     Returns:
         A ChromaTk-compatible PhotoImage object.
     """
     img = open_image(name)
     gray = ImageOps.grayscale(img)
-    alpha = img.getchannel("A")
 
     fg_rgb = color_to_rgb(white_color)
     bg_rgb = color_to_rgb(black_color)
     mag_rgb = color_to_rgb(magenta_color) if magenta_color else None
+    trans_rgb = color_to_rgb(transparent_color) if transparent_color else None
 
     result = Image.new("RGBA", img.size)
     src_pixels = img.load()
@@ -286,13 +288,30 @@ def recolor_image(
     for y in range(img.height):
         for x in range(img.width):
             r_src, g_src, b_src, a = src_pixels[x, y]
+
+            if a == 0:
+                if trans_rgb:
+                    dst_pixels[x, y] = (*trans_rgb, 255)
+                else:
+                    dst_pixels[x, y] = (0, 0, 0, 0)
+                continue
+
+            alpha_frac = a / 255.0
+
             if mag_rgb and (r_src, g_src, b_src) == (255, 0, 255):
-                dst_pixels[x, y] = (*mag_rgb, a)
+                r, g, b = mag_rgb
             else:
                 lum = gray.getpixel((x, y)) / 255.0
                 r = round(bg_rgb[0] + (fg_rgb[0] - bg_rgb[0]) * lum)
                 g = round(bg_rgb[1] + (fg_rgb[1] - bg_rgb[1]) * lum)
                 b = round(bg_rgb[2] + (fg_rgb[2] - bg_rgb[2]) * lum)
+
+            if trans_rgb:
+                r_final = round(trans_rgb[0] * (1 - alpha_frac) + r * alpha_frac)
+                g_final = round(trans_rgb[1] * (1 - alpha_frac) + g * alpha_frac)
+                b_final = round(trans_rgb[2] * (1 - alpha_frac) + b * alpha_frac)
+                dst_pixels[x, y] = (r_final, g_final, b_final, 255)
+            else:
                 dst_pixels[x, y] = (r, g, b, a)
 
     if scale != 1.0:
@@ -301,7 +320,9 @@ def recolor_image(
             max(1, int(result.height * scale))
         )
         result = result.resize(new_size, Image.Resampling.LANCZOS)
+
     return ManagedImage(image=result)
+
 
 def should_darken(bg_hex: str) -> bool:
     """Determine whether to darken or lighten based on luminance and saturation."""
