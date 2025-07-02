@@ -212,6 +212,17 @@ class ColorTheme:
 
         return mixed
 
+    def subtle(self, token: ColorTokenType, surface: str) -> str:
+        """Return a subtle background color for the given token.
+
+        This is used for low-emphasis states like ghost button hovers.
+        """
+        base = self.color(token)
+        if self.mode == "light":
+            return tint_color(base, 0.95)  # very light tint toward white
+        else:
+            return mix_colors(surface, base, 0.90)  # mostly surface, hint of token
+
     def state_color(self, token: ColorTokenType, state: Literal["hover", "active", "focus"]) -> str:
         """Return an adjusted button background color based on state and luminance.
 
