@@ -23,7 +23,6 @@ ac = Button(app, "Accent Bg", color="info").pack(padx=16, pady=16)
 lt = Button(app, "Light", color="light", size="sm").pack(padx=16, pady=16)
 tb = Button(app, "Dark", color="dark", variant="ghost").pack(padx=16, pady=16)
 
-
 tb.on_click(lambda: app.theme.use('dark'))
 lt.on_click(lambda: app.theme.use('light'))
 
