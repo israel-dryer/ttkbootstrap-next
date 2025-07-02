@@ -89,7 +89,7 @@ class Element:
         if options:
             return self.name, options
         else:
-            return (self.name,)
+            return self.name, {"sticky": ""}
 
 
 class ElementImage:
