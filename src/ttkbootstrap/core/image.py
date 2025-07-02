@@ -1,5 +1,4 @@
 from PIL import ImageTk
-import weakref
 
 
 class ManagedImage(ImageTk.PhotoImage):
