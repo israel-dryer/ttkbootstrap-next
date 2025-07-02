@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import Callable, Optional
+from typing import Callable, Optional, Literal
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
@@ -11,7 +11,7 @@ class Button(BaseWidget):
     A styled Button widget with fluent configuration and reactive text binding.
     """
 
-    _configure_methods = {"text", "text_signal", "on_click", "icon", "color", "variant"}
+    _configure_methods = {"text", "text_signal", "on_click", "icon", "icon_position", "color", "variant"}
 
     def __init__(
             self,
@@ -21,6 +21,7 @@ class Button(BaseWidget):
             size: str = "md",
             variant: str = "solid",
             icon: str = None,
+            icon_position: Literal['left', 'right'] = 'left',
             surface: str = "base",
             on_click: Callable = None,
             **kwargs
@@ -35,6 +36,7 @@ class Button(BaseWidget):
             variant: Optional style variant.
             size: Optional size.
             icon: Optional icon identifier.
+            icon_position: The position of the icon in the button.
             on_click: Callback function for click events.
             **kwargs: Additional ttk.Button options.
         """
@@ -45,17 +47,15 @@ class Button(BaseWidget):
         self._variant = variant
         self._size = size
         self._icon = icon
+        self._icon_position = icon_position
         self._surface = surface
         self._stateful_icons_bound = False
         self._style_builder = ButtonStyleBuilder(color, variant, size)
 
-
-        compound = kwargs.pop('compound', "left" if icon else "text")
-
         self._widget = ttk.Button(
             parent,
             command=on_click,
-            compound=compound,
+            compound=self._icon_position if self._icon else "text",
             textvariable=self._text_signal.name,
             **kwargs
         )
@@ -94,6 +94,15 @@ class Button(BaseWidget):
         else:
             self._icon = value
             self._update_icon_assets()
+            return self
+
+    def icon_position(self, value: Literal['left', 'right'] = None):
+        """Get or set the position of the icon in the button"""
+        if value is None:
+            return self._icon_position
+        else:
+            self._icon_position = value
+            self.widget.configure(compound=value)
             return self
 
     def color(self, value: str = None):
@@ -135,6 +144,7 @@ class Button(BaseWidget):
         self.widget.invoke()
 
     def update_style(self):
+        """Update the widget style and bind stateful icons"""
         super().update_style()
         if self._icon:
             self._bind_stateful_icons()
