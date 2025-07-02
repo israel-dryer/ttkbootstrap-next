@@ -1,27 +1,24 @@
 from tkinter import ttk
-from typing import Callable, Optional, Literal
+from typing import Callable, Optional
 
-from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
-from ..style.builders.button import ButtonStyleBuilder
+from ..style.builders.icon_button import IconButtonStyleBuilder
 
 
-class Button(BaseWidget):
+class IconButton(BaseWidget):
     """
-    A styled Button widget with fluent configuration and reactive text binding.
+    A styled Icon Button widget with fluent configuration
     """
 
-    _configure_methods = {"text", "text_signal", "on_click", "icon", "icon_position", "color", "variant"}
+    _configure_methods = {"on_click", "icon", "color", "variant"}
 
     def __init__(
             self,
             parent,
-            text: str,
+            icon: str = None,
             color: str = "primary",
             size: str = "md",
             variant: str = "solid",
-            icon: str = None,
-            icon_position: Literal['left', 'right'] = 'left',
             on_click: Callable = None,
             **kwargs
     ):
@@ -30,35 +27,30 @@ class Button(BaseWidget):
 
         Args:
             parent: Parent container.
-            text: Initial label text.
-            color: Optional color role.
-            variant: Optional style variant.
-            size: Optional size.
             icon: Optional icon identifier.
-            icon_position: The position of the icon in the button.
+            color: Optional color role.
+            size: Optional size.
+            variant: Optional style variant.
             on_click: Callback function for click events.
             **kwargs: Additional ttk.Button options.
         """
         self._on_click = on_click
-        self._text_signal = Signal(text)
         self._style_name: Optional[str] = None
         self._color = color
         self._variant = variant
         self._size = size
         self._icon = icon
-        self._icon_position = icon_position
         self._stateful_icons_bound = False
-        self._style_builder = ButtonStyleBuilder(color, variant, size)
+        self._style_builder = IconButtonStyleBuilder(color, variant, size)
 
-        # remove invalid arguments
-        for key in ['compound']:
+        # remove invalid arguments for icon button
+        for key in ['compound', 'text']:
             kwargs.pop(key, None)
 
         self._widget = ttk.Button(
             parent,
             command=on_click,
-            compound=self._icon_position if self._icon else "text",
-            textvariable=self._text_signal.name,
+            compound="image",
             **kwargs
         )
         super().__init__(parent)
@@ -74,21 +66,6 @@ class Button(BaseWidget):
         self.configure(command=func)
         return self
 
-    def text(self, value: str = None):
-        """Get or set the button text."""
-        if value is None:
-            return self._text_signal()
-        self._text_signal.set(value)
-        return self
-
-    def text_signal(self, value: Signal[str] = None):
-        """Get or set the button text signal."""
-        if value is None:
-            return self._text_signal
-        self._text_signal = value
-        self.configure(textvariable=self._text_signal.name)
-        return self
-
     def icon(self, value: str = None):
         """Get or set the icon (unimplemented)."""
         if value is None:
@@ -96,15 +73,6 @@ class Button(BaseWidget):
         else:
             self._icon = value
             self._update_icon_assets()
-            return self
-
-    def icon_position(self, value: Literal['left', 'right'] = None):
-        """Get or set the position of the icon in the button"""
-        if value is None:
-            return self._icon_position
-        else:
-            self._icon_position = value
-            self.widget.configure(compound=value)
             return self
 
     def color(self, value: str = None):
@@ -152,12 +120,11 @@ class Button(BaseWidget):
             self._bind_stateful_icons()
 
     def _update_icon_assets(self):
-        if self._icon:
-            self._style_builder.build_solid_icon_assets(self._icon)
-            if not self._stateful_icons_bound:
-                self._bind_stateful_icons()
-            disabled = 'disabled' in self.widget.state()
-            self._toggle_disable_icon(disabled)
+        self._style_builder.build_solid_icon_assets(self._icon)
+        if not self._stateful_icons_bound:
+            self._bind_stateful_icons()
+        disabled = 'disabled' in self.widget.state()
+        self._toggle_disable_icon(disabled)
 
     def _bind_stateful_icons(self):
         if self._stateful_icons_bound:
