@@ -22,7 +22,9 @@ class BaseWidget(
     def __init__(self, parent: Union["BaseWidget", Misc] = None, **kwargs):
         super().__init__()
         self._parent = parent
-        self._surface_token = None if parent is None else parent.surface_token
+
+        # get surface color
+        self._surface_token = kwargs.pop('surface', None)
         self.bind('theme_changed', lambda _: self.update_style())
 
     @property
@@ -39,7 +41,7 @@ class BaseWidget(
 
     @property
     def surface_token(self):
-        if self._surface_token is None:
+        if self._surface_token is not None:
             return self._surface_token
         else:
             return self._parent.surface_token
@@ -66,6 +68,7 @@ class BaseWidget(
 
     def update_style(self):
         """Apply theme styling"""
+        print(self, self.surface_token)
         if hasattr(self, "_style_builder"):
             self._style_builder.surface(self.surface_token)
             style_name = self._style_builder.build()

@@ -17,8 +17,7 @@ class App(BaseWidget):
             surface: SurfaceTokenType = "base"
     ):
         self._widget = Tk()
-        super().__init__(None)
-        self._surface_token = surface
+        super().__init__(None, surface=surface)
         self._style_builder = WindowStyleBuilder(self)
 
         # hide until ready to render
@@ -51,6 +50,10 @@ class App(BaseWidget):
     def _last_child_ids(self):
         return self.widget._last_child_ids
 
+    @_last_child_ids.setter
+    def _last_child_ids(self, value):
+        self.widget._last_child_ids = value
+
     @property
     def children(self):
         return self.widget.children
@@ -67,9 +70,6 @@ class App(BaseWidget):
     def surface_token(self):
         return self._surface_token
 
-    @_last_child_ids.setter
-    def _last_child_ids(self, value):
-        self.widget._last_child_ids = value
 
     def run(self):
         self.widget.deiconify()
