@@ -8,7 +8,7 @@ from ttkbootstrap.utils import clamp
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets" / "widgets"
 
-from typing import Tuple
+from typing import Tuple, cast
 from colorsys import rgb_to_hls, hls_to_rgb
 from PIL import ImageColor
 
@@ -251,13 +251,13 @@ def open_image(name: str) -> Image.Image:
 
 
 def recolor_image(
-    name: str,
-    white_color: str,
-    black_color: str = "#ffffff",
-    magenta_color: str | None = None,
-    transparent_color: str | None = None,
-    *,
-    scale: float = 0.5,
+        name: str,
+        white_color: str,
+        black_color: str = "#ffffff",
+        magenta_color: str | None = None,
+        transparent_color: str | None = None,
+        *,
+        scale: float = 0.5,
 ) -> ManagedImage:
     """
     Recolor a white-layout PNG image using luminance interpolation.
@@ -338,6 +338,7 @@ def should_darken(bg_hex: str) -> bool:
     if s > 0.6 and l > 0.6:
         return False  # Lighten vibrant, light colors (e.g. warning/info)
     return True  # Default: darken
+
 
 def darken_color(hex_color: str, percent: float) -> str:
     """Darken a hex color by reducing lightness in HLS color space."""
@@ -422,33 +423,41 @@ def relative_luminance(hex_color: str) -> float:
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
-def contrast_ratio(color1: str, color2: str) -> float:
-    """Calculate the contrast ratio between two colors.
+def contrast_ratio(rgb1: tuple[int, int, int], rgb2: tuple[int, int, int]) -> float:
+    def rel_luminance(r: int, g: int, b: int) -> float:
+        def channel(c): return (c / 255.0) ** 2.2
 
-    Args:
-        color1: First hex color.
-        color2: Second hex color.
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 
-    Returns:
-        The contrast ratio as a float.
-    """
-    lum1 = relative_luminance(color1)
-    lum2 = relative_luminance(color2)
-    l1, l2 = max(lum1, lum2), min(lum1, lum2)
-    return (l1 + 0.05) / (l2 + 0.05)
+    lum1 = rel_luminance(*rgb1)
+    lum2 = rel_luminance(*rgb2)
+    lighter = max(lum1, lum2)
+    darker = min(lum1, lum2)
+    return (lighter + 0.05) / (darker + 0.05)
 
 
-def best_foreground(bg_color: str, light: str = "#ffffff", dark: str = "#000000") -> str:
-    """Determine which foreground color has better contrast on a background.
+def hex_to_rgb(value: str) -> tuple[int, int, int]:
+    """Convert a hex color string to an RGB tuple."""
+    value = value.lstrip("#")
+    lv = len(value)
+    result = tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    return cast(tuple[int, int, int], result)
 
-    Args:
-        bg_color: The background color in hex.
-        light: A light foreground candidate.
-        dark: A dark foreground candidate.
 
-    Returns:
-        The color with better contrast (either `light` or `dark`).
-    """
-    contrast_light = contrast_ratio(bg_color, light)
-    contrast_dark = contrast_ratio(bg_color, dark)
-    return light if contrast_light > contrast_dark else dark
+def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
+    """Convert an RGB tuple to a hex color string."""
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
+
+
+def best_foreground(bg_color: str, candidates: list[str] = None) -> str:
+    """Return the color with the highest contrast against the background."""
+    if candidates is None:
+        candidates = ["#000000", "#ffffff"]
+
+    bg_rgb = hex_to_rgb(bg_color)
+
+    def contrast(c: str) -> float:
+        fg_rgb = hex_to_rgb(c)
+        return contrast_ratio(bg_rgb, fg_rgb)
+
+    return max(candidates, key=contrast)
