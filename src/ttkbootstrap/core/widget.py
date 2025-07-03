@@ -68,7 +68,6 @@ class BaseWidget(
 
     def update_style(self):
         """Apply theme styling"""
-        print(self, self.surface_token)
         if hasattr(self, "_style_builder"):
             self._style_builder.surface(self.surface_token)
             style_name = self._style_builder.build()

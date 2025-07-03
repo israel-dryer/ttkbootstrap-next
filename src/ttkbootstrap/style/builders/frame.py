@@ -5,7 +5,6 @@ class FrameStyleBuilder(StyleBuilderBase):
 
     def __init__(self, variant: str = None, **kwargs):
         super().__init__("TFrame", variant=variant, **kwargs)
-        print('FrameStyleBuilder--init', self.surface())
 
     def surface(self, value: str = None):
         if value is None:
@@ -15,7 +14,6 @@ class FrameStyleBuilder(StyleBuilderBase):
             return self
 
     def register_style(self):
-        print('Frame Surface Color', self.surface())
         ttk_style = self.resolve_name()
         background = self.theme.surface_color(self.surface())
         self.configure(ttk_style, background=background)
