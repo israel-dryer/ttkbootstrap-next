@@ -3,6 +3,7 @@ from ttkbootstrap.core.libtypes import ColorThemeType
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
 from ttkbootstrap.style.theme import ColorTheme
+from ttkbootstrap.style.tokens import SurfaceTokenType
 from ttkbootstrap.style.typography import Typography
 
 
@@ -13,7 +14,7 @@ class App(BaseWidget):
             title="ttkbootstrap",
             theme: ColorThemeType = "light",
             use_default_fonts: bool = True,
-            surface: str = "base"
+            surface: SurfaceTokenType = "base"
     ):
         self._widget = Tk()
         super().__init__(None)
