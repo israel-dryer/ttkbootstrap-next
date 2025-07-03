@@ -2,7 +2,8 @@ from tkinter import ttk
 from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonColorType, ButtonSizeType, ButtonVariantType, ButtonOptionsType
+from ..core.libtypes import ButtonSizeType, ButtonOptionsType
+from ..style.tokens import ButtonColorTokens, ButtonVariantTokenType
 from ..style.builders.icon_button import IconButtonStyleBuilder
 
 
@@ -17,9 +18,9 @@ class IconButton(BaseWidget):
             self,
             parent,
             icon: str = None,
-            color: ButtonColorType = "primary",
+            color: ButtonColorTokens = "primary",
             size: ButtonSizeType = "md",
-            variant: ButtonVariantType = "solid",
+            variant: ButtonVariantTokenType = "solid",
             on_click: Callable = None,
             **kwargs: Unpack[ButtonOptionsType]
     ):
@@ -80,7 +81,7 @@ class IconButton(BaseWidget):
             self._update_icon_assets()
             return self
 
-    def color(self, value: ButtonVariantType = None):
+    def color(self, value: ButtonVariantTokenType = None):
         """Get or set the color role (unimplemented)."""
         if value is None:
             return self._color
@@ -91,7 +92,7 @@ class IconButton(BaseWidget):
             self._update_icon_assets()
             return self
 
-    def variant(self, value: ButtonVariantType = None):
+    def variant(self, value: ButtonVariantTokenType = None):
         """Get or set the style variant (unimplemented)."""
         if value is None:
             return self._variant
