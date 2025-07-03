@@ -1,11 +1,14 @@
 import json
 import importlib.resources as resources
-from typing import Optional, Union, Literal
+from typing import Optional, Union, Literal, cast
 
-from .utils import darken_color, tint_color, shade_color, relative_luminance, best_foreground, lighten_color, \
-    should_darken, mix_colors
-from ..core.libtypes import ColorTokenType, SurfaceRoleType, ColorShadeType
-from ..exceptions import InvalidThemeError
+from .utils import (
+    darken_color, tint_color, shade_color, relative_luminance, best_foreground,
+    lighten_color, mix_colors
+)
+from ..core.libtypes import ColorShadeType
+from .tokens import ThemeColorTokenType, SurfaceTokenType
+from ..exceptions import InvalidThemeError, InvalidTokenError
 
 _registered_themes: dict[str, dict] = {}
 
@@ -65,8 +68,8 @@ def load_user_defined_theme(path: str) -> dict:
         return json.load(f)
 
 
-TINT_WEIGHTS = (0.10, 0.25, 0.40, 0.55)
-SHADE_WEIGHTS = (0.90, 0.75, 0.60, 0.45)
+TINT_WEIGHTS = (0.80, 0.60, 0.40, 0.25)
+SHADE_WEIGHTS = (0.25, 0.4, 0.6, 0.85)
 
 Themes = Union[
     Literal['light', 'dark'],
@@ -145,11 +148,11 @@ class ColorTheme:
         from tkinter.ttk import Style
         Style().theme_use('clam')
 
-    def color(self, token: ColorTokenType) -> str:
+    def color(self, token: ThemeColorTokenType) -> str:
         """Get the hex value of a token."""
         return self.tokens.get(token)
 
-    def spectrum(self, token: ColorTokenType) -> dict[int, str]:
+    def spectrum(self, token: ThemeColorTokenType) -> dict[int, str]:
         """Get the full color spectrum (tints, base, shades) for a token."""
         base = self.color(token)
         spectrum_names = [100, 200, 300, 400, 500, 600, 700, 800, 900]
@@ -158,23 +161,23 @@ class ColorTheme:
         spectrum_colors = [*tints, base, *shades]
         return {name: color for name, color in zip(spectrum_names, spectrum_colors)}
 
-    def shade(self, token: ColorTokenType, shade: ColorShadeType = 500) -> str:
+    def shade(self, token: ThemeColorTokenType, shade: ColorShadeType = 500) -> str:
         """Get a specific color shade from the spectrum."""
         return self.spectrum(token)[shade]
 
-    def hovered(self, token: ColorTokenType):
+    def hovered(self, token: ThemeColorTokenType):
         """Boostrap style hover color"""
         return self.state_color(token, "hover")
 
-    def pressed(self, token: ColorTokenType):
+    def pressed(self, token: ThemeColorTokenType):
         """Bootstrap style pressed color"""
         return self.state_color(token, "active")
 
-    def focused(self, token: ColorTokenType) -> str:
+    def focused(self, token: ThemeColorTokenType) -> str:
         """Bootstrap-style focus color (darken 18%)"""
         return self.state_color(token, 'focus')
 
-    def focused_border(self, token: ColorTokenType) -> str:
+    def focused_border(self, token: ThemeColorTokenType) -> str:
         """Inner border color on focus (slightly adjusted for visibility)."""
         base = self.color(token)
         lum = relative_luminance(base)
@@ -185,45 +188,72 @@ class ColorTheme:
             # Darken in light theme
             return darken_color(base, 0.2 if lum > 0.5 else 0.1)
 
-    def focused_ring(self, token: ColorTokenType) -> str:
-        """Return a focus ring color with good contrast for the theme mode.
+    def focused_ring(
+            self,
+            token: ThemeColorTokenType,
+            surface: str | None = None
+    ) -> str:
+        """
+        Return a focus ring color with good contrast against the surface background.
 
-        Light theme:
-            - Darken and mix with surface to create contrast.
-        Dark theme:
-            - Lighten and mix with surface to create contrast.
+        In light mode:
+            - High-luminance colors are darkened and mixed with surface.
+            - Low-luminance colors are lightened and blended for subtlety.
+
+        In dark mode:
+            - Low-luminance colors are brightened and blended.
+            - High-luminance colors are softly mixed for contrast.
+
+        Args:
+            token: Theme color token used as the base for focus color.
+            surface: Optional hex surface background color. Defaults to self.surface_base().
         """
         base = self.focused(token)
-        surface = self.surface_base()
+        surface = surface or self.surface_base()
         lum = relative_luminance(base)
 
         if self.mode == "dark":
-            # Brighten low-luminance colors for contrast on dark backgrounds
             if lum < 0.3:
-                mixed = mix_colors(lighten_color(base, 0.2), surface, 0.2)
+                brightened = lighten_color(base, 0.2)
+                mixed = mix_colors(brightened, surface, 0.2)
             else:
                 mixed = mix_colors(base, surface, 0.3)
         else:
-            # Darken high-luminance colors for contrast on light backgrounds
             if lum > 0.5:
-                mixed = darken_color(mix_colors(base, surface, 0.2), 0.15)
+                blended = mix_colors(base, surface, 0.2)
+                mixed = darken_color(blended, 0.15)
             else:
-                mixed = mix_colors(lighten_color(base, 0.25), surface, 0.25)
+                brightened = lighten_color(base, 0.25)
+                mixed = mix_colors(brightened, surface, 0.25)
 
         return mixed
 
-    def subtle(self, token: ColorTokenType, surface: str) -> str:
-        """Return a subtle background color for the given token.
-
-        This is used for low-emphasis states like ghost button hovers.
+    def subtle(
+            self,
+            token: ThemeColorTokenType,
+            surface: SurfaceTokenType = "base"
+    ) -> str:
         """
-        base = self.color(token)
-        if self.mode == "light":
-            return tint_color(base, 0.95)  # very light tint toward white
-        else:
-            return mix_colors(surface, base, 0.90)  # mostly surface, hint of token
+        Return a subtle background color for the given token.
 
-    def state_color(self, token: ColorTokenType, state: Literal["hover", "active", "focus"]) -> str:
+        This is used for low-emphasis states like ghost button hovers,
+        and should blend naturally with the given surface.
+
+        Args:
+            token: The semantic theme color token.
+            surface: The surface token (e.g., "base", "raised", "sunken") to blend with.
+        """
+        base_color = self.color(token)
+        surface_color = self.surface_color(surface)
+
+        if self.mode == "light":
+            # Blend mostly with surface color for subtle hover effect
+            return mix_colors(base_color, surface_color, 0.08)
+        else:
+            # In dark mode, keep similar strategy but more visible token hint
+            return mix_colors(base_color, surface_color, 0.10)
+
+    def state_color(self, token: ThemeColorTokenType, state: Literal["hover", "active", "focus"]) -> str:
         """Return an adjusted button background color based on state and luminance.
 
         Bootstrap lightens or darkens depending on base brightness:
@@ -244,76 +274,41 @@ class ColorTheme:
             return lighten_color(base, delta)
         return darken_color(base, delta)
 
-    def disabled(self, token: ColorTokenType) -> str:
+    def disabled(self, token: ThemeColorTokenType) -> str:
         return self.spectrum(token)[300 if self.mode == "light" else 700]
 
-    def border(self, token: ColorTokenType) -> str:
+    def border(self, token: ThemeColorTokenType) -> str:
         """Get the color for a border (Bootstrap-style: darken 20%)"""
         base = self.color(token)
         return darken_color(base, 0.20)
 
-    def emphasis(self, token: ColorTokenType) -> str:
-        """Get an emphasis color."""
-        base = self.color(token)
-        return shade_color(base, 0.60) if self.mode == "light" else shade_color(base, 0.30)
-
-    def surface_color(self, role: SurfaceRoleType) -> str:
-        """Return the surface color based on role"""
-        return {
-            "base": self.surface_base(),
-            "muted": self.surface_muted(),
-            "subtle": self.surface_subtle(),
-            "emphasis": self.surface_emphasis(),
-            "accent": self.surface_accent(),
-            "inverse": self.surface_inverse(),
-            "overlay": self.surface_overlay(),
-        }.get(role, self.surface_base())
+    def surface_color(self, token: SurfaceTokenType = "base") -> str:
+        """Return the surface color"""
+        try:
+            if 'subtle' in token:
+                color, _ = token.split('-')
+                return self.subtle(cast(ThemeColorTokenType, color))
+            if '-' in token:
+                color, scale = token.split('-')
+                return self.spectrum(color)[int(scale)]
+            if token == "base":
+                return self.surface_base()
+            return self.color(cast(ThemeColorTokenType, token))
+        except Exception as e:
+            raise InvalidTokenError(str(e), token)
 
     def surface_base(self) -> str:
         """Main surface (application background)."""
         return self.color("background")
 
-    def surface_muted(self) -> str:
-        """Muted surface for content containers (cards, list rows)."""
-        bg = self.color("background")
-        return shade_color(bg, 0.97) if self.mode == "light" else tint_color(bg, 0.07)
-
-    def surface_subtle(self) -> str:
-        """Subtle elevation layer for grouped content."""
-        bg = self.color("background")
-        return shade_color(bg, 0.94) if self.mode == "light" else tint_color(bg, 0.10)
-
-    def surface_emphasis(self) -> str:
-        """Stronger surface for modals and foreground containers."""
-        bg = self.color("background")
-        return shade_color(bg, 0.88) if self.mode == "light" else tint_color(bg, 0.20)
-
-    def surface_accent(self) -> str:
-        """Accent surface based on primary role color."""
-        base = self.color("primary")
-        return tint_color(base, 0.15) if self.mode == "light" else tint_color(base, 0.65)
-
-    def surface_inverse(self) -> str:
-        """Surface with inverted background (e.g., footer or nav)."""
-        return self.color("foreground")
-
-    def surface_overlay(self) -> str:
-        """Overlay surface for dimming or modals."""
-        return "#00000080" if self.mode == "light" else "#FFFFFF33"
-
-    def on_color(self, token: ColorTokenType) -> str:
-        """Get a foreground color with best contrast for the given token background."""
+    def on_color(self, token: ThemeColorTokenType) -> str:
+        """Get a foreground color with the best contrast for the given token background."""
         bg = self.color(token)
         return best_foreground(bg, self.color("background"), self.color("foreground"))
 
-    def on_surface(self) -> str:
-        """Get the default foreground color for content on the background surface."""
-        return best_foreground(self.color("background"))
-
-    def on_surface_medium(self) -> str:
-        """Get a muted foreground color for medium emphasis content."""
-        base = self.color("foreground")
-        return tint_color(base, 0.5 if self.mode == "light" else 1.5)
+    def on_surface(self, token: SurfaceTokenType="base") -> str:
+        """Get the best foreground color for content on the background surface."""
+        return best_foreground(self.surface_color(token))
 
     def on_surface_disabled(self) -> str:
         """Get a disabled foreground color for content on surfaces."""
