@@ -71,10 +71,10 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         pressed = self.theme.pressed(self.color())
         hovered = self.theme.hovered(self.color())
         focused = hovered
-        focused_ring = self.theme.focused_ring(self.color())
         focused_border = self.theme.focused_border(self.color())
         disabled = self.theme.disabled(self.color())
         surface = self.theme.surface_color(self.surface())
+        focused_ring = self.theme.focused_ring(self.color(), surface)
 
         # button element images
         normal_img = recolor_image(f'icon-btn-{self.size()}', normal, normal, surface)
@@ -120,9 +120,9 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         disabled = foreground_disabled
         pressed = self.theme.hovered(self.color())
         focused = hovered = pressed
-        focused_ring = self.theme.focused_ring(self.color())
         focused_border = self.theme.focused_border(self.color())
         surface = self.theme.surface_color(self.surface())
+        focused_ring = self.theme.focused_ring(self.color(), surface)
 
         # button element images
         normal_img = recolor_image(f'icon-btn-{self.size()}', normal, foreground, surface)
@@ -170,10 +170,10 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         foreground = self.theme.color(self.color())
         foreground_disabled = self.theme.disabled(self.color())
         normal = self.theme.surface_color(self.surface())
-        pressed = self.theme.subtle(self.color(), normal)
+        pressed = self.theme.subtle(self.color(), self.surface())
         focused = hovered = pressed
-        focused_ring = self.theme.focused_ring(self.color())
         surface = self.theme.surface_color(self.surface())
+        focused_ring = self.theme.focused_ring(self.color(), surface)
 
         # button element images
         normal_img = recolor_image(f'icon-btn-{self.size()}', normal, normal, surface)
