@@ -7,7 +7,7 @@ ColorShadeType = Literal[100, 200, 300, 400, 500, 600, 700, 800, 900]
 ColorThemeType = Union[Literal['light', 'dark'], str]
 ColorModelType = Literal['hex', 'hsl', 'rgb']
 ButtonSizeType = Literal['sm', 'md', 'lg']
-
+OrientType = Literal['horizontal', 'vertical']
 
 class ButtonOptionsType(TypedDict, total=False):
     """

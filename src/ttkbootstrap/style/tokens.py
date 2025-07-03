@@ -3,6 +3,7 @@ from typing import Literal
 ButtonVariantTokenType = Literal['solid', 'outline', 'ghost']
 
 ButtonColorTokens = Literal['primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark']
+SeparatorColorToken = Literal['border', 'primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark']
 
 SurfaceTokenType = Literal[
     'base', 'primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark',

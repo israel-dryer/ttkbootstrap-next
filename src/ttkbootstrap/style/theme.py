@@ -306,6 +306,13 @@ class ColorTheme:
         base = self.color(token)
         return darken_color(base, 0.20)
 
+    def border_on_surface(self, surface_color: str):
+        """Get a border color that contrast against the surface"""
+        if self.mode == "dark":
+            return lighten_color(surface_color, 0.20)
+        else:
+            return darken_color(surface_color, 0.20)
+
     def surface_color(self, token: SurfaceTokenType = "base") -> str:
         """Return the surface color"""
         token = token.replace('base', 'background')
