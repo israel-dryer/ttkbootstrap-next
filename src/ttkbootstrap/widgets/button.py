@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import Callable, Optional, Literal, Unpack
+from typing import Callable, Literal, Unpack
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
@@ -44,10 +44,6 @@ class Button(BaseWidget):
         """
         self._on_click = on_click
         self._text_signal = Signal(text)
-        self._style_name: Optional[str] = None
-        self._color = color
-        self._variant = variant
-        self._size = size
         self._icon = icon
         self._icon_position = icon_position
         self._stateful_icons_bound = False
@@ -61,7 +57,7 @@ class Button(BaseWidget):
             parent,
             command=on_click,
             compound=self._icon_position if self._icon else "text",
-            textvariable=self._text_signal.name,
+            textvariable=self._text_signal.var,
             **unsnake_kwargs(kwargs)
         )
         super().__init__(parent)
@@ -93,8 +89,16 @@ class Button(BaseWidget):
         if value is None:
             return self._text_signal
         self._text_signal = value
-        self.configure(textvariable=self._text_signal.name)
+        self.configure(textvariable=self._text_signal.var)
         return self
+
+    def size(self, value: ButtonSizeType = None):
+        """Get or set the button text."""
+        if value is None:
+            return self._style_builder.size()
+        else:
+            self._style_builder.size(value)
+            return self
 
     def icon(self, value: str = None):
         """Get or set the icon (unimplemented)."""
@@ -115,22 +119,20 @@ class Button(BaseWidget):
             return self
 
     def color(self, value: ButtonColorTokens = None):
-        """Get or set the color role (unimplemented)."""
+        """Get or set the color role"""
         if value is None:
-            return self._color
+            return self._style_builder.color()
         else:
-            self._color = value
             self._style_builder.color(value)
             self.update_style()
             self._update_icon_assets()
             return self
 
     def variant(self, value: ButtonVariantTokenType = None):
-        """Get or set the style variant (unimplemented)."""
+        """Get or set the style variant."""
         if value is None:
-            return self._variant
+            return self._style_builder.variant()
         else:
-            self._variant = value
             self._style_builder.variant(value)
             self.update_style()
             self._update_icon_assets()

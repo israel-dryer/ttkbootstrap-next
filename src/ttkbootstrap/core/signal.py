@@ -182,6 +182,10 @@ class Signal(Generic[T]):
         """
         return self._type
 
+    @property
+    def var(self):
+        return self._var
+
     def __str__(self):
         return self._name
 

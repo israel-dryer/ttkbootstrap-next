@@ -288,9 +288,9 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         if size == "sm":
             return nametofont("body")
         elif size == "lg":
-            return nametofont("body_xl")
+            return nametofont("body-xl")
         else:
-            return nametofont("body_lg")
+            return nametofont("body-lg")
 
     def button_img_border(self):
         size = self.size()
