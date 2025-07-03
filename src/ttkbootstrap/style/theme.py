@@ -7,7 +7,7 @@ from .utils import (
     lighten_color, mix_colors
 )
 from ..core.libtypes import ColorShadeType
-from .tokens import ThemeColorTokenType, SurfaceTokenType
+from .tokens import ThemeColorTokenType, SurfaceTokenType, ForegroundTokenType
 from ..exceptions import InvalidThemeError, InvalidTokenError
 
 _registered_themes: dict[str, dict] = {}
@@ -332,6 +332,18 @@ class ColorTheme:
         except Exception as e:
             raise InvalidTokenError(str(e), token)
 
+    def foreground_color(self, token: ForegroundTokenType):
+        try:
+            if 'subtle' in token:
+                color, _ = token.split('-')
+                return self.subtle(cast(ThemeColorTokenType, color))
+            if '-' in token:
+                color, scale = token.split('-')
+                return self.spectrum(color)[int(scale)]
+            return self.color(cast(ThemeColorTokenType, token))
+        except Exception as e:
+            raise InvalidTokenError(str(e), token)
+
     def surface_base(self) -> str:
         """Main surface (application background)."""
         return self.color("background")
@@ -339,11 +351,11 @@ class ColorTheme:
     def on_color(self, token: ThemeColorTokenType) -> str:
         """Get a foreground color with the best contrast for the given token background."""
         bg = self.color(token)
-        return best_foreground(bg, self.color("background"), self.color("foreground"))
+        return best_foreground(bg, [self.color('foreground'), self.color('background')])
 
-    def on_surface(self, token: SurfaceTokenType="base") -> str:
-        """Get the best foreground color for content on the background surface."""
-        return best_foreground(self.surface_color(token))
+    def on_surface(self, token: SurfaceTokenType = "base") -> str:
+        color = self.surface_color(token)
+        return best_foreground(color, [self.color('foreground'), self.color('background')])
 
     def on_surface_disabled(self) -> str:
         """Get a disabled foreground color for content on surfaces."""
@@ -352,7 +364,7 @@ class ColorTheme:
 
     def on_surface_inverse(self) -> str:
         """Get an inverse foreground color for surfaces with strong backgrounds."""
-        return best_foreground(self.color("background"))
+        return best_foreground(self.color("background"), [self.color('foreground'), self.color('background')])
 
     def __repr__(self):
         return f"<Theme name={self.name} mode={self.mode}>"
