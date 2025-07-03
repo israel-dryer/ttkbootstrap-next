@@ -152,6 +152,30 @@ class ColorTheme:
         """Get the hex value of a token."""
         return self.tokens.get(token)
 
+    def elevate_surface(self, token: ThemeColorTokenType, elevation: int = 0, *, max_elevation: int = 5) -> str:
+        """
+        Adjust a surface background color for elevation:
+        - Light themes: blend darker
+        - Dark themes: blend lighter
+
+        Args:
+            token: The base background color.
+            elevation: Elevation level (0 = no change).
+            max_elevation: Max elevation to normalize blending.
+
+        Returns:
+            Hex color string of the elevated surface.
+        """
+        if elevation <= 0:
+            return self.color(token)
+
+        # Determine blend target based on theme mode
+        blend_target = "#000000" if self.mode == "light" else "#ffffff"
+
+        # Elevation weight — adjust this curve to taste
+        weight = min(elevation / max_elevation, 1.0) * 0.3  # up to 30% blend
+        return mix_colors(blend_target, self.color(token), weight)
+
     def spectrum(self, token: ThemeColorTokenType) -> dict[int, str]:
         """Get the full color spectrum (tints, base, shades) for a token."""
         base = self.color(token)
@@ -284,10 +308,14 @@ class ColorTheme:
 
     def surface_color(self, token: SurfaceTokenType = "base") -> str:
         """Return the surface color"""
+        token = token.replace('base', 'background')
         try:
             if 'subtle' in token:
                 color, _ = token.split('-')
                 return self.subtle(cast(ThemeColorTokenType, color))
+            if 'layer' in token:
+                _, elevation = token.split('-')
+                return self.elevate_surface("background", int(elevation))
             if '-' in token:
                 color, scale = token.split('-')
                 return self.spectrum(color)[int(scale)]
