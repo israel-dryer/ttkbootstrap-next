@@ -4,6 +4,8 @@ from ttkbootstrap.style.builders.frame import FrameStyleBuilder
 from ttkbootstrap.style.tokens import SurfaceTokenType
 from tkinter import ttk
 
+from ttkbootstrap.utils import unsnake_kwargs
+
 
 class Frame(BaseWidget, ContainerMixin):
     """
@@ -23,7 +25,7 @@ class Frame(BaseWidget, ContainerMixin):
             variant: An optional style variant (e.g., 'bordered').
             **kwargs: Additional keyword arguments passed to ttk.Frame.
         """
-        self._widget = ttk.Frame(parent, **kwargs)
+        self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
 
         self._surface_token = surface
         super().__init__(parent, surface=surface)

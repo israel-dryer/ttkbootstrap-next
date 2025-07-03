@@ -6,6 +6,7 @@ from ttkbootstrap.core.widget import BaseWidget
 from ..core.libtypes import ButtonSizeType, ButtonOptionsType
 from ..style.tokens import ButtonColorTokens, ButtonVariantTokenType
 from ..style.builders.button import ButtonStyleBuilder
+from ..utils import unsnake_kwargs
 
 
 class Button(BaseWidget):
@@ -61,7 +62,7 @@ class Button(BaseWidget):
             command=on_click,
             compound=self._icon_position if self._icon else "text",
             textvariable=self._text_signal.name,
-            **kwargs
+            **unsnake_kwargs(kwargs)
         )
         super().__init__(parent)
         self._update_icon_assets()

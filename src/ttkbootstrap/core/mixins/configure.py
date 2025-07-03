@@ -1,6 +1,8 @@
 from tkinter import Misc
 from typing import TYPE_CHECKING, Union, Any
 
+from ttkbootstrap.utils import unsnake, unsnake_kwargs
+
 if TYPE_CHECKING:
     from ttkbootstrap.core.widget import BaseWidget
 
@@ -40,7 +42,7 @@ class ConfigureMixin:
                     method = getattr(self, key, None)
                     if callable(method):
                         method(kwargs.pop(key))  # dispatch and remove
-        self.widget.configure(**kwargs)
+        self.widget.configure(**unsnake_kwargs(kwargs))
 
     def _get_config(self, option: str) -> Any:
         """Retrieve the value of a single configuration option.
@@ -55,4 +57,4 @@ class ConfigureMixin:
             method = getattr(self, option, None)
             if callable(method):
                 return method()
-        return self.widget.cget(option)
+        return self.widget.cget(unsnake(option))
