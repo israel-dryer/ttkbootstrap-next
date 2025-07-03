@@ -1,29 +1,28 @@
-from tkinter import ttk
-
 from ttkbootstrap.core import App
 from ttkbootstrap.widgets import IconButton
 from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets.frame import Frame
 
-app = App("Button Demo", surface="base")
+app = App("Button Demo")
 
-b1 = Button(app, "Primary", color="primary", icon="house-fill").pack(padx=16, pady=16).disable()
-b2 = Button(app, "Primary", color="primary", icon="house-fill").pack(padx=16, pady=16)
-Button(app, "Ghost", color="primary", variant="ghost", icon="award-fill", icon_position="right").pack(padx=16, pady=16)
-Button(app, "Ghost", color="primary", variant="ghost", icon="bar-chart-steps").pack(padx=16, pady=16).disable()
-Button(app, "Secondary", color="secondary", size="lg", icon="house-fill", variant="outline").pack(padx=16, pady=16).disable()
-Button(app, "Success", color="success", size="sm", icon="chevron-right", icon_position="right").pack(padx=16, pady=16).disable()
-Button(app, "Warning", color="warning").pack(padx=16, pady=16)
-Button(app, "Danger", color="danger", variant="outline").pack(padx=16, pady=16).disable()
-Button(app, "Danger", color="danger", variant="outline").pack(padx=16, pady=16)
-IconButton(app, "house-fill", color="secondary").pack(padx=10)
-IconButton(app, "bar-chart-fill", color="warning", size="sm", variant="outline").pack(padx=10)
-IconButton(app, "bar-chart-fill", color="success", variant="ghost").pack(padx=10)
-IconButton(app, "basket3-fill", color="info", size="lg").pack(padx=10)
-ac = Button(app, "Accent Bg", color="info").pack(padx=16, pady=16)
-lt = Button(app, "Light", color="light", size="sm").pack(padx=16, pady=16)
-tb = Button(app, "Dark", color="dark", variant="ghost").pack(padx=16, pady=16)
+b1 = Button(app, "Primary", color="primary", icon="house-fill").pack(padx=16, pady=16)
+b2 = Button(app, "Secondary", color="secondary", icon="house-fill", variant="ghost").pack(padx=16, pady=16)
 
-tb.on_click(lambda: app.theme.use('dark'))
-lt.on_click(lambda: app.theme.use('light'))
+f1 = Frame(app, padding=8, surface="layer-1").pack(padx=10, pady=10, fill='x')
+i1 = IconButton(f1, "moon-fill", variant="ghost").pack(side="left")
+IconButton(f1, "badge-hd-fill", variant="ghost").pack(side="left")
+IconButton(f1, "bag-check-fill", variant="ghost").pack(side="left")
+
+
+def toggle_theme():
+    if app.theme.name == "light":
+        app.theme.use('dark')
+        i1.icon('sun-fill')
+    else:
+        app.theme.use('light')
+        i1.icon('moon-fill')
+
+
+i1.on_click(toggle_theme)
 
 app.run()
