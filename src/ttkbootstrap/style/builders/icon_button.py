@@ -176,12 +176,12 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         focused_ring = self.theme.focused_ring(self.color(), surface)
 
         # button element images
-        normal_img = recolor_image(f'icon-btn-{self.size()}', normal, normal, surface)
-        pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, surface, surface)
-        hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, surface, surface)
-        focused_img = recolor_image(f'icon-btn-{self.size()}', focused, focused, focused_ring)
-        focused_hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, focused, focused_ring)
-        focused_pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, focused, focused_ring)
+        normal_img = recolor_image(f'icon-btn-{self.size()}', normal, normal, surface, surface)
+        pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, surface, surface, surface)
+        hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, surface, surface, surface)
+        focused_img = recolor_image(f'icon-btn-{self.size()}', focused, focused, focused_ring, surface)
+        focused_hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, focused, focused_ring, surface)
+        focused_pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, focused, focused_ring, surface)
         disabled_img = recolor_image(f'icon-btn-{self.size()}', surface, surface, surface, surface)
         btn_padding = self.button_img_border()
 
