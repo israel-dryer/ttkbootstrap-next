@@ -17,7 +17,7 @@ class Separator(BaseWidget):
 
         Args:
             parent: The parent widget.
-            color: The separator color token (e.g., "border", "accent").
+            color: The separator color token (e.g., "border", "primary").
             orient: Orientation of the separator ("horizontal" or "vertical").
         """
         self._style_builder = SeparatorStyleBuilder(color, orient)
