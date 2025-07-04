@@ -4,7 +4,7 @@ from ttkbootstrap.core.libtypes import FrameOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
-from ttkbootstrap.style.tokens import SurfaceTokenType
+from ttkbootstrap.style.tokens import SurfaceToken
 from tkinter import ttk
 
 from ttkbootstrap.utils import unsnake_kwargs
@@ -18,7 +18,7 @@ class Frame(BaseWidget, ContainerMixin):
 
     _configure_methods = {"surface"}
 
-    def __init__(self, parent, surface: SurfaceTokenType = None, variant: str = None, **kwargs: Unpack[FrameOptions]):
+    def __init__(self, parent, surface: SurfaceToken = None, variant: str = None, **kwargs: Unpack[FrameOptions]):
         """
         Initialize a new themed Frame widget.
 

@@ -3,7 +3,7 @@ from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.widget import BaseWidget
 from ..core.libtypes import ButtonSize, ButtonOptions
-from ..style.tokens import ButtonColorTokens, ButtonVariantTokenType
+from ..style.tokens import ButtonColorToken, ButtonVariant
 from ..style.builders.icon_button import IconButtonStyleBuilder
 from ..utils import unsnake_kwargs
 
@@ -19,9 +19,9 @@ class IconButton(BaseWidget):
             self,
             parent,
             icon: str = None,
-            color: ButtonColorTokens = "primary",
+            color: ButtonColorToken = "primary",
             size: ButtonSize = "md",
-            variant: ButtonVariantTokenType = "solid",
+            variant: ButtonVariant = "solid",
             on_click: Callable = None,
             **kwargs: Unpack[ButtonOptions]
     ):
@@ -82,7 +82,7 @@ class IconButton(BaseWidget):
             self._update_icon_assets()
             return self
 
-    def color(self, value: ButtonVariantTokenType = None):
+    def color(self, value: ButtonVariant = None):
         """Get or set the color role (unimplemented)."""
         if value is None:
             return self._color
@@ -93,7 +93,7 @@ class IconButton(BaseWidget):
             self._update_icon_assets()
             return self
 
-    def variant(self, value: ButtonVariantTokenType = None):
+    def variant(self, value: ButtonVariant = None):
         """Get or set the style variant (unimplemented)."""
         if value is None:
             return self._variant

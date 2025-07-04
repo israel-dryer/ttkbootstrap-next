@@ -1,12 +1,12 @@
 from tkinter.font import Font
 from typing import Literal, Union
 
-ButtonVariantTokenType = Literal['solid', 'outline', 'ghost']
+ButtonVariant = Literal['solid', 'outline', 'ghost']
 
-ButtonColorTokens = Literal['primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark']
+ButtonColorToken = Literal['primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark']
 SeparatorColorToken = Literal['border', 'primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark']
 
-SurfaceTokenType = Literal[
+SurfaceToken = Literal[
     'base', 'primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark',
     'primary-subtle', 'secondary-subtle', 'success-subtle', 'info-subtle', 'warning-subtle', 'danger-subtle',
     'light-subtle', 'dark-subtle', 'base-subtle',
@@ -23,7 +23,7 @@ SurfaceTokenType = Literal[
     'gray-100', 'gray-200', 'gray-300', 'gray-400', 'gray-500', 'gray-600', 'gray-700', 'gray-800', 'gray-900',
 ]
 
-ForegroundTokenType = Literal[
+ForegroundToken = Literal[
     'foreground', 'primary', 'secondary', 'success', 'info', 'warning', 'danger', 'light', 'dark',
     'primary-subtle', 'secondary-subtle', 'success-subtle', 'info-subtle', 'warning-subtle', 'danger-subtle',
     'light-subtle', 'dark-subtle', 'base-subtle',
@@ -39,16 +39,16 @@ ForegroundTokenType = Literal[
     'gray-100', 'gray-200', 'gray-300', 'gray-400', 'gray-500', 'gray-600', 'gray-700', 'gray-800', 'gray-900',
 ]
 
-ThemeColorTokenType = Literal[
+ThemeColorToken = Literal[
     'primary', 'secondary', 'success', 'info', 'warning', 'danger',
     'dark', 'light', 'blue', 'indigo', 'purple', 'red', 'orange',
     'yellow', 'green', 'teal', 'cyan', 'white', 'black', 'gray',
     'foreground', 'background'
 ]
 
-DefaultFontTypes = Literal[
+BootstrapFontType = Literal[
     'label', 'body', 'body-sm', 'body-lg', 'body-xl', 'caption',
     'display-xl', 'display-lg', 'heading-xl', 'heading-lg', 'heading-md', 'code'
 ]
 
-FontTokenType = Union[DefaultFontTypes, str, Font]
+FontTokenType = Union[BootstrapFontType, str, Font]
