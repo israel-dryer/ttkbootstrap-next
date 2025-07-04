@@ -7,15 +7,16 @@ if TYPE_CHECKING:
 
 BindScope = Literal['all', 'class', 'widget']
 TraceOperation = Literal["array", "read", "write", "unset"]
-VariableType = Union[Signal, Variable, str]
+VariableType = Union["Signal", "Variable", str]
 Anchor = Literal['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'center']
+LabelAnchor = Literal['nw', 'n', 'ne', 'en', 'es', 'se', 's', 'sw', 'ws', 'w', 'wn']
 ColorShade = Literal[100, 200, 300, 400, 500, 600, 700, 800, 900]
 ColorMode = Union[Literal['light', 'dark'], str]
 ColorModel = Literal['hex', 'hsl', 'rgb']
 ButtonSize = Literal['sm', 'md', 'lg']
 Justify = Literal['left', 'center', 'right']
 Orient = Literal['horizontal', 'vertical']
-ImageType = Union[PhotoImage, BootstrapIcon, LucideIcon]
+ImageType = Union["PhotoImage", "BootstrapIcon", "LucideIcon"]
 Padding = Union[int, Tuple[int, int], Tuple[int, int, int, int]]
 Compound = Literal['text', 'image', 'center', 'top', 'bottom', 'left', 'right', 'none']
 
@@ -84,3 +85,20 @@ class LabelOptions(TypedDict, total=False):
     underline: int
     width: int
     wrap_length: int
+
+
+class LabelFrameOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by the `LabelFrame` widget.
+
+    Attributes:
+        height: The height of the widget in pixels.
+        label_anchor: Specifies the position of the label relative to the frame's border.
+        padding: Space around the frame content.
+        underline: The integer index (0-based) of a character to underline in the label text.
+        width: The width of the widget in pixels.
+    """
+    padding: Padding
+    height: int
+    width: int
+    label_anchor: LabelAnchor
+    underline: int
