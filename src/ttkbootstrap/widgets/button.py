@@ -3,7 +3,7 @@ from typing import Callable, Literal, Unpack
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonSizeType, ButtonOptionsType
+from ..core.libtypes import ButtonSize, ButtonOptions
 from ..style.tokens import ButtonColorTokens, ButtonVariantTokenType
 from ..style.builders.button import ButtonStyleBuilder
 from ..utils import unsnake_kwargs
@@ -21,12 +21,12 @@ class Button(BaseWidget):
             parent,
             text: str,
             color: ButtonColorTokens = "primary",
-            size: ButtonSizeType = "md",
+            size: ButtonSize = "md",
             variant: ButtonVariantTokenType = "solid",
             icon: str = None,
             icon_position: Literal['left', 'right'] = 'left',
             on_click: Callable = None,
-            **kwargs: Unpack[ButtonOptionsType]
+            **kwargs: Unpack[ButtonOptions]
     ):
         """
         Initialize a new Button.
@@ -92,7 +92,7 @@ class Button(BaseWidget):
         self.configure(textvariable=self._text_signal.var)
         return self
 
-    def size(self, value: ButtonSizeType = None):
+    def size(self, value: ButtonSize = None):
         """Get or set the button text."""
         if value is None:
             return self._style_builder.size()

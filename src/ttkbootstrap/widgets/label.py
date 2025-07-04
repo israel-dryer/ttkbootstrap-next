@@ -1,5 +1,8 @@
 from tkinter import ttk
+from typing import Unpack
+
 from ttkbootstrap.core import Signal
+from ttkbootstrap.core.libtypes import LabelOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import FontTokenType, ForegroundTokenType
@@ -9,7 +12,7 @@ from ttkbootstrap.utils import unsnake_kwargs
 class Label(BaseWidget):
     """A themed label widget with support for signals and color tokens."""
 
-    _configure_methods = {}
+    _configure_methods = {"text", "text_signal", "color"}
 
     def __init__(
             self,
@@ -17,7 +20,7 @@ class Label(BaseWidget):
             text: str = "",
             color: ForegroundTokenType = None,
             font: FontTokenType = "body",
-            **kwargs
+            **kwargs: Unpack[LabelOptions]
     ):
         """
         Initialize a themed label.

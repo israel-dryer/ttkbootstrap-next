@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Callable, Generic, Type, TypeVar, Any, Tuple
 from itertools import count
-from .libtypes import TraceOperationType
+from .libtypes import TraceOperation
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -34,7 +34,7 @@ class _SignalTrace:
 
     def add(
         self,
-        operation: TraceOperationType,
+        operation: TraceOperation,
         callback: Callable[[T], Any],
         get_value: Callable[[], T],
     ) -> str:
@@ -48,7 +48,7 @@ class _SignalTrace:
         self._traces[fid] = traced_callback
         return fid
 
-    def remove(self, operation: TraceOperationType, fid: str):
+    def remove(self, operation: TraceOperation, fid: str):
         """
         Remove a trace by ID.
         """

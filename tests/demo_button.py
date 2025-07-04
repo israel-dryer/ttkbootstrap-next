@@ -11,7 +11,6 @@ theme = app.theme
 
 b1 = Button(app, "Primary", color="primary", icon="house-fill", take_focus=False).pack(padx=16, pady=16)
 b2 = Button(app, "Secondary", color="secondary", icon="house-fill", variant="ghost").pack(padx=16, pady=16)
-
 f1 = Frame(app, padding=8, surface="layer-1").pack(padx=10, pady=10, fill='x')
 i1 = IconButton(f1, "moon-fill", variant="ghost").pack(side="left")
 IconButton(f1, "badge-hd-fill", variant="ghost").pack(side="left")

@@ -6,7 +6,7 @@ from .utils import (
     darken_color, tint_color, shade_color, relative_luminance, best_foreground,
     lighten_color, mix_colors
 )
-from ..core.libtypes import ColorShadeType
+from ..core.libtypes import ColorShade
 from .tokens import ThemeColorTokenType, SurfaceTokenType, ForegroundTokenType
 from ..exceptions import InvalidThemeError, InvalidTokenError
 
@@ -185,7 +185,7 @@ class ColorTheme:
         spectrum_colors = [*tints, base, *shades]
         return {name: color for name, color in zip(spectrum_names, spectrum_colors)}
 
-    def shade(self, token: ThemeColorTokenType, shade: ColorShadeType = 500) -> str:
+    def shade(self, token: ThemeColorTokenType, shade: ColorShade = 500) -> str:
         """Get a specific color shade from the spectrum."""
         return self.spectrum(token)[shade]
 

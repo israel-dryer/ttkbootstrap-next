@@ -2,7 +2,7 @@ from tkinter import ttk
 from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonSizeType, ButtonOptionsType
+from ..core.libtypes import ButtonSize, ButtonOptions
 from ..style.tokens import ButtonColorTokens, ButtonVariantTokenType
 from ..style.builders.icon_button import IconButtonStyleBuilder
 from ..utils import unsnake_kwargs
@@ -20,10 +20,10 @@ class IconButton(BaseWidget):
             parent,
             icon: str = None,
             color: ButtonColorTokens = "primary",
-            size: ButtonSizeType = "md",
+            size: ButtonSize = "md",
             variant: ButtonVariantTokenType = "solid",
             on_click: Callable = None,
-            **kwargs: Unpack[ButtonOptionsType]
+            **kwargs: Unpack[ButtonOptions]
     ):
         """
         Initialize a new Button.

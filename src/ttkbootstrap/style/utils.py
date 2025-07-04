@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageOps, ImageColor
 
 from ttkbootstrap.core.image import ManagedImage
-from ttkbootstrap.core.libtypes import ColorModelType
+from ttkbootstrap.core.libtypes import ColorModel
 from ttkbootstrap.utils import clamp
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets" / "widgets"
@@ -17,7 +17,7 @@ SAT = 100
 LUM = 100
 
 
-def color_to_rgb(color, model: ColorModelType = 'hex'):
+def color_to_rgb(color, model: ColorModel = 'hex'):
     """Convert color value to rgb.
 
     The color and model parameters represent the color to be converted.
@@ -41,7 +41,7 @@ def color_to_rgb(color, model: ColorModelType = 'hex'):
     return ImageColor.getrgb(conformed)
 
 
-def color_to_hex(color, model: ColorModelType = 'rgb'):
+def color_to_hex(color, model: ColorModel = 'rgb'):
     """Convert color value to hex.
 
     The color and model parameters represent the color to be converted.
@@ -65,7 +65,7 @@ def color_to_hex(color, model: ColorModelType = 'rgb'):
     return f'#{r:02x}{g:02x}{b:02x}'
 
 
-def color_to_hsl(color, model: ColorModelType = 'hex'):
+def color_to_hsl(color, model: ColorModel = 'hex'):
     """Convert color value to hsl.
 
     The color and model parameters represent the color to be converted.
@@ -95,8 +95,8 @@ def color_to_hsl(color, model: ColorModelType = 'hex'):
 
 def update_hsl_value(
         color, hue=None, sat=None, lum=None,
-        in_model: ColorModelType = 'hsl',
-        out_model: ColorModelType = 'hsl'):
+        in_model: ColorModel = 'hsl',
+        out_model: ColorModel = 'hsl'):
     """Change hue, saturation, or luminosity of the color based on the hue,
     sat, lum parameters provided.
 
@@ -141,7 +141,7 @@ def update_hsl_value(
 
 
 def contrast_color(
-        color, model: ColorModelType, dark_color='#000',
+        color, model: ColorModel, dark_color='#000',
         light_color='#fff'):
     """The best matching contrasting light or dark color for the given color.
     https://stackoverflow.com/questions/1855884/determine-font-color-based-on-background-color
@@ -177,7 +177,7 @@ def contrast_color(
         return light_color
 
 
-def conform_color_model(color, model: ColorModelType):
+def conform_color_model(color, model: ColorModel):
     """Conform the color values to a string that can be interpreted by the
     `PIL.ImageColor.getrgb method`.
 

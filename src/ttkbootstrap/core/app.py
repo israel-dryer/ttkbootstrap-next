@@ -1,5 +1,5 @@
 from tkinter import Tk
-from ttkbootstrap.core.libtypes import ColorThemeType
+from ttkbootstrap.core.libtypes import ColorMode
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
@@ -13,7 +13,7 @@ class App(BaseWidget, ContainerMixin):
     def __init__(
             self,
             title="ttkbootstrap",
-            theme: ColorThemeType = "light",
+            theme: ColorMode = "light",
             use_default_fonts: bool = True,
             surface: SurfaceTokenType = "base"
     ):
