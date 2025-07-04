@@ -6,7 +6,7 @@ from ttkbootstrap.core.widget import BaseWidget
 from tkinter import ttk
 
 from ttkbootstrap.style.builders.label_frame import LabelFrameStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundToken, SurfaceToken, ThemeColorToken
+from ttkbootstrap.style.tokens import ForegroundToken, SurfaceToken
 from ttkbootstrap.utils import unsnake_kwargs
 
 
@@ -14,13 +14,14 @@ class LabelFrame(BaseWidget, ContainerMixin):
     """A themed label frame widget with support for surface and color theming,
     style propagation, and layout container behavior.
     """
-    _configure_methods = {"surface", "border_color"}
+    _configure_methods = {"border_color", "background", "label_color"}
 
     def __init__(
             self,
             parent,
-            text: str = None,
-            surface: SurfaceToken = None,
+            label: str = None,
+            label_color: ForegroundToken = None,
+            background: SurfaceToken = None,
             border_color: ForegroundToken = None,
             **kwargs: Unpack[LabelFrameOptions]
     ):
@@ -28,32 +29,41 @@ class LabelFrame(BaseWidget, ContainerMixin):
 
         Args:
             parent: The parent widget.
-            text: The label text shown at the top of the frame.
-            surface: The background theme token to apply to the frame.
+            label: The label text shown at the top of the frame.
+            label_color: The text color of the label.
+            background: The background color of the labelframe.
             border_color: The border color or accent theme token.
             **kwargs: Additional options accepted by the base LabelFrame widget.
-                See `LabelFrameOptions` for details.
         """
 
-        self._style_builder = LabelFrameStyleBuilder(color=border_color)
-        self._widget = ttk.LabelFrame(parent, text=text, **unsnake_kwargs(kwargs))
-        super().__init__(parent, surface=surface)
+        self._style_builder = LabelFrameStyleBuilder(
+            border_color=border_color, label_color=label_color)
+        self._widget = ttk.LabelFrame(parent, text=label, **unsnake_kwargs(kwargs))
+        super().__init__(parent, surface=background)
 
-    def surface(self, value=None):
-        """Get or set the surface token for this widget."""
+    def background(self, value: SurfaceToken = None):
+        """Get or set the border color for this widget."""
         if value is None:
-            return self._surface_token
+            return self._style_builder.surface()
         else:
-            self._surface_token = value
             self._style_builder.surface(value)
             self.update_style()
             return self
 
-    def border_color(self, value=None):
+    def label_color(self, value: SurfaceToken = None):
         """Get or set the border color for this widget."""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.label_color()
         else:
-            self._style_builder.color(value)
+            self._style_builder.label_color(value)
+            self.update_style()
+            return self
+
+    def border_color(self, value: ForegroundToken = None):
+        """Get or set the border color for this widget."""
+        if value is None:
+            return self._style_builder.border_color()
+        else:
+            self._style_builder.border_color(value)
             self.update_style()
             return self

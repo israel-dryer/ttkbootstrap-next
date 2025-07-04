@@ -3,14 +3,25 @@ from ttkbootstrap.style.builders.base import StyleBuilderBase
 
 class LabelFrameStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color: str = None):
-        super().__init__("TLabelframe", color=color)
+    def __init__(self, border_color: str = None, label_color: str = None):
+        super().__init__(
+            "TLabelframe",
+            border_color=border_color,
+            label_color=label_color
+        )
 
-    def color(self, value: str = None):
+    def border_color(self, value: str = None):
         if value is None:
-            return self.options.get('color', 'primary')
+            return self.options.get('border_color', None)
         else:
-            self.options.update(color=value)
+            self.options.update(border_color=value)
+            return self
+
+    def label_color(self, value: str = None):
+        if value is None:
+            return self.options.get('label_color', None)
+        else:
+            self.options.update(label_color=value)
             return self
 
     def surface(self, value: str = None):
@@ -24,11 +35,12 @@ class LabelFrameStyleBuilder(StyleBuilderBase):
         ttk_style = self.resolve_name()
         background = self.theme.surface_color(self.surface())
         foreground = self.theme.on_surface(self.surface())
-        color = self.color()
-        if color is None:
-            border = self.theme.border_on_surface(background)
+        surface = self.theme.surface_color(self.surface())
+        border_token = self.border_color()
+        if border_token is None:
+            border = self.theme.border_on_surface(surface)
         else:
-            border = self.theme.foreground_color(color)
+            border = self.theme.foreground_color(border_token)
         self.configure(
             ttk_style,
             background=background,
@@ -36,4 +48,4 @@ class LabelFrameStyleBuilder(StyleBuilderBase):
             lightcolor=background,
             darkcolor=background
         )
-        self.configure(f"{ttk_style}.Label", foreground=foreground, background=background)
+        self.configure(f"{ttk_style}.Label", foreground=foreground, background=surface)
