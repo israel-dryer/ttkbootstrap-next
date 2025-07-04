@@ -61,10 +61,8 @@ class LabelOptions(TypedDict, total=False):
 
     Attributes:
         anchor: Specifies how the information in the widget is positioned relative to the inner margins.
-        background: The widget's background color (override theme `surface`).
         compound: Specifies the relative position of the image and text.
         cursor: Mouse cursor to display when hovering over the label.
-        foreground: The widget's foreground color (override theme `color`).
         image: An image to display in the label, such as a PhotoImage, BootstrapIcon, or LucideIcon.
         justify: Specifies how the lines are laid out relative to one another with multiple lines of text.
         padding: Space around the label content.
@@ -74,10 +72,8 @@ class LabelOptions(TypedDict, total=False):
         wrap_length: The maximum line length in pixels.
     """
     anchor: Anchor
-    background: str
     compound: Compound
     cursor: str
-    foreground: str
     image: ImageType
     justify: Justify
     padding: Padding

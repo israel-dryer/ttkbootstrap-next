@@ -5,20 +5,21 @@ from ttkbootstrap.core import Signal
 from ttkbootstrap.core.libtypes import LabelOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
-from ttkbootstrap.style.tokens import FontTokenType, ForegroundToken
+from ttkbootstrap.style.tokens import FontTokenType, ForegroundToken, SurfaceToken
 from ttkbootstrap.utils import unsnake_kwargs
 
 
 class Label(BaseWidget):
     """A themed label widget with support for signals and color tokens."""
 
-    _configure_methods = {"text", "text_signal", "color"}
+    _configure_methods = {"text", "text_signal", "foreground", "background"}
 
     def __init__(
             self,
             parent,
             text: str = "",
-            color: ForegroundToken = None,
+            foreground: ForegroundToken = None,
+            background: SurfaceToken= None,
             font: FontTokenType = "body",
             **kwargs: Unpack[LabelOptions]
     ):
@@ -28,12 +29,13 @@ class Label(BaseWidget):
         Args:
             parent: The parent widget.
             text: The label text.
-            color: Optional foreground color token (e.g., "primary", "muted").
+            foreground: Optional foreground color override (e.g., "primary", "secondary-subtle").
+            background: Optional background color override (e.g., "gray-200", "layer-2").
             font: The font token to use (default is "body").
             **kwargs: Additional ttk.Label options.
         """
         self._text_signal = Signal(text)
-        self._style_builder = LabelStyleBuilder(color, **kwargs)
+        self._style_builder = LabelStyleBuilder(foreground, background)
         self._widget = ttk.Label(
             parent,
             font=font,
@@ -57,11 +59,20 @@ class Label(BaseWidget):
         self.configure(textvariable=self._text_signal.var)
         return self
 
-    def color(self, value: str = None):
+    def foreground(self, value: ForegroundToken = None):
         """Get or set the label text color."""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.foreground()
         else:
-            self._style_builder.color(value)
+            self._style_builder.foreground(value)
+            self.update_style()
+            return self
+
+    def background(self, value: SurfaceToken = None):
+        """Get or set the label background color."""
+        if value is None:
+            return self._style_builder.background()
+        else:
+            self._style_builder.background(value)
             self.update_style()
             return self
