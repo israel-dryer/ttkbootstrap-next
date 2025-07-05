@@ -1,9 +1,13 @@
 from typing import Literal, Union, TypedDict, TYPE_CHECKING, Tuple
 
+from ttkbootstrap.core.widget import BaseWidget
+
 if TYPE_CHECKING:
     from tkinter import PhotoImage, Variable
     from ttkbootstrap.icons import BootstrapIcon, LucideIcon
     from ttkbootstrap.core.signal import Signal
+    from ttkbootstrap.core.app import App
+    from tkinter import Misc
 
 BindScope = Literal['all', 'class', 'widget']
 TraceOperation = Literal["array", "read", "write", "unset"]
@@ -19,6 +23,7 @@ Orient = Literal['horizontal', 'vertical']
 ImageType = Union["PhotoImage", "BootstrapIcon", "LucideIcon"]
 Padding = Union[int, Tuple[int, int], Tuple[int, int, int, int]]
 Compound = Literal['text', 'image', 'center', 'top', 'bottom', 'left', 'right', 'none']
+WidgetType = Union["BaseWidget", "App", "Misc"]
 
 
 ## Cursor https://www.tcl-lang.org/man/tcl8.6/TkCmd/cursors.htm
@@ -109,3 +114,42 @@ class SizeGripOptions(TypedDict, total=False):
     """
     cursor: str
     take_focus: bool
+
+
+class PanedWindowOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by the `PanedWindow` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the widget.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+        height: The height of the widget in pixels.
+        width: The width of the widget in pixels.
+    """
+    cursor: str
+    take_focus: bool
+    orient: Orient
+    height: int
+    width: int
+
+
+class PaneOptions(TypedDict, total=False):
+    """Pane configuration options for a widget managed by a PanedWindow.
+
+    Attributes:
+        after: Insert the pane after this widget (either a widget reference or widget name).
+        before: Insert the pane before this widget (either a widget reference or widget name).
+        height: Preferred height of the pane in pixels.
+        min_size: Minimum allowed size (in pixels) for the pane in the paned dimension.
+        pad_x: Horizontal padding on each side of the pane.
+        pad_y: Vertical padding on each side of the pane.
+        sticky: Controls how the pane widget is stretched or aligned; uses compass directions (e.g., "nsew").
+        width: Preferred width of the pane in pixels.
+    """
+    after: Union["BaseWidget", str]
+    before: Union["BaseWidget", str]
+    height: int
+    min_size: int
+    pad_x: int
+    pad_y: int
+    sticky: str
+    width: int
