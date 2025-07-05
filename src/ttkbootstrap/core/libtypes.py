@@ -167,3 +167,43 @@ class CheckButtonOptions(TypedDict, total=False):
     take_focus: bool
     underline: int
     width: int
+
+
+class NotebookOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by the `Notebook`` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the frame.
+        height: The height of the frame in pixels.
+        padding: Space around the frame content.
+        take_focus: Specifies if the frame accepts focus during keyboard traversal.
+        width: The width of the frame in pixels.
+    """
+    cursor: str
+    height: int
+    padding: Padding
+    take_focus: bool
+    width: int
+
+
+class NotebookTabOptions(TypedDict, total=False):
+    """
+    Defines configurable options for individual tabs in a Notebook widget.
+
+    These options can be passed to `add()`, `insert()`, or `configure_tab()`
+    to control the appearance and behavior of a specific tab.
+
+    Attributes:
+        sticky: Sticky position for the tab content (e.g., 'n', 'e', 's', 'w').
+        padding: Internal padding around the tab label (e.g., 5 or (5, 10)).
+        text: The text label displayed on the tab.
+        image: An image displayed on the tab (e.g., PhotoImage instance).
+        compound: Placement of image relative to text (e.g., 'left', 'top').
+        underline: Index of character in `text` to underline for mnemonic.
+    """
+    sticky: str
+    padding: Padding
+    text: str
+    image: ImageType
+    compound: Compound
+    underline: int
