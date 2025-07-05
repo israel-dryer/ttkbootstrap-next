@@ -5,3 +5,4 @@ from .separator import Separator
 from .label import Label
 from .label_frame import LabelFrame
 from .size_grip import SizeGrip
+from .check_button import CheckButton

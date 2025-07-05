@@ -127,7 +127,6 @@ class PanedWindowOptions(TypedDict, total=False):
     """
     cursor: str
     take_focus: bool
-    orient: Orient
     height: int
     width: int
 
@@ -152,4 +151,19 @@ class PaneOptions(TypedDict, total=False):
     pad_x: int
     pad_y: int
     sticky: str
+    width: int
+
+
+class CheckButtonOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by the `CheckButton` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the widget.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+        underline: The integer index (0-based) of a character to underline in the text.
+        width: The width of the widget in pixels.
+    """
+    cursor: str
+    take_focus: bool
+    underline: int
     width: int
