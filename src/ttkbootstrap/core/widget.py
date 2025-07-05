@@ -1,5 +1,5 @@
 from tkinter import Misc
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from .mixins.binding import BindingMixin
 from .mixins.configure import ConfigureMixin
@@ -7,6 +7,9 @@ from .mixins.focus import FocusMixIn
 from .mixins.geometry import GeometryMixin
 from .mixins.grab import GrabMixIn
 from .mixins.winfo import WidgetInfoMixin
+
+if TYPE_CHECKING:
+    from ttkbootstrap.core.app import App
 
 
 class BaseWidget(
@@ -19,7 +22,7 @@ class BaseWidget(
 ):
     _widget: Union["BaseWidget", Misc]
 
-    def __init__(self, parent: Union["BaseWidget", Misc] = None, **kwargs):
+    def __init__(self, parent: Union["BaseWidget", Misc, "App"] = None, **kwargs):
         super().__init__()
         self._parent = parent
 
