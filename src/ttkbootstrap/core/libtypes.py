@@ -207,3 +207,18 @@ class NotebookTabOptions(TypedDict, total=False):
     image: ImageType
     compound: Compound
     underline: int
+
+
+class RadioButtonOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by the `RadioButton` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the widget.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+        underline: The integer index (0-based) of a character to underline in the text.
+        width: The width of the widget in pixels.
+    """
+    cursor: str
+    take_focus: bool
+    underline: int
+    width: int

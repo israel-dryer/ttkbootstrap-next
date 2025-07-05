@@ -1,0 +1,157 @@
+from typing import Any, Callable, Union, Unpack
+
+from tkinter import ttk
+from ttkbootstrap.core import Signal
+from ttkbootstrap.core.libtypes import RadioButtonOptions
+from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
+from ttkbootstrap.style.tokens import ForegroundToken
+from ttkbootstrap.utils import unsnake_kwargs
+
+
+class RadioButton(BaseWidget):
+    """
+    A themed radio button widget with support for signal binding,
+    grouped selection logic, and callback interactions.
+
+    This widget supports reactive state updates using `Signal`, enabling
+    dynamic value changes and grouped control across multiple buttons.
+    """
+
+    _configure_methods = {
+        "text", "text_signal", "value", "value_signal",
+        "group", "on_select", "on_change", "readonly"
+    }
+
+    def __init__(
+            self,
+            parent,
+            text: str,
+            value: str | int,
+            group: Union[str, Signal] = None,
+            color: ForegroundToken = None,
+            selected: bool = False,
+            on_select: Callable = None,
+            on_change: Callable[[Any], Any] = None,
+            **kwargs: Unpack[RadioButtonOptions]
+    ):
+        """
+        Initialize a new RadioButton.
+
+        Args:
+            parent: The parent widget.
+            text: The display text for the radiobutton label.
+            value: The value this radiobutton represents when selected.
+            group: A signal name or Signal instance to group multiple buttons.
+            color: A foreground color token for styling the label.
+            selected: Whether this button should be initially selected.
+            on_select: A callback triggered when the user selects the button.
+            on_change: A callback triggered whenever the group value changes.
+            **kwargs: Additional keyword arguments passed to ttk.Radiobutton.
+        """
+        self._style_builder = RadioButtonStyleBuilder(color)
+        self._on_select = on_select
+        self._on_change = on_change
+        self._text_signal = Signal(text)
+        self._on_change_fid = None
+
+        if group:
+            self._value_signal = Signal(None, name=str(group))
+        else:
+            self._value_signal = Signal(value)
+
+        if on_change:
+            self._on_change_fid = self._value_signal.subscribe(self._on_change)
+
+        self._widget = ttk.Radiobutton(
+            parent,
+            value=value,
+            textvariable=self._text_signal.var,
+            variable=self._value_signal.var,
+            command=self._on_select,
+            **unsnake_kwargs(kwargs)
+        )
+
+        if selected:
+            self.select()
+
+        super().__init__(parent)
+
+    def text(self, value: str = None):
+        """Get or set the label text."""
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        return self
+
+    def text_signal(self, value: Signal[str] = None):
+        """Get or set the signal for the label text."""
+        if value is None:
+            return self._text_signal
+        self._text_signal = value
+        self.configure(textvariable=self._text_signal.var)
+        return self
+
+    def is_selected(self):
+        """Return True if the radiobutton is currently selected."""
+        return 'selected' in self.widget.state()
+
+    def value(self, value: int | str = None):
+        """Get or set the current value of the radiobutton group."""
+        if value is None:
+            return self._value_signal()
+        self._value_signal.set(value)
+        return self
+
+    def value_signal(self, value: Signal[str | int] = None):
+        """Get or set the signal controlling the radiobutton group value."""
+        if value is None:
+            return self._value_signal
+        self._value_signal = value
+        self.configure(variable=self._value_signal.var)
+        return self
+
+    def on_select(self, value: Callable = None):
+        """Get or set the callback triggered when this button is selected."""
+        if value is None:
+            return self._on_select
+        self._on_select = value
+        return self
+
+    def on_change(self, value: Callable[[Any], Any] = None):
+        """Get or set the callback triggered when the group value changes."""
+        if value is None:
+            return self._on_change
+        if self._on_change_fid:
+            self._value_signal.unsubscribe(self._on_change)
+        self._on_change = value
+        self._on_change_fid = self._value_signal.subscribe(self._on_change)
+        return self
+
+    def readonly(self, value: bool = None):
+        """Get or set whether the radiobutton is readonly (disabled)."""
+        if value is None:
+            return "readonly" in self.widget.state()
+        states = ['disabled', 'readonly'] if value else ['!disabled', '!readonly']
+        self.widget.state(states)
+        return self
+
+    def disable(self):
+        """Disable the radiobutton to prevent user interaction."""
+        self.widget.state(['disabled'])
+
+    def enable(self):
+        """Enable the radiobutton for user interaction."""
+        self.state(['!disabled', '!readonly'])
+        return self
+
+    def select(self):
+        """Select this radiobutton programmatically."""
+        self.widget.invoke()
+
+    def destroy(self):
+        """Unsubscribe callbacks and destroy the widget."""
+        if self._on_change_fid:
+            self._value_signal.unsubscribe(self._on_change_fid)
+            self._on_change_fid = None
+        super().destroy()

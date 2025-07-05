@@ -7,3 +7,4 @@ from .label_frame import LabelFrame
 from .size_grip import SizeGrip
 from .check_button import CheckButton
 from .notebook import Notebook
+from .radio_button import RadioButton
