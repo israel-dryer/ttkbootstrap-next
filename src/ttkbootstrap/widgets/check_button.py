@@ -6,6 +6,7 @@ from ttkbootstrap.core.libtypes import CheckButtonOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
 from ttkbootstrap.style.tokens import ForegroundToken
+from ttkbootstrap.utils import unsnake_kwargs
 
 
 class CheckButton(BaseWidget):
@@ -64,7 +65,7 @@ class CheckButton(BaseWidget):
             onvalue=on_value,
             offvalue=off_value,
             command=self._on_toggle,
-            **kwargs
+            **unsnake_kwargs(kwargs)
         )
 
         super().__init__(parent)
