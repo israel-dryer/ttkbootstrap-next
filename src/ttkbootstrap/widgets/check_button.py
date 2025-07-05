@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Unpack
+from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
 from ttkbootstrap.core import Signal
