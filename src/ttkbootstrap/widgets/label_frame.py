@@ -19,7 +19,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
     def __init__(
             self,
             parent,
-            label: str = None,
+            text: str = None,
             label_color: ForegroundToken = None,
             background: SurfaceToken = None,
             border_color: ForegroundToken = None,
@@ -29,7 +29,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
 
         Args:
             parent: The parent widget.
-            label: The label text shown at the top of the frame.
+            text: The label text shown at the top of the frame.
             label_color: The text color of the label.
             background: The background color of the labelframe.
             border_color: The border color or accent theme token.
@@ -38,7 +38,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
 
         self._style_builder = LabelFrameStyleBuilder(
             border_color=border_color, label_color=label_color)
-        self._widget = ttk.LabelFrame(parent, text=label, **unsnake_kwargs(kwargs))
+        self._widget = ttk.LabelFrame(parent, text=text, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=background)
 
     def background(self, value: SurfaceToken = None):
