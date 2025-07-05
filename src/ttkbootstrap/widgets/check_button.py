@@ -17,7 +17,7 @@ class CheckButton(BaseWidget):
     and supports binding to `Signal` objects for reactive UI behavior.
     """
 
-    _configure_methods = {"color", "text_signal", "value_signal", "text", "readonly"}
+    _configure_methods = {"color", "text_signal", "value_signal", "text", "readonly", "on_change", "on_toggle"}
 
     def __init__(
             self,
@@ -69,6 +69,17 @@ class CheckButton(BaseWidget):
         )
 
         super().__init__(parent)
+
+    def on_change(self, value: Callable[[Any], Any] = None):
+        """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""
+        if value is None:
+            return self._on_change
+        else:
+            if self._on_change_fid:
+                self._value_signal.unsubscribe(self._on_change)
+            self._on_change = value
+            self._on_change_fid = self._value_signal.subscribe(self._on_change)
+            return self
 
     def color(self, value: ForegroundToken = None):
         """Get or set the color role."""
@@ -146,3 +157,10 @@ class CheckButton(BaseWidget):
     def is_checked(self):
         """Return True if the current value matches the on_value."""
         return self.value() == self.configure("on_value")
+
+    def destroy(self):
+        """Unsubscribe callbacks and destroy the widget."""
+        if self._on_change_fid:
+            self._value_signal.unsubscribe(self._on_change_fid)
+            self._on_change_fid = None
+        super().destroy()
