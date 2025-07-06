@@ -3,7 +3,7 @@ from typing import Unpack
 from ttkbootstrap.core.libtypes import SizeGripOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.size_grip import SizeGripStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundToken
+from ttkbootstrap.style.tokens import SemanticColor
 from tkinter import ttk
 
 from ttkbootstrap.utils import unsnake_kwargs
@@ -17,7 +17,7 @@ class SizeGrip(BaseWidget):
     via the `StyleBuilder` system.
     """
 
-    def __init__(self, parent, color: ForegroundToken = None, **kwargs: Unpack[SizeGripOptions]):
+    def __init__(self, parent, color: SemanticColor = None, **kwargs: Unpack[SizeGripOptions]):
         """Initialize a new SizeGrip widget.
 
         Args:
@@ -29,7 +29,7 @@ class SizeGrip(BaseWidget):
         self._widget = ttk.Sizegrip(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)
 
-    def color(self, value: ForegroundToken = None):
+    def color(self, value: SemanticColor = None):
         """Get or set the sizegrip color."""
         if value is None:
             return self._style_builder.color()

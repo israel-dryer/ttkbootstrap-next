@@ -3,7 +3,7 @@ from tkinter import ttk
 from ttkbootstrap.core.libtypes import Orient
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
-from ttkbootstrap.style.tokens import SeparatorColorToken
+from ttkbootstrap.style.tokens import SeparatorColor
 
 
 class Separator(BaseWidget):
@@ -11,7 +11,7 @@ class Separator(BaseWidget):
 
     _configure_methods = {"color", "orient"}
 
-    def __init__(self, parent, color: SeparatorColorToken = "border", orient: Orient = "horizontal"):
+    def __init__(self, parent, color: SeparatorColor = "border", orient: Orient = "horizontal"):
         """
         Initialize a Separator widget.
 
@@ -24,7 +24,7 @@ class Separator(BaseWidget):
         self._widget = ttk.Separator(parent, orient=orient)
         super().__init__(parent)
 
-    def color(self, value: SeparatorColorToken = None):
+    def color(self, value: SeparatorColor = None):
         """Get or set the separator color."""
         if value is None:
             return self._style_builder.color()

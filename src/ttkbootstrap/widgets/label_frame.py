@@ -6,7 +6,7 @@ from ttkbootstrap.core.widget import BaseWidget
 from tkinter import ttk
 
 from ttkbootstrap.style.builders.label_frame import LabelFrameStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundToken, SurfaceToken
+from ttkbootstrap.style.tokens import BorderColor, ForegroundColor, SurfaceColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
@@ -20,9 +20,9 @@ class LabelFrame(BaseWidget, ContainerMixin):
             self,
             parent,
             text: str = None,
-            label_color: ForegroundToken = None,
-            background: SurfaceToken = None,
-            border_color: ForegroundToken = None,
+            label_color: ForegroundColor = None,
+            background: SurfaceColor = None,
+            border_color: BorderColor = None,
             **kwargs: Unpack[LabelFrameOptions]
     ):
         """Create a themed LabelFrame widget.
@@ -41,7 +41,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
         self._widget = ttk.LabelFrame(parent, text=text, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=background)
 
-    def background(self, value: SurfaceToken = None):
+    def background(self, value: SurfaceColor = None):
         """Get or set the border color for this widget."""
         if value is None:
             return self._style_builder.surface()
@@ -50,7 +50,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
             self.update_style()
             return self
 
-    def label_color(self, value: SurfaceToken = None):
+    def label_color(self, value: SurfaceColor = None):
         """Get or set the border color for this widget."""
         if value is None:
             return self._style_builder.label_color()
@@ -59,7 +59,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
             self.update_style()
             return self
 
-    def border_color(self, value: ForegroundToken = None):
+    def border_color(self, value: BorderColor = None):
         """Get or set the border color for this widget."""
         if value is None:
             return self._style_builder.border_color()

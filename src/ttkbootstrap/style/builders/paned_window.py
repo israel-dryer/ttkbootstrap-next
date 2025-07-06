@@ -1,13 +1,13 @@
 from ttkbootstrap.core.libtypes import Orient
 from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.tokens import ForegroundToken
+from ttkbootstrap.style.tokens import ForegroundColor
 
 
 class PanedWindowStyleBuilder(StyleBuilderBase):
 
     def __init__(
             self,
-            sash_color: ForegroundToken = None,
+            sash_color: ForegroundColor = None,
             sash_thickness: int = None,
             orient: Orient = "horizontal"):
         super().__init__(

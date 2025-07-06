@@ -3,7 +3,7 @@ from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.widget import BaseWidget
 from ..core.libtypes import ButtonSize, ButtonOptions
-from ..style.tokens import ButtonColorToken, ButtonVariant
+from ..style.tokens import ButtonVariant, SemanticColor
 from ..style.builders.icon_button import IconButtonStyleBuilder
 from ..utils import unsnake_kwargs
 
@@ -19,7 +19,7 @@ class IconButton(BaseWidget):
             self,
             parent,
             icon: str = None,
-            color: ButtonColorToken = "primary",
+            color: SemanticColor = "primary",
             size: ButtonSize = "md",
             variant: ButtonVariant = "solid",
             on_click: Callable = None,

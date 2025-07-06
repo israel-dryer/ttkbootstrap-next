@@ -7,7 +7,7 @@ class StyleBuilderBase:
 
     def __init__(self, target_style: str, **options):
         self._target = target_style
-        self._surface = "base"
+        self._surface = "background"
         self._theme = ColorTheme.instance()
         self._style = Style()
         self.options = options or dict()

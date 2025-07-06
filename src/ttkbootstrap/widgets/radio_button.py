@@ -5,7 +5,7 @@ from ttkbootstrap.core import Signal
 from ttkbootstrap.core.libtypes import RadioButtonOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundToken
+from ttkbootstrap.style.tokens import ForegroundColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
@@ -29,7 +29,7 @@ class RadioButton(BaseWidget):
             text: str,
             value: str | int,
             group: Union[str, Signal] = None,
-            color: ForegroundToken = None,
+            color: ForegroundColor = None,
             selected: bool = False,
             on_select: Callable = None,
             on_change: Callable[[Any], Any] = None,

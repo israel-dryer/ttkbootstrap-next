@@ -2,7 +2,9 @@ from tkinter.font import nametofont
 
 from .base import StyleBuilderBase
 from ..element import Element, ElementImage
+from ..tokens import ButtonVariant, SemanticColor
 from ..utils import recolor_image
+from ...core.libtypes import ButtonSize
 from ...icons import BootstrapIcon
 
 _images = []
@@ -10,13 +12,7 @@ _images = []
 
 class ButtonStyleBuilder(StyleBuilderBase):
 
-    def __init__(
-            self,
-            color: str = "primary",
-            variant: str = "solid",
-            size: str = "md",
-            **kwargs
-    ):
+    def __init__(self, color="primary", variant="solid", size="md", **kwargs):
         super().__init__(
             "TButton",
             color=color,
@@ -32,21 +28,21 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     # ----- style builder options ------
 
-    def color(self, value: str = None):
+    def color(self, value: SemanticColor = None):
         if value is None:
             return self.options.get('color', 'primary')
         else:
             self.options.update(color=value)
             return self
 
-    def variant(self, value: str = None):
+    def variant(self, value: ButtonVariant = None):
         if value is None:
             return self.options.get('variant', 'solid')
         else:
             self.options.update(variant=value)
             return self
 
-    def size(self, value: str = None):
+    def size(self, value: ButtonSize = None):
         if value is None:
             return self.options.get('size', 'md')
         else:
@@ -209,9 +205,10 @@ class ButtonStyleBuilder(StyleBuilderBase):
             stipple="gray12",
             font=self.get_font())
 
-        self.map(ttk_style,
-                 foreground=[('disabled', foreground_disabled)],
-                 background=[('disabled', surface)])
+        self.map(
+            ttk_style,
+            foreground=[('disabled', foreground_disabled)],
+            background=[('disabled', surface)])
 
     # ----- Button Style Utilities -----
 

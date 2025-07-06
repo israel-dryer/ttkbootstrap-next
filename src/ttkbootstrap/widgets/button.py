@@ -4,7 +4,7 @@ from typing import Callable, Literal, Unpack
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
 from ..core.libtypes import ButtonSize, ButtonOptions
-from ..style.tokens import ButtonColorToken, ButtonVariant
+from ..style.tokens import ButtonVariant, SemanticColor
 from ..style.builders.button import ButtonStyleBuilder
 from ..utils import unsnake_kwargs
 
@@ -20,7 +20,7 @@ class Button(BaseWidget):
             self,
             parent,
             text: str,
-            color: ButtonColorToken = "primary",
+            color: SemanticColor = None,
             size: ButtonSize = "md",
             variant: ButtonVariant = "solid",
             icon: str = None,
@@ -118,7 +118,7 @@ class Button(BaseWidget):
             self.widget.configure(compound=value)
             return self
 
-    def color(self, value: ButtonColorToken = None):
+    def color(self, value: SemanticColor = None):
         """Get or set the color role"""
         if value is None:
             return self._style_builder.color()

@@ -4,7 +4,7 @@ from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
 from ttkbootstrap.style.theme import ColorTheme
-from ttkbootstrap.style.tokens import SurfaceToken
+from ttkbootstrap.style.tokens import SurfaceColor
 from ttkbootstrap.style.typography import Typography
 
 
@@ -15,7 +15,7 @@ class App(BaseWidget, ContainerMixin):
             title="ttkbootstrap",
             theme: ColorMode = "light",
             use_default_fonts: bool = True,
-            surface: SurfaceToken = "base"
+            surface: SurfaceColor = "background"
     ):
         self._widget = Tk()
         super().__init__(None, surface=surface)

@@ -7,7 +7,7 @@ from .utils import (
     lighten_color, mix_colors
 )
 from ..core.libtypes import ColorShade
-from .tokens import ThemeColorToken, SurfaceToken, ForegroundToken
+from .tokens import ThemeColor, SurfaceColor, ForegroundColor
 from ..exceptions import InvalidThemeError, InvalidTokenError
 
 _registered_themes: dict[str, dict] = {}
@@ -148,11 +148,11 @@ class ColorTheme:
         from tkinter.ttk import Style
         Style().theme_use('clam')
 
-    def color(self, token: ThemeColorToken) -> str:
+    def color(self, token: ThemeColor) -> str:
         """Get the hex value of a token."""
         return self.tokens.get(token)
 
-    def elevate_surface(self, token: ThemeColorToken, elevation: int = 0, *, max_elevation: int = 5) -> str:
+    def elevate_surface(self, token: ThemeColor, elevation: int = 0, *, max_elevation: int = 5) -> str:
         """
         Adjust a surface background color for elevation:
         - Light themes: blend darker
@@ -176,7 +176,7 @@ class ColorTheme:
         weight = min(elevation / max_elevation, 1.0) * 0.3  # up to 30% blend
         return mix_colors(blend_target, self.color(token), weight)
 
-    def spectrum(self, token: ThemeColorToken) -> dict[int, str]:
+    def spectrum(self, token: ThemeColor) -> dict[int, str]:
         """Get the full color spectrum (tints, base, shades) for a token."""
         base = self.color(token)
         spectrum_names = [100, 200, 300, 400, 500, 600, 700, 800, 900]
@@ -185,23 +185,23 @@ class ColorTheme:
         spectrum_colors = [*tints, base, *shades]
         return {name: color for name, color in zip(spectrum_names, spectrum_colors)}
 
-    def shade(self, token: ThemeColorToken, shade: ColorShade = 500) -> str:
+    def shade(self, token: ThemeColor, shade: ColorShade = 500) -> str:
         """Get a specific color shade from the spectrum."""
         return self.spectrum(token)[shade]
 
-    def hovered(self, token: ThemeColorToken):
+    def hovered(self, token: ThemeColor):
         """Boostrap style hover color"""
         return self.state_color(token, "hover")
 
-    def pressed(self, token: ThemeColorToken):
+    def pressed(self, token: ThemeColor):
         """Bootstrap style pressed color"""
         return self.state_color(token, "active")
 
-    def focused(self, token: ThemeColorToken) -> str:
+    def focused(self, token: ThemeColor) -> str:
         """Bootstrap-style focus color (darken 18%)"""
         return self.state_color(token, 'focus')
 
-    def focused_border(self, token: ThemeColorToken) -> str:
+    def focused_border(self, token: ThemeColor) -> str:
         """Inner border color on focus (slightly adjusted for visibility)."""
         base = self.color(token)
         lum = relative_luminance(base)
@@ -214,7 +214,7 @@ class ColorTheme:
 
     def focused_ring(
             self,
-            token: ThemeColorToken,
+            token: ThemeColor,
             surface: str | None = None
     ) -> str:
         """
@@ -254,8 +254,8 @@ class ColorTheme:
 
     def subtle(
             self,
-            token: ThemeColorToken,
-            surface: SurfaceToken = "base"
+            token: ThemeColor,
+            surface: SurfaceColor = "base"
     ) -> str:
         """
         Return a subtle background color for the given token.
@@ -277,7 +277,7 @@ class ColorTheme:
             # In dark mode, keep similar strategy but more visible token hint
             return mix_colors(base_color, surface_color, 0.10)
 
-    def state_color(self, token: ThemeColorToken, state: Literal["hover", "active", "focus"]) -> str:
+    def state_color(self, token: ThemeColor, state: Literal["hover", "active", "focus"]) -> str:
         """Return an adjusted button background color based on state and luminance.
 
         Bootstrap lightens or darkens depending on base brightness:
@@ -298,10 +298,10 @@ class ColorTheme:
             return lighten_color(base, delta)
         return darken_color(base, delta)
 
-    def disabled(self, token: ThemeColorToken) -> str:
+    def disabled(self, token: ThemeColor) -> str:
         return self.spectrum(token)[300 if self.mode == "light" else 700]
 
-    def border(self, token: ThemeColorToken) -> str:
+    def border(self, token: ThemeColor) -> str:
         """Get the color for a border (Bootstrap-style: darken 20%)"""
         base = self.color(token)
         return darken_color(base, 0.20)
@@ -313,13 +313,13 @@ class ColorTheme:
         else:
             return darken_color(surface_color, 0.20)
 
-    def surface_color(self, token: SurfaceToken = "base") -> str:
+    def surface_color(self, token: SurfaceColor = "base") -> str:
         """Return the surface color"""
         token = token.replace('base', 'background')
         try:
             if 'subtle' in token:
                 color, _ = token.split('-')
-                return self.subtle(cast(ThemeColorToken, color))
+                return self.subtle(cast(ThemeColor, color))
             if 'layer' in token:
                 _, elevation = token.split('-')
                 return self.elevate_surface("background", int(elevation))
@@ -328,19 +328,19 @@ class ColorTheme:
                 return self.spectrum(color)[int(scale)]
             if token == "base":
                 return self.surface_base()
-            return self.color(cast(ThemeColorToken, token))
+            return self.color(cast(ThemeColor, token))
         except Exception as e:
             raise InvalidTokenError(str(e), token)
 
-    def foreground_color(self, token: ForegroundToken):
+    def foreground_color(self, token: ForegroundColor):
         try:
             if 'subtle' in token:
                 color, _ = token.split('-')
-                return self.subtle(cast(ThemeColorToken, color))
+                return self.subtle(cast(ThemeColor, color))
             if '-' in token:
                 color, scale = token.split('-')
                 return self.spectrum(color)[int(scale)]
-            return self.color(cast(ThemeColorToken, token))
+            return self.color(cast(ThemeColor, token))
         except Exception as e:
             raise InvalidTokenError(str(e), token)
 
@@ -348,12 +348,12 @@ class ColorTheme:
         """Main surface (application background)."""
         return self.color("background")
 
-    def on_color(self, token: ThemeColorToken) -> str:
+    def on_color(self, token: ThemeColor) -> str:
         """Get a foreground color with the best contrast for the given token background."""
         bg = self.color(token)
         return best_foreground(bg, [self.color('foreground'), self.color('background')])
 
-    def on_surface(self, token: SurfaceToken = "base") -> str:
+    def on_surface(self, token: SurfaceColor = "base") -> str:
         color = self.surface_color(token)
         return best_foreground(color, [self.color('foreground'), self.color('background')])
 

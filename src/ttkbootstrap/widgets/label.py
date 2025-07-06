@@ -5,7 +5,7 @@ from ttkbootstrap.core import Signal
 from ttkbootstrap.core.libtypes import LabelOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
-from ttkbootstrap.style.tokens import FontTokenType, ForegroundToken, SurfaceToken
+from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
@@ -18,9 +18,9 @@ class Label(BaseWidget):
             self,
             parent,
             text: str = "",
-            foreground: ForegroundToken = None,
-            background: SurfaceToken= None,
-            font: FontTokenType = "body",
+            foreground: ForegroundColor = None,
+            background: SurfaceColor= None,
+            font: TypographyToken = "body",
             **kwargs: Unpack[LabelOptions]
     ):
         """
@@ -59,7 +59,7 @@ class Label(BaseWidget):
         self.configure(textvariable=self._text_signal.var)
         return self
 
-    def foreground(self, value: ForegroundToken = None):
+    def foreground(self, value: ForegroundColor = None):
         """Get or set the label text color."""
         if value is None:
             return self._style_builder.foreground()
@@ -68,7 +68,7 @@ class Label(BaseWidget):
             self.update_style()
             return self
 
-    def background(self, value: SurfaceToken = None):
+    def background(self, value: SurfaceColor = None):
         """Get or set the label background color."""
         if value is None:
             return self._style_builder.background()

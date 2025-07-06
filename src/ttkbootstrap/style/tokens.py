@@ -15,11 +15,11 @@ ShadeColor = Literal['blue', 'indigo', 'purple', 'red', 'orange', 'yellow', 'gre
 
 # === Color Tokens ===
 
-SurfaceToken = Union[LayerColor, SemanticColor, str]
-ForegroundToken = Union[SemanticColor, ShadeColor, UtilityColor, str]
-ThemeColorToken = Union[SemanticColor, ShadeColor, UtilityColor]
-ButtonColorToken = SemanticColor
-SeparatorColorToken = Union[Literal['border'], SemanticColor]
+SurfaceColor = Union[LayerColor, SemanticColor, str]
+ForegroundColor = Union[SemanticColor, ShadeColor, UtilityColor, str]
+ThemeColor = Union[SemanticColor, ShadeColor, UtilityColor, str]
+SeparatorColor = Union[Literal['border'], SemanticColor]
+BorderColor = Union[Literal['border'], SemanticColor, ShadeColor, str]
 
 # === Font Tokens ====
 
@@ -28,4 +28,4 @@ BootstrapFontType = Literal[
     'display-xl', 'display-lg', 'heading-xl', 'heading-lg', 'heading-md', 'code'
 ]
 
-FontTokenType = Union[BootstrapFontType, str, Font]
+TypographyToken = Union[BootstrapFontType, str, Font]

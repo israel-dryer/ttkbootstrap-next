@@ -1,5 +1,7 @@
 # Layout Management
 
+## Architecture
+
 Currently in Tkinter, layout is specified by the child using the pack, place, grid managers.
 
 One of the challenges is that each component must specify a parent upon initialization, however, that does not mean that
@@ -13,3 +15,10 @@ The question becomes whether I keep the traditional layout managers or whether I
 
 I can think about that later, but the layout attributes can be injected via a mixin when I'm ready to implement.
 
+# Layout Components
+
+The following layout components are available:
+- Frame
+- LabelFrame
+- PanedWindow
+- Notebook

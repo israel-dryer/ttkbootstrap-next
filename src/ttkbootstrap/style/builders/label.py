@@ -1,19 +1,20 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
+from ttkbootstrap.style.tokens import ForegroundColor, SurfaceColor
 
 
 class LabelStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, foreground: str = None, background: str = None, **kwargs):
+    def __init__(self, foreground=None, background=None, **kwargs):
         super().__init__("TLabel", foreground=foreground, background=background, **kwargs)
 
-    def foreground(self, value: str = None):
+    def foreground(self, value: ForegroundColor = None):
         if value is None:
             return self.options.get('foreground', None)
         else:
             self.options.update(foreground=value)
             return self
 
-    def background(self, value: str = None):
+    def background(self, value: SurfaceColor = None):
         if value is None:
             return self.options.get('background', None)
         else:

@@ -5,7 +5,7 @@ from ttkbootstrap.core import Signal
 from ttkbootstrap.core.libtypes import CheckButtonOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundToken
+from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
@@ -23,7 +23,7 @@ class CheckButton(BaseWidget):
             self,
             parent,
             text: str,
-            color: ForegroundToken = None,
+            color: SemanticColor = None,
             value: int | str = 1,
             on_value: int | str = 1,
             off_value: int | str = 0,
@@ -81,7 +81,7 @@ class CheckButton(BaseWidget):
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
             return self
 
-    def color(self, value: ForegroundToken = None):
+    def color(self, value: SemanticColor = None):
         """Get or set the color role."""
         if value is None:
             return self._style_builder.color()

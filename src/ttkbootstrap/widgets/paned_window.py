@@ -5,7 +5,7 @@ from ttkbootstrap.core.libtypes import Orient, PaneOptions, PanedWindowOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.paned_window import PanedWindowStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundToken, SurfaceToken
+from ttkbootstrap.style.tokens import ForegroundColor, SurfaceColor
 from ttkbootstrap.utils import unsnake, unsnake_kwargs
 
 
@@ -26,9 +26,9 @@ class PanedWindow(BaseWidget, ContainerMixin):
             self,
             parent,
             orient: Orient = "horizontal",
-            sash_color: ForegroundToken = None,
+            sash_color: ForegroundColor = None,
             sash_thickness: int = 4,
-            surface: SurfaceToken = None,
+            surface: SurfaceColor = None,
             **kwargs: Unpack[PanedWindowOptions]
     ):
         """Initialize a new PanedWindow.
@@ -46,7 +46,7 @@ class PanedWindow(BaseWidget, ContainerMixin):
         super().__init__(parent, surface=surface)
         self._style_builder = PanedWindowStyleBuilder(sash_color, sash_thickness, orient)
 
-    def surface(self, value: SurfaceToken = None):
+    def surface(self, value: SurfaceColor = None):
         """Get or set the surface token for this widget."""
         if value is None:
             return self._surface_token
@@ -55,7 +55,7 @@ class PanedWindow(BaseWidget, ContainerMixin):
         self.update_style()
         return self
 
-    def sash_color(self, value: ForegroundToken = None):
+    def sash_color(self, value: ForegroundColor = None):
         """Get or set the sash color."""
         if value is None:
             return self._style_builder.sash_color()
