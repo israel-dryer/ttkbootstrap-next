@@ -255,7 +255,7 @@ class ColorTheme:
     def subtle(
             self,
             token: ThemeColor,
-            surface: SurfaceColor = "base"
+            surface: SurfaceColor = "background"
     ) -> str:
         """
         Return a subtle background color for the given token.
@@ -313,9 +313,8 @@ class ColorTheme:
         else:
             return darken_color(surface_color, 0.20)
 
-    def surface_color(self, token: SurfaceColor = "base") -> str:
+    def surface_color(self, token: SurfaceColor = "background") -> str:
         """Return the surface color"""
-        token = token.replace('base', 'background')
         try:
             if 'subtle' in token:
                 color, _ = token.split('-')
@@ -326,7 +325,7 @@ class ColorTheme:
             if '-' in token:
                 color, scale = token.split('-')
                 return self.spectrum(color)[int(scale)]
-            if token == "base":
+            if token == "background":
                 return self.surface_base()
             return self.color(cast(ThemeColor, token))
         except Exception as e:
@@ -353,7 +352,7 @@ class ColorTheme:
         bg = self.color(token)
         return best_foreground(bg, [self.color('foreground'), self.color('background')])
 
-    def on_surface(self, token: SurfaceColor = "base") -> str:
+    def on_surface(self, token: SurfaceColor = "background") -> str:
         color = self.surface_color(token)
         return best_foreground(color, [self.color('foreground'), self.color('background')])
 
