@@ -1,15 +1,11 @@
 {
   "name": "dark",
   "mode": "dark",
-  "colors": {
-    "primary": "#0d6efd",
-    "secondary": "#6c757d",
-    "success": "#198754",
-    "info": "#0dcaf0",
-    "warning": "#ffc107",
-    "danger": "#dc3545",
-    "dark": "#212529",
-    "light": "#f8f9fa",
+  "foreground": "#f8f9fa",
+  "background": "#212529",
+  "white": "#ffffff",
+  "black": "#000000",
+  "shades": {
     "blue": "#0d6efd",
     "indigo": "#6610f2",
     "purple": "#6f42c1",
@@ -19,10 +15,17 @@
     "green": "#198754",
     "teal": "#20c997",
     "cyan": "#0dcaf0",
-    "white": "#ffffff",
-    "black": "#000000",
-    "gray": "#adb5bd",
-    "foreground": "#f8f9fa",
-    "background": "#212529"
+    "gray": "#adb5bd"
+  },
+  "semantic": {
+    "primary": "blue",
+    "secondary": "gray-700",
+    "success": "green",
+    "info": "cyan",
+    "warning": "yellow",
+    "danger": "red",
+    "light": "gray-100",
+    "dark": "gray-900",
+    "border": "gray-300"
   }
 }

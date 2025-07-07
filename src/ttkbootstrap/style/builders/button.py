@@ -30,21 +30,21 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     def color(self, value: SemanticColor = None):
         if value is None:
-            return self.options.get('color', 'primary')
+            return self.options.get('color') or 'primary'
         else:
             self.options.update(color=value)
             return self
 
     def variant(self, value: ButtonVariant = None):
         if value is None:
-            return self.options.get('variant', 'solid')
+            return self.options.get('variant') or 'solid'
         else:
             self.options.update(variant=value)
             return self
 
     def size(self, value: ButtonSize = None):
         if value is None:
-            return self.options.get('size', 'md')
+            return self.options.get('size') or 'md'
         else:
             self.options.update(size=value)
             return self
@@ -61,16 +61,20 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     def solid_button(self):
         ttk_style = self.resolve_name()
-        foreground = self.theme.on_color(self.color())
-        foreground_disabled = self.theme.on_surface_disabled()
-        normal = self.theme.color(self.color())
-        pressed = self.theme.pressed(self.color())
-        hovered = self.theme.hovered(self.color())
+        surface_token = self.surface()
+        color_token = self.color()
+
+        surface = self.theme.color(surface_token).normal()
+        button_color = self.theme.color(color_token)
+        foreground = button_color.on_color().normal()
+        foreground_disabled = button_color.on_color().disabled("text")
+        normal = button_color.normal()
+        pressed = button_color.active()
+        hovered = button_color.hover()
         focused = hovered
-        focused_border = self.theme.focused_border(self.color())
-        disabled = self.theme.disabled(self.color())
-        surface = self.theme.surface_color(self.surface())
-        focused_ring = self.theme.focused_ring(self.color(), surface)
+        focused_border = button_color.focus_border()
+        disabled = button_color.disabled()
+        focused_ring = button_color.focus_ring(surface)
 
         # button element images
         normal_img = recolor_image(f'btn-{self.size()}', normal, normal, surface)
@@ -109,16 +113,21 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     def outline_button(self):
         ttk_style = self.resolve_name()
-        foreground = self.theme.color(self.color())
-        foreground_disabled = self.theme.disabled(self.color())
-        foreground_active = self.theme.on_color(self.color())
-        normal = self.theme.surface_color(self.surface())
+        surface_token = self.surface()
+        color_token = self.color()
+
+        surface = self.theme.color(surface_token).normal()
+        button_color = self.theme.color(color_token)
+
+        foreground = button_color.normal()
+        foreground_disabled = button_color.disabled("text")
+        foreground_active = button_color.on_color().normal()
+        normal = surface
         disabled = foreground_disabled
-        pressed = self.theme.hovered(self.color())
+        pressed = button_color.hover()
         focused = hovered = pressed
-        focused_border = self.theme.focused_border(self.color())
-        surface = self.theme.surface_color(self.surface())
-        focused_ring = self.theme.focused_ring(self.color(), surface)
+        focused_border = button_color.focus_border()
+        focused_ring = button_color.focus_ring(surface)
 
         # button element images
         normal_img = recolor_image(f'btn-{self.size()}', normal, foreground, surface)
@@ -163,13 +172,18 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     def ghost_button(self):
         ttk_style = self.resolve_name()
-        foreground = self.theme.color(self.color())
-        foreground_disabled = self.theme.disabled(self.color())
-        normal = self.theme.surface_color(self.surface())
-        pressed = self.theme.subtle(self.color(), self.surface())
+        surface_token = self.surface()
+        color_token = self.color()
+
+        surface = self.theme.color(surface_token).normal()
+        button_color = self.theme.color(color_token)
+
+        foreground = button_color.normal()
+        foreground_disabled = button_color.disabled("text")
+        normal = surface
+        pressed = button_color.subtle("background", surface).normal()
         focused = hovered = pressed
-        surface = self.theme.surface_color(self.surface())
-        focused_ring = self.theme.focused_ring(self.color(), surface)
+        focused_ring = button_color.focus_ring(surface)
 
         # button element images
         normal_img = recolor_image(f'btn-{self.size()}', normal, normal, surface, surface)
@@ -232,8 +246,10 @@ class ButtonStyleBuilder(StyleBuilderBase):
             self.build_ghost_icon_assets(icon)
 
     def build_solid_icon_assets(self, icon: str):
-        foreground = self.theme.on_color(self.color())
-        foreground_disabled = self.theme.on_surface_disabled()
+        color_token = self.color()
+        on_color = self.theme.color(color_token).on_color()
+        foreground = on_color.normal()
+        foreground_disabled = on_color.disabled("text")
         self.create_icon_asset(icon, 'normal', foreground)
         self.create_icon_asset(icon, 'hover', foreground)
         self.create_icon_asset(icon, 'pressed', foreground)
@@ -241,18 +257,21 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_outline_icon_assets(self, icon: str):
-        foreground = self.theme.color(self.color())
-        foreground_disabled = self.theme.disabled(self.color())
-        foreground_active = self.theme.on_color(self.color())
-        self.create_icon_asset(icon, 'normal', foreground)
+        color_token = self.color()
+        active_color = self.theme.color(color_token).on_color()
+        rest_color = self.theme.color(color_token)
+        foreground_disabled = active_color.disabled("text")
+        foreground_active = active_color.normal()
+        self.create_icon_asset(icon, 'normal', rest_color.normal())
         self.create_icon_asset(icon, 'hover', foreground_active)
         self.create_icon_asset(icon, 'pressed', foreground_active)
         self.create_icon_asset(icon, 'focus', foreground_active)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_ghost_icon_assets(self, icon: str):
-        foreground = self.theme.color(self.color())
-        foreground_disabled = self.theme.disabled(self.color())
+        color_token = self.color()
+        foreground = self.theme.color(color_token).normal()
+        foreground_disabled = self.theme.color(color_token).disabled("text")
         self.create_icon_asset(icon, 'normal', foreground)
         self.create_icon_asset(icon, 'hover', foreground)
         self.create_icon_asset(icon, 'pressed', foreground)

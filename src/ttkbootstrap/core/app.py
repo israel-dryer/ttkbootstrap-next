@@ -31,6 +31,8 @@ class App(BaseWidget, ContainerMixin):
         if use_default_fonts:
             Typography.use_fonts()
 
+        self._style_builder.register_style()
+
     @property
     def theme(self):
         return self._theme
