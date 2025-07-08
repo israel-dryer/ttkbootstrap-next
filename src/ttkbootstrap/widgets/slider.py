@@ -3,6 +3,7 @@ from tkinter import ttk
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.utils import unsnake_kwargs
 
 
 class Slider(BaseWidget):
@@ -40,7 +41,7 @@ class Slider(BaseWidget):
             from_=min_value,
             to=max_value,
             variable=self._signal.var,
-            **kwargs
+            **unsnake_kwargs(kwargs)
         )
         super().__init__(parent)
         if on_change:
