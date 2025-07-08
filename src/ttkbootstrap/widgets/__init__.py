@@ -9,3 +9,4 @@ from .check_button import CheckButton
 from .notebook import Notebook
 from .radio_button import RadioButton
 from .canvas import Canvas
+from .slider import Slider
