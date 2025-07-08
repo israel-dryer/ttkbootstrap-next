@@ -33,14 +33,21 @@ class LabelFrameStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        background = self.theme.surface_color(self.surface())
-        foreground = self.theme.on_surface(self.surface())
-        surface = self.theme.surface_color(self.surface())
+        surface_token = self.surface()
+        label_token = self.label_color()
         border_token = self.border_color()
-        if border_token is None:
-            border = self.theme.border_on_surface(surface)
+
+        background = self.theme.color(surface_token)
+
+        if label_token is None:
+            foreground = self.theme.on_color(background)
         else:
-            border = self.theme.foreground_color(border_token)
+            foreground = self.theme.color(label_token)
+
+        if border_token is None:
+            border = self.theme.border(background)
+        else:
+            border = self.theme.color(border_token)
         self.configure(
             ttk_style,
             background=background,
@@ -48,4 +55,4 @@ class LabelFrameStyleBuilder(StyleBuilderBase):
             lightcolor=background,
             darkcolor=background
         )
-        self.configure(f"{ttk_style}.Label", foreground=foreground, background=surface)
+        self.configure(f"{ttk_style}.Label", foreground=foreground, background=background)

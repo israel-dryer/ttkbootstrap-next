@@ -50,6 +50,7 @@ class App(BaseWidget, ContainerMixin):
         return self._surface_token
 
     def run(self):
+        self.widget.update_idletasks()
         self.widget.deiconify()
         return self.widget.mainloop()
 

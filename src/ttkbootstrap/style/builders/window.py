@@ -23,6 +23,5 @@ class WindowStyleBuilder(StyleBuilderBase):
             return self
 
     def register_style(self):
-        surface_token = self.surface()
-        background = self.theme.color(surface_token)
+        background = self.theme.color(self.surface())
         self.window.configure(background=background)

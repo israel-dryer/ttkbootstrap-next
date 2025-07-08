@@ -23,10 +23,17 @@ class LabelStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        background = self.theme.surface_color(self.background() or self.surface())
+        surface_token = self.surface()
         foreground_token = self.foreground()
-        if foreground_token is None:
-            foreground = self.theme.on_surface(self.background() or self.surface())
+        background_token = self.background()
+
+        if background_token is None:
+            background = self.theme.color(surface_token)
         else:
-            foreground = self.theme.foreground_color(foreground_token)
+            background = self.theme.color(background_token)
+
+        if foreground_token is None:
+            foreground = self.theme.on_color(background)
+        else:
+            foreground = self.theme.color(foreground_token)
         self.configure(ttk_style, background=background, foreground=foreground)

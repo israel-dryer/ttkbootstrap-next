@@ -47,12 +47,12 @@ class PanedWindowStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        surface = self.theme.surface_color(self.surface())
+        surface = self.theme.color(self.surface())
         sash_token = self.sash_color()
         if sash_token is None:
-            sash_color = self.theme.border_on_surface(surface)
+            sash_color = self.theme.border(surface)
         else:
-            sash_color = self.theme.foreground_color(sash_token)
+            sash_color = self.theme.color(sash_token)
         sash_thickness = self.sash_thickness()
         self.configure(ttk_style, background=sash_color)
         self.configure("Sash", sashthickness=sash_thickness, gripcount=0)

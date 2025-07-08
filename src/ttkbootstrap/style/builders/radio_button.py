@@ -16,7 +16,7 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        background = self.theme.surface_color(self.surface())
-        foreground = self.theme.on_surface(self.surface())
+        background = self.theme.color(self.surface())
+        foreground = self.theme.on_color(background)
         self.configure(ttk_style, background=background, foreground=foreground)
         self.map(ttk_style, background=[])

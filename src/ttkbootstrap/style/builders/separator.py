@@ -24,10 +24,10 @@ class SeparatorStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        surface = self.theme.surface_color(self.surface())
+        surface = self.theme.color(self.surface())
 
         if self.color() == 'border':
-            color = self.theme.border_on_surface(surface)
+            color = self.theme.border(surface)
         else:
             color = self.theme.color(self.color())
 

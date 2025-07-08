@@ -15,5 +15,5 @@ class FrameStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        background = self.theme.surface_color(self.surface())
+        background = self.theme.color(self.surface())
         self.configure(ttk_style, background=background)
