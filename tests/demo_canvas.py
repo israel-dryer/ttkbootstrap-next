@@ -13,9 +13,9 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.widgets import Button, Canvas
 
-app = App("Canvas Demo", theme="dark")
+app = App("Canvas Demo")
 
-Button(app, "Hello").pack()
+Button(app, "Hello", on_click=lambda: app.theme.use('dark')).pack(padx=16, pady=10)
 
 canvas = Canvas(app).pack()
 canvas.draw_text(100, 100, "Hello World")

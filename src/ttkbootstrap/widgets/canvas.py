@@ -4,6 +4,7 @@ from typing import Optional, Tuple, Union, Unpack
 import tkinter as tk
 from PIL import Image
 from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
 from ttkbootstrap.utils import unsnake, unsnake_kwargs
 from ttkbootstrap.core.libtypes import (
     CanvasArcOptions, CanvasImageOptions, CanvasItemOptions, CanvasLineOptions, CanvasOptions, CanvasOvalOptions,
@@ -28,6 +29,9 @@ class Canvas(BaseWidget):
         """
         self._widget = tk.Canvas(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)
+        self._style_builder = CanvasStyleBuilder(self)
+        self._style_builder.register_style()
+        self._theme = self._style_builder.theme
 
     def add_widget(self, x: float, y: float, widget: BaseWidget, **kwargs: CanvasWidgetOptions) -> int:
         """Embed a widget at the given (x, y) coordinates."""
@@ -51,7 +55,18 @@ class Canvas(BaseWidget):
 
     def draw_text(self, x: float, y: float, text: str = "", **kwargs: CanvasTextOptions) -> int:
         """Draw text at the specified coordinates."""
-        return self.widget.create_text(x, y, text=text, **unsnake_kwargs(kwargs))
+        bind_fill_to_theme = False
+        if 'fill' not in kwargs:
+            bind_fill_to_theme = True
+            # use default theme color for fill
+            surface = self._theme.color(self._style_builder.surface())
+            kwargs['fill'] = self._theme.on_color(surface)
+        item = self.widget.create_text(x, y, text=text, **unsnake_kwargs(kwargs))
+        if bind_fill_to_theme:
+            self.bind(
+                'theme_changed', lambda _: self.configure_item(
+                    item, fill=self._theme.on_color(self._theme.color(self._style_builder.surface()))), add=True)
+        return item
 
     def draw_polygon(self, *coordinates: float, **kwargs: CanvasPolygonOptions) -> int:
         """Draw a closed polygon from a list of coordinates."""
@@ -167,7 +182,7 @@ class Canvas(BaseWidget):
 
     def bind_tag(self, tag: str, sequence=None, func=None, add=None):
         """Bind an event handler to a tag."""
-        return self.widget.bind(tag, sequence, func, add)
+        return self.widget.tag_bind(tag, sequence, func, add)
 
     def unbind_tag(self, tag, sequence, func_id=None):
         """Unbind an event handler from a tag."""
