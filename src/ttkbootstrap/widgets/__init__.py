@@ -11,3 +11,4 @@ from .radio_button import RadioButton
 from .canvas import Canvas
 from .slider import Slider
 from .progress import Progress
+from .scrollbar import Scrollbar

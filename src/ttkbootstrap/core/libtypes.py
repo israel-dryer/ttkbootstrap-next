@@ -261,6 +261,22 @@ class SliderOptions(TypedDict, total=False):
     orient: Orient
 
 
+class ScrollbarOptions(TypedDict, total=False):
+    """
+    Options for configuring a scrollbar widget.
+
+    Attributes:
+        cursor: The cursor that appears when the mouse is over the widget.
+        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+        orient: Indicates whether the widget should be laid or horizontally or vertically
+        command: The `x_view` or `y_view` method of a scrollable widget
+    """
+    cursor: str
+    take_focus: bool
+    orient: Orient
+    command: Callable
+
+
 class CanvasOptions(TypedDict, total=False):
     """
     Configuration options for a Canvas widget, including both standard Tk options and canvas-specific settings.

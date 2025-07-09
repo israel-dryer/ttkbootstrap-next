@@ -1,23 +1,31 @@
-# import tkinter as tk
-#
-#
-# root = tk.Tk()
-#
-# c = tk.Canvas()
-# c.pack()
-# item = c.create_text(10, 10, text="Hello world")
-# print(item)
-# print(type(item))
-#
-# root.mainloop()
 from ttkbootstrap.core import App
-from ttkbootstrap.widgets import Button, Canvas
+from ttkbootstrap.widgets import Canvas, Frame, Label, Scrollbar
 
-app = App("Canvas Demo")
+root = App(theme="dark")
 
-Button(app, "Hello", on_click=lambda: app.theme.use('dark')).pack(padx=16, pady=10)
+frame = Frame(root)
+frame.pack(fill="both", expand=True)
 
-canvas = Canvas(app).pack()
-canvas.draw_text(100, 100, "Hello World")
+canvas = Canvas(frame)
+canvas.pack(side="left", fill="both", expand=True)
 
-app.run()
+scrollbar = Scrollbar(frame, orient="vertical", command=canvas.y_view)
+scrollbar.pack(side="right", fill="y")
+
+canvas.configure(yscrollcommand=scrollbar.set)
+
+# Create a scrollable frame inside the canvas
+scrollable_frame = Frame(canvas)
+canvas.add_widget(0, 0, scrollable_frame)
+
+# Update scrollregion when contents change
+def on_configure(event):
+    canvas.configure(scrollregion=canvas.get_bounding_box("all"))
+
+scrollable_frame.bind("<Configure>", on_configure)
+
+# Example content
+for i in range(50):
+   Label(scrollable_frame, text=f"Item {i}").pack()
+
+root.run()

@@ -3,6 +3,8 @@ from typing import Optional, Tuple, Union, Unpack
 
 import tkinter as tk
 from PIL import Image
+
+from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
 from ttkbootstrap.utils import unsnake, unsnake_kwargs
@@ -14,7 +16,7 @@ from ttkbootstrap.core.libtypes import (
 CanvasTagOrId = Union[int, str]
 
 
-class Canvas(BaseWidget):
+class Canvas(BaseWidget, ContainerMixin):
     """A themed canvas widget with drawing, manipulation, and tagging utilities."""
 
     _configure_methods = {}
@@ -292,3 +294,11 @@ class Canvas(BaseWidget):
         """Set or get the focused canvas item."""
         result = self.widget.focus(item) if item else self.widget.focus()
         return int(result) if result and result.isdigit() else None
+
+    def y_view(self, *args):
+        """Query and change the vertical position of the view"""
+        return self.widget.yview(*args)
+
+    def x_view(self, *args):
+        """Query and change the horizontal position of the view"""
+        return self.widget.xview(*args)
