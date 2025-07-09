@@ -225,6 +225,27 @@ class RadioButtonOptions(TypedDict, total=False):
     width: int
 
 
+class ProgressOptions(TypedDict, total=False):
+    """
+    Options for configuring a progress bar widget.
+
+    These options control various aspects of the progress bar's appearance
+    and behavior, including its mode, length, and focusability.
+
+    Attributes:
+        cursor: The cursor that appears when the mouse is over the widget.
+        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+        length: The length of the progress bar in pixels.
+        maximum: The maximum value for the progress bar range.
+        mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
+    """
+    cursor: str
+    take_focus: bool
+    length: int
+    maximum: int
+    mode: Literal['determinate', 'indeterminate']
+
+
 class CanvasOptions(TypedDict, total=False):
     """
     Configuration options for a Canvas widget, including both standard Tk options and canvas-specific settings.

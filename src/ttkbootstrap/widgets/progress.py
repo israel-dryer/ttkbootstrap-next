@@ -1,8 +1,8 @@
-from typing import Any, Callable
+from typing import Any, Callable, Unpack
 
 from tkinter import ttk
 from ttkbootstrap.core import Signal
-from ttkbootstrap.core.libtypes import Orient
+from ttkbootstrap.core.libtypes import ProgressOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
@@ -15,9 +15,8 @@ class Progress(BaseWidget):
             self,
             parent,
             value: int = 0,
-            orient: Orient = "horizontal",
             on_change: Callable[[int], Any] = None,
-            **kwargs):
+            **kwargs: Unpack[ProgressOptions]):
         self._style_builder = ProgressStyleBuilder()
         self._signal = Signal(value)
         self._status = 'active'
