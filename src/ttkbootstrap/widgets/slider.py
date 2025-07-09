@@ -1,7 +1,8 @@
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 
 from ttkbootstrap.core import Signal
+from ttkbootstrap.core.libtypes import SliderOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.utils import unsnake_kwargs
 
@@ -17,7 +18,7 @@ class Slider(BaseWidget):
             max_value: int | float = 100.0,
             precision: int = 0,
             on_change: Callable[[float], Any] = None,
-            **kwargs
+            **kwargs: Unpack[SliderOptions]
     ):
         """Create a new Slider widget with a signal-based value and callback.
 

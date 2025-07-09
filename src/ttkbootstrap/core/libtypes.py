@@ -229,21 +229,36 @@ class ProgressOptions(TypedDict, total=False):
     """
     Options for configuring a progress bar widget.
 
-    These options control various aspects of the progress bar's appearance
-    and behavior, including its mode, length, and focusability.
-
     Attributes:
         cursor: The cursor that appears when the mouse is over the widget.
         take_focus: Indicates whether the widget accepts focus during keyboard traversal.
         length: The length of the progress bar in pixels.
         maximum: The maximum value for the progress bar range.
+        orient: Indicates whether the widget should be laid or horizontally or vertically
         mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
     """
     cursor: str
     take_focus: bool
     length: int
     maximum: int
+    orient: Orient
     mode: Literal['determinate', 'indeterminate']
+
+
+class SliderOptions(TypedDict, total=False):
+    """
+    Options for configuring a slider widget.
+
+    Attributes:
+        cursor: The cursor that appears when the mouse is over the widget.
+        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+        length: The length of the progress bar in pixels.
+        orient: Indicates whether the widget should be laid or horizontally or vertically
+    """
+    cursor: str
+    take_focus: bool
+    length: int
+    orient: Orient
 
 
 class CanvasOptions(TypedDict, total=False):
