@@ -1,3 +1,4 @@
+from tkinter.font import Font
 from typing import Callable, Literal, Union, TypedDict, TYPE_CHECKING, Tuple
 
 from ttkbootstrap.core.widget import BaseWidget
@@ -275,6 +276,32 @@ class ScrollbarOptions(TypedDict, total=False):
     take_focus: bool
     orient: Orient
     command: Callable
+
+
+class EntryOptions(TypedDict, total=False):
+    """
+    Options for configuring an entry widget.
+
+    Attributes:
+        cursor: The cursor that appears when the mouse is over the widget.
+        font: The font used to render text in the entry (name or Font object).
+        foreground: The text color (e.g., "#333", "red").
+        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+        x_scroll_command: A callback used to link the entry to a horizontal scrollbar.
+        export_selection: Whether to export the selection to the clipboard (default is True).
+        justify: Text justification (left, center, or right).
+        show: The character used to mask text (e.g., "*" for passwords).
+        width: The width of the entry widget in characters.
+    """
+    cursor: str
+    font: str | Font
+    foreground: str
+    take_focus: bool
+    x_scroll_command: Callable
+    export_selection: bool
+    justify: Justify
+    show: str
+    width: int
 
 
 class CanvasOptions(TypedDict, total=False):
