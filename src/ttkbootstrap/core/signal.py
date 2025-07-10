@@ -92,7 +92,18 @@ class Signal(Generic[T]):
         Returns:
             The current typed value.
         """
-        return self._var.get()
+        try:
+            return self._var.get()
+        except tk.TclError:
+            # Optional fallback per type
+            if self._type is float:
+                return 0.0  # or float('nan')
+            elif self._type is int:
+                return 0
+            elif self._type is bool:
+                return False
+            else:
+                return ""  # str default
 
     def set(self, value: T):
         """
