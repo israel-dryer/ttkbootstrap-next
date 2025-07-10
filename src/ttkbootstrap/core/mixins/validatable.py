@@ -19,11 +19,11 @@ class ValidatableMixin:
     Expected to be used with widgets that implement:
     - `value() -> str`
     - `bind(event, callback)`
-    - `generate(event, data=...)`
+    - `emit(event, data=...)`
     """
 
     value: Callable[[], str]
-    generate: Callable[..., None]
+    emit: Callable[..., None]
     bind: Callable[[str, Callable], str]
 
     def __init__(self):
@@ -119,12 +119,12 @@ class ValidatableMixin:
             data.update(message=result.message, is_valid=result.is_valid)
 
             if not result.is_valid:
-                self.generate("invalid", data=data)
-                self.generate("validated", data=data)
+                self.emit("invalid", data=data)
+                self.emit("validated", data=data)
                 return False
 
         if ran_rule:
-            self.generate("valid", data=data)
-            self.generate("validated", data=data)
+            self.emit("valid", data=data)
+            self.emit("validated", data=data)
 
         return ran_rule

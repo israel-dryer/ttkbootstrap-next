@@ -34,26 +34,27 @@ class EntryPart(BaseWidget, ValidatableMixin):
             initial_focus: Whether to give the entry focus after creation.
             **kwargs: Additional entry options.
         """
+        self._on_change = None
+        self._on_change_fid = None
+        self._on_enter = None
+        self._on_changed = None
+
         self._style_builder = EntryStyleBuilder()
         self._signal = Signal(value)
         self._widget = ttk.Entry(parent, textvariable=self._signal.var, **unsnake_kwargs(kwargs))
         ValidatableMixin.__init__(self)
         super().__init__(parent)
 
-        self._on_change = on_change
-        self._on_change_fid = None
-        self._on_enter = on_enter
-        self._on_changed = on_changed
         self._prev_value = value
 
-        if self._on_change:
-            self.on_change(self._on_change)
+        if on_change:
+            self.on_change(on_change)
 
-        if self._on_enter:
-            self.on_enter(self._on_enter)
+        if on_enter:
+            self.on_enter(on_enter)
 
-        if self._on_changed:
-            self.on_changed(self._on_changed)
+        if on_changed:
+            self.on_changed(on_changed)
 
         self.bind("focus", self._store_prev_value)
         self.bind("blur", self._check_if_changed)
