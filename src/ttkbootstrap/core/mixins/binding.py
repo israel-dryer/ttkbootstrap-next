@@ -92,7 +92,7 @@ class BindingMixin:
         """Return a mapping of bound events and their function IDs."""
         return dict(self._bound_events)
 
-    def generate(self, event: str, data: dict[Any, Any] = None):
+    def emit(self, event: str, data: dict[Any, Any] = None):
         """Programmatically trigger a virtual event.
 
         Args:

@@ -69,7 +69,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
     def _check_if_changed(self, _: Any) -> None:
         """Compare current value with previous and fire 'changed' event if different."""
         if self._signal() != self._prev_value:
-            self.generate("changed")
+            self.emit("changed")
 
     def value(self, value: str = None):
         """Get or set the entry value."""
