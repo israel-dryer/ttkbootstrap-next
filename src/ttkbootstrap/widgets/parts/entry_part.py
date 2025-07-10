@@ -71,14 +71,14 @@ class EntryPart(BaseWidget, ValidatableMixin):
         if self._signal() != self._prev_value:
             self.generate("changed")
 
-    def value(self, value: str = None) -> str | "EntryPart":
+    def value(self, value: str = None):
         """Get or set the entry value."""
         if value is None:
             return self._signal()
         self._signal.set(value)
         return self
 
-    def signal(self, value: Signal[str | int] = None) -> Signal | "EntryPart":
+    def signal(self, value: Signal[str | int] = None):
         """Get or set the signal."""
         if value is None:
             return self._signal
@@ -86,7 +86,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self.configure(textvariable=self._signal.var)
         return self
 
-    def on_change(self, value: Callable[[Any], Any] = None) -> Callable | "EntryPart":
+    def on_change(self, value: Callable[[Any], Any] = None):
         """Set callback for when the signal value changes."""
         if value is None:
             return self._on_change
@@ -96,7 +96,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self._on_change_fid = self._signal.subscribe(self._on_change)
         return self
 
-    def on_enter(self, value: Callable[[Any], Any] = None) -> Callable | "EntryPart":
+    def on_enter(self, value: Callable[[Any], Any] = None):
         """Set callback for when Enter is pressed."""
         if value is None:
             return self._on_enter
@@ -104,7 +104,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self.bind("return", lambda _: self._on_enter(self._signal()))
         return self
 
-    def on_changed(self, value: Callable[[str], Any] = None) -> Callable | "EntryPart":
+    def on_changed(self, value: Callable[[str], Any] = None):
         """Set callback for when focus out causes value change."""
         if value is None:
             return self._on_changed
@@ -112,7 +112,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self.bind("changed", lambda e: self._on_changed(self._signal()))
         return self
 
-    def readonly(self, value: bool = None) -> bool | "EntryPart":
+    def readonly(self, value: bool = None):
         """Get or set readonly state."""
         if value is None:
             return "readonly" in self.widget.state()
@@ -120,12 +120,12 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self.widget.state(states)
         return self
 
-    def disable(self) -> "EntryPart":
+    def disable(self):
         """Disable the entry."""
         self.widget.state(['disabled'])
         return self
 
-    def enable(self) -> "EntryPart":
+    def enable(self):
         """Enable the entry."""
         self.state(['!disabled', '!readonly'])
         return self
@@ -145,12 +145,12 @@ class EntryPart(BaseWidget, ValidatableMixin):
         """Delete text between indices."""
         self.widget.delete(first, last)
 
-    def insert_text(self, index: int, text: str) -> "EntryPart":
+    def insert_text(self, index: int, text: str):
         """Insert text at index."""
         self.widget.insert(index, text)
         return self
 
-    def set_cursor_index(self, index: int) -> "EntryPart":
+    def set_cursor_index(self, index: int):
         """Set the cursor position."""
         self.widget.icursor(index)
         return self
@@ -159,37 +159,37 @@ class EntryPart(BaseWidget, ValidatableMixin):
         """Return the character index (defaults to cursor)."""
         return self.widget.index(index)
 
-    def start_drag_scroll(self, x: int, y: int) -> "EntryPart":
+    def start_drag_scroll(self, x: int, y: int):
         """Start drag-to-scroll behavior."""
         self.widget.scan_mark(x, y)
         return self
 
-    def update_drag_scroll(self, x: int, y: int, gain: int = 10) -> "EntryPart":
+    def update_drag_scroll(self, x: int, y: int, gain: int = 10):
         """Continue drag-to-scroll behavior."""
         self.widget.scan_dragto(x, y, gain)
         return self
 
-    def adjust_selection_to_index(self, index: int) -> "EntryPart":
+    def adjust_selection_to_index(self, index: int):
         """Adjust selection endpoint."""
         self.widget.selection_adjust(index)
         return self
 
-    def clear_selection(self) -> "EntryPart":
+    def clear_selection(self):
         """Clear text selection."""
         self.widget.selection_clear()
         return self
 
-    def select_from_index(self, index: int) -> "EntryPart":
+    def select_from_index(self, index: int):
         """Select text starting from index."""
         self.widget.selection_from(index)
         return self
 
-    def select_to_index(self, index: int) -> "EntryPart":
+    def select_to_index(self, index: int):
         """Extend selection to index."""
         self.widget.selection_to(index)
         return self
 
-    def select_range(self, first: int, last: int) -> "EntryPart":
+    def select_range(self, first: int, last: int):
         """Select text between two indices."""
         self.widget.selection_range(first, last)
         return self
@@ -198,7 +198,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         """Return True if text is selected."""
         return self.widget.selection_present()
 
-    def select_all(self) -> "EntryPart":
+    def select_all(self):
         """Select all text."""
         self.widget.selection_range(0, 'end')
         return self
