@@ -16,3 +16,7 @@ class GeometryMixin:
             return self
         else:
             return self.widget.pack(option)
+
+    def pack_forget(self):
+        self.widget.pack_forget()
+        return self
