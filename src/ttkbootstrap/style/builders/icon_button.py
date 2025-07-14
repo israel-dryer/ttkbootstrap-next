@@ -58,6 +58,8 @@ class IconButtonStyleBuilder(StyleBuilderBase):
             self.outline_button()
         elif self.variant() == 'ghost':
             self.ghost_button()
+        elif self.variant().endswith('fix'):
+            self.field_addon_button()
 
     def solid_button(self):
         theme = self.theme
@@ -76,13 +78,13 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         foreground_disabled = theme.disabled("text")
 
         # button element images
-        normal_img = recolor_image(f'icon-btn-{self.size()}', normal, normal, surface)
-        pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, pressed, surface)
-        hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, hovered, surface)
-        focused_img = recolor_image(f'icon-btn-{self.size()}', focused, focused_border, focused_ring)
-        focused_hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, focused_border, focused_ring)
-        focused_pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, focused_border, focused_ring)
-        disabled_img = recolor_image(f'icon-btn-{self.size()}', disabled, disabled, surface, surface)
+        normal_img = recolor_image(f'icon-button', normal, normal, surface)
+        pressed_img = recolor_image(f'icon-button', pressed, pressed, surface)
+        hovered_img = recolor_image(f'icon-button', hovered, hovered, surface)
+        focused_img = recolor_image(f'icon-button', focused, focused_border, focused_ring)
+        focused_hovered_img = recolor_image(f'icon-button', hovered, focused_border, focused_ring)
+        focused_pressed_img = recolor_image(f'icon-button', pressed, focused_border, focused_ring)
+        disabled_img = recolor_image(f'icon-button', disabled, disabled, surface, surface)
         btn_padding = self.button_img_border()
 
         # button element
@@ -126,13 +128,13 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         focused_ring = theme.focus_ring(foreground, surface)
 
         # button element images
-        normal_img = recolor_image(f'icon-btn-{self.size()}', normal, foreground, surface)
-        pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, pressed, surface)
-        hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, hovered, surface)
-        focused_img = recolor_image(f'icon-btn-{self.size()}', focused, focused_border, focused_ring)
-        focused_hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, focused_border, focused_ring)
-        focused_pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, focused_border, focused_ring)
-        disabled_img = recolor_image(f'icon-btn-{self.size()}', surface, disabled, surface, surface)
+        normal_img = recolor_image(f'icon-button', normal, foreground, surface)
+        pressed_img = recolor_image(f'icon-button', pressed, pressed, surface)
+        hovered_img = recolor_image(f'icon-button', hovered, hovered, surface)
+        focused_img = recolor_image(f'icon-button', focused, focused_border, focused_ring)
+        focused_hovered_img = recolor_image(f'icon-button', hovered, focused_border, focused_ring)
+        focused_pressed_img = recolor_image(f'icon-button', pressed, focused_border, focused_ring)
+        disabled_img = recolor_image(f'icon-button', surface, disabled, surface, surface)
         btn_padding = self.button_img_border()
 
         # button element
@@ -179,13 +181,63 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         focused_ring = self.theme.focus_ring(foreground, surface)
 
         # button element images
-        normal_img = recolor_image(f'icon-btn-{self.size()}', normal, normal, surface, surface)
-        pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, surface, surface, surface)
-        hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, surface, surface, surface)
-        focused_img = recolor_image(f'icon-btn-{self.size()}', focused, focused, focused_ring, surface)
-        focused_hovered_img = recolor_image(f'icon-btn-{self.size()}', hovered, focused, focused_ring, surface)
-        focused_pressed_img = recolor_image(f'icon-btn-{self.size()}', pressed, focused, focused_ring, surface)
-        disabled_img = recolor_image(f'icon-btn-{self.size()}', surface, surface, surface, surface)
+        normal_img = recolor_image(f'icon-button', normal, normal, surface, surface)
+        pressed_img = recolor_image(f'icon-button', pressed, surface, surface, surface)
+        hovered_img = recolor_image(f'icon-button', hovered, surface, surface, surface)
+        focused_img = recolor_image(f'icon-button', focused, focused, focused_ring, surface)
+        focused_hovered_img = recolor_image(f'icon-button', hovered, focused, focused_ring, surface)
+        focused_pressed_img = recolor_image(f'icon-button', pressed, focused, focused_ring, surface)
+        disabled_img = recolor_image(f'icon-button', surface, surface, surface, surface)
+        btn_padding = self.button_img_border()
+
+        # button element
+        self.create_element(
+            ElementImage(
+                f'{ttk_style}.border', normal_img, sticky="nsew", border=btn_padding,
+                padding=btn_padding).state_specs(
+                [
+                    ('disabled', disabled_img),
+                    ('focus pressed', focused_pressed_img),
+                    ('focus hover', focused_hovered_img),
+                    ('focus', focused_img),
+                    ('pressed', pressed_img),
+                    ('hover', hovered_img),
+                ]))
+
+        self.create_button_style()
+        self.configure(
+            ttk_style,
+            background=surface,
+            foreground=foreground,
+            padding=self.button_padding(),
+            relief='flat',
+            stipple="gray12",
+            font=self.get_font())
+
+        self.map(
+            ttk_style,
+            foreground=[('disabled', foreground_disabled)],
+            background=[('disabled', surface)])
+
+    def field_addon_button(self):
+        theme = self.theme
+        ttk_style = self.resolve_name()
+        surface = theme.color(self.surface())
+        border = self.theme.border(surface)
+        foreground = theme.color(self.color())
+        foreground_disabled = theme.disabled("text")
+        normal = self.theme.disabled()
+        pressed = self.theme.subtle('secondary', surface)
+        focused = hovered = pressed
+
+        # button element images
+        normal_img = recolor_image(f'input-{self.variant()}', normal, border)
+        pressed_img = recolor_image(f'input-{self.variant()}', pressed, border, surface, surface)
+        hovered_img = recolor_image(f'input-{self.variant()}', hovered, border, hovered, surface)
+        focused_img = recolor_image(f'input-{self.variant()}', focused, border, focused, surface)
+        focused_hovered_img = recolor_image(f'input-{self.variant()}', hovered, border, focused, surface)
+        focused_pressed_img = recolor_image(f'input-{self.variant()}', pressed, border, focused, surface)
+        disabled_img = recolor_image(f'input-{self.variant()}', normal, border, surface, surface)
         btn_padding = self.button_img_border()
 
         # button element
@@ -237,6 +289,10 @@ class IconButtonStyleBuilder(StyleBuilderBase):
             self.build_outline_icon_assets(icon)
         elif self.variant() == "ghost":
             self.build_ghost_icon_assets(icon)
+        elif self.variant() == "prefix":
+            self.build_addon_icon_assets(icon)
+        elif self.variant() == "suffix":
+            self.build_addon_icon_assets(icon)
 
     def build_solid_icon_assets(self, icon: str):
         color_token = self.color()
@@ -263,6 +319,16 @@ class IconButtonStyleBuilder(StyleBuilderBase):
     def build_ghost_icon_assets(self, icon: str):
         color_token = self.color()
         foreground = self.theme.color(color_token)
+        foreground_disabled = self.theme.disabled("text")
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground)
+        self.create_icon_asset(icon, 'pressed', foreground)
+        self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground_disabled)
+
+    def build_addon_icon_assets(self, icon: str):
+        surface = self.theme.color(self.surface())
+        foreground = self.theme.on_color(surface)
         foreground_disabled = self.theme.disabled("text")
         self.create_icon_asset(icon, 'normal', foreground)
         self.create_icon_asset(icon, 'hover', foreground)
