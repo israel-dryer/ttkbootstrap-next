@@ -219,7 +219,6 @@ class ButtonStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.color()
 
         surface = theme.color(surface_token)
         border = self.theme.border(surface)
