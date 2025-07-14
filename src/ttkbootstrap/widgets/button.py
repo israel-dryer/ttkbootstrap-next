@@ -3,7 +3,7 @@ from typing import Callable, Literal, Unpack
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonSize, ButtonOptions
+from ..core.libtypes import ButtonOptions
 from ..style.tokens import ButtonVariant, SemanticColor
 from ..style.builders.button import ButtonStyleBuilder
 from ..utils import unsnake_kwargs
@@ -21,7 +21,6 @@ class Button(BaseWidget):
             parent,
             text: str,
             color: SemanticColor = None,
-            size: ButtonSize = "md",
             variant: ButtonVariant = "solid",
             icon: str = None,
             icon_position: Literal['left', 'right'] = 'left',
@@ -36,7 +35,6 @@ class Button(BaseWidget):
             text: Initial label text.
             color: Optional color role.
             variant: Optional style variant.
-            size: Optional size.
             icon: Optional icon identifier.
             icon_position: The position of the icon in the button.
             on_click: Callback function for click events.
@@ -47,7 +45,7 @@ class Button(BaseWidget):
         self._icon = icon
         self._icon_position = icon_position
         self._stateful_icons_bound = False
-        self._style_builder = ButtonStyleBuilder(color, variant, size)
+        self._style_builder = ButtonStyleBuilder(color, variant)
 
         # remove invalid arguments
         for key in ['compound']:
@@ -91,14 +89,6 @@ class Button(BaseWidget):
         self._text_signal = value
         self.configure(textvariable=self._text_signal.var)
         return self
-
-    def size(self, value: ButtonSize = None):
-        """Get or set the button text."""
-        if value is None:
-            return self._style_builder.size()
-        else:
-            self._style_builder.size(value)
-            return self
 
     def icon(self, value: str = None):
         """Get or set the icon (unimplemented)."""

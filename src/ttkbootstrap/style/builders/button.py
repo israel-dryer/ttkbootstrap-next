@@ -12,12 +12,11 @@ _images = []
 
 class ButtonStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color="primary", variant="solid", size="md", **kwargs):
+    def __init__(self, color="primary", variant="solid", **kwargs):
         super().__init__(
             "TButton",
             color=color,
             variant=variant,
-            size=size,
             **kwargs
         )
         self._stateful_icons: dict[str, BootstrapIcon] = dict()
@@ -40,13 +39,6 @@ class ButtonStyleBuilder(StyleBuilderBase):
             return self.options.get('variant') or 'solid'
         else:
             self.options.update(variant=value)
-            return self
-
-    def size(self, value: ButtonSize = None):
-        if value is None:
-            return self.options.get('size') or 'md'
-        else:
-            self.options.update(size=value)
             return self
 
     # ----- variant style builders ------
@@ -77,13 +69,13 @@ class ButtonStyleBuilder(StyleBuilderBase):
         focused_ring = theme.focus_ring(normal, surface)
 
         # button element images
-        normal_img = recolor_image(f'btn-{self.size()}', normal, normal, surface)
-        pressed_img = recolor_image(f'btn-{self.size()}', pressed, pressed, surface)
-        hovered_img = recolor_image(f'btn-{self.size()}', hovered, hovered, surface)
-        focused_img = recolor_image(f'btn-{self.size()}', focused, focused_border, focused_ring)
-        focused_hovered_img = recolor_image(f'btn-{self.size()}', hovered, focused_border, focused_ring)
-        focused_pressed_img = recolor_image(f'btn-{self.size()}', pressed, focused_border, focused_ring)
-        disabled_img = recolor_image(f'btn-{self.size()}', disabled, disabled, surface, surface)
+        normal_img = recolor_image(f'button', normal, normal, surface)
+        pressed_img = recolor_image(f'button', pressed, pressed, surface)
+        hovered_img = recolor_image(f'button', hovered, hovered, surface)
+        focused_img = recolor_image(f'button', focused, focused_border, focused_ring)
+        focused_hovered_img = recolor_image(f'button', hovered, focused_border, focused_ring)
+        focused_pressed_img = recolor_image(f'button', pressed, focused_border, focused_ring)
+        disabled_img = recolor_image(f'button', disabled, disabled, surface, surface)
         btn_padding = self.button_img_border()
 
         # button element
@@ -129,13 +121,13 @@ class ButtonStyleBuilder(StyleBuilderBase):
         focused_ring = theme.focus_ring(foreground, surface)
 
         # button element images
-        normal_img = recolor_image(f'btn-{self.size()}', normal, foreground, surface)
-        pressed_img = recolor_image(f'btn-{self.size()}', pressed, pressed, surface)
-        hovered_img = recolor_image(f'btn-{self.size()}', hovered, hovered, surface)
-        focused_img = recolor_image(f'btn-{self.size()}', focused, focused_border, focused_ring)
-        focused_hovered_img = recolor_image(f'btn-{self.size()}', hovered, focused_border, focused_ring)
-        focused_pressed_img = recolor_image(f'btn-{self.size()}', pressed, focused_border, focused_ring)
-        disabled_img = recolor_image(f'btn-{self.size()}', surface, disabled, surface, surface)
+        normal_img = recolor_image(f'button', normal, foreground, surface)
+        pressed_img = recolor_image(f'button', pressed, pressed, surface)
+        hovered_img = recolor_image(f'button', hovered, hovered, surface)
+        focused_img = recolor_image(f'button', focused, focused_border, focused_ring)
+        focused_hovered_img = recolor_image(f'button', hovered, focused_border, focused_ring)
+        focused_pressed_img = recolor_image(f'button', pressed, focused_border, focused_ring)
+        disabled_img = recolor_image(f'button', surface, disabled, surface, surface)
         btn_padding = self.button_img_border()
 
         # button element
@@ -184,13 +176,13 @@ class ButtonStyleBuilder(StyleBuilderBase):
         focused_ring = theme.focus_ring(focused, surface)
 
         # button element images
-        normal_img = recolor_image(f'btn-{self.size()}', normal, normal, surface, surface)
-        pressed_img = recolor_image(f'btn-{self.size()}', pressed, surface, surface, surface)
-        hovered_img = recolor_image(f'btn-{self.size()}', hovered, surface, surface, surface)
-        focused_img = recolor_image(f'btn-{self.size()}', focused, focused, focused_ring, surface)
-        focused_hovered_img = recolor_image(f'btn-{self.size()}', hovered, focused, focused_ring, surface)
-        focused_pressed_img = recolor_image(f'btn-{self.size()}', pressed, focused, focused_ring, surface)
-        disabled_img = recolor_image(f'btn-{self.size()}', surface, surface, surface, surface)
+        normal_img = recolor_image(f'button', normal, normal, surface, surface)
+        pressed_img = recolor_image(f'button', pressed, surface, surface, surface)
+        hovered_img = recolor_image(f'button', hovered, surface, surface, surface)
+        focused_img = recolor_image(f'button', focused, focused, focused_ring, surface)
+        focused_hovered_img = recolor_image(f'button', hovered, focused, focused_ring, surface)
+        focused_pressed_img = recolor_image(f'button', pressed, focused, focused_ring, surface)
+        disabled_img = recolor_image(f'button', surface, surface, surface, surface)
         btn_padding = self.button_img_border()
 
         # button element

@@ -2,7 +2,7 @@ from tkinter import ttk
 from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonSize, ButtonOptions
+from ..core.libtypes import ButtonOptions
 from ..style.tokens import ButtonVariant, SemanticColor
 from ..style.builders.icon_button import IconButtonStyleBuilder
 from ..utils import unsnake_kwargs
@@ -20,7 +20,6 @@ class IconButton(BaseWidget):
             parent,
             icon: str = None,
             color: SemanticColor = "primary",
-            size: ButtonSize = "md",
             variant: ButtonVariant = "solid",
             on_click: Callable = None,
             **kwargs: Unpack[ButtonOptions]
@@ -32,7 +31,6 @@ class IconButton(BaseWidget):
             parent: Parent container.
             icon: Optional icon identifier.
             color: Optional color role.
-            size: Optional size.
             variant: Optional style variant.
             on_click: Callback function for click events.
             **kwargs: Additional ttk.Button options.
@@ -41,10 +39,9 @@ class IconButton(BaseWidget):
         self._style_name: Optional[str] = None
         self._color = color
         self._variant = variant
-        self._size = size
         self._icon = icon
         self._stateful_icons_bound = False
-        self._style_builder = IconButtonStyleBuilder(color, variant, size)
+        self._style_builder = IconButtonStyleBuilder(color, variant)
 
         # remove invalid arguments for icon button
         for key in ['compound', 'text']:
@@ -82,7 +79,7 @@ class IconButton(BaseWidget):
             self._update_icon_assets()
             return self
 
-    def color(self, value: ButtonVariant = None):
+    def color(self, value: str = None):
         """Get or set the color role (unimplemented)."""
         if value is None:
             return self._color
