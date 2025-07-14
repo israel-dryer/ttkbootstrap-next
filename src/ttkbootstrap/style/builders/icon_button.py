@@ -289,9 +289,7 @@ class IconButtonStyleBuilder(StyleBuilderBase):
             self.build_outline_icon_assets(icon)
         elif self.variant() == "ghost":
             self.build_ghost_icon_assets(icon)
-        elif self.variant() == "prefix":
-            self.build_addon_icon_assets(icon)
-        elif self.variant() == "suffix":
+        elif self.variant().endswith('fix'):
             self.build_addon_icon_assets(icon)
 
     def build_solid_icon_assets(self, icon: str):

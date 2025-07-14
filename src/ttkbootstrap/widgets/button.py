@@ -97,6 +97,7 @@ class Button(BaseWidget):
         else:
             self._icon = value
             self._update_icon_assets()
+            self.icon_position(self._icon_position)
             return self
 
     def icon_position(self, value: Literal['left', 'right'] = None):
