@@ -162,11 +162,11 @@ class IconButton(BaseWidget):
             if self.is_disabled(): return
             self.configure(image=icons['normal'])
 
-        self.bind('<Enter>', on_enter)
-        self.bind('<Leave>', on_leave)
-        self.bind('<FocusIn>', on_focus_in)
-        self.bind('<FocusOut>', on_focus_out)
-        self.bind('<ButtonPress-1>', on_press)
+        self.bind('enter', on_enter)
+        self.bind('leave', on_leave)
+        self.bind('focus', on_focus_in)
+        self.bind('blur', on_focus_out)
+        self.bind('mouse_down', on_press)
         self._stateful_icons_bound = True
 
         # set disabled state
