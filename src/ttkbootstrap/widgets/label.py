@@ -21,6 +21,7 @@ class Label(BaseWidget):
             foreground: ForegroundColor = None,
             background: SurfaceColor= None,
             font: TypographyToken = "body",
+            variant: str = "default",
             **kwargs: Unpack[LabelOptions]
     ):
         """
@@ -32,10 +33,11 @@ class Label(BaseWidget):
             foreground: Optional foreground color override (e.g., "primary", "secondary-subtle").
             background: Optional background color override (e.g., "gray-200", "layer-2").
             font: The font token to use (default is "body").
+            variant: The visual variant of the label
             **kwargs: Additional ttk.Label options.
         """
         self._text_signal = Signal(text)
-        self._style_builder = LabelStyleBuilder(foreground, background)
+        self._style_builder = LabelStyleBuilder(foreground, background, variant)
         self._widget = ttk.Label(
             parent,
             font=font,
