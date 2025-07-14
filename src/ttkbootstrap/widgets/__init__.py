@@ -12,3 +12,5 @@ from .canvas import Canvas
 from .slider import Slider
 from .progress import Progress
 from .scrollbar import Scrollbar
+from .entry_field import EntryField
+from .number_entry import NumberEntry

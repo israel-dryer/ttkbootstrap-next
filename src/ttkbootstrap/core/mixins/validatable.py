@@ -31,6 +31,7 @@ class ValidatableMixin:
         self._rules: list[ValidationRule] = []
         self._on_validated: Optional[Callable[[Any], Any]] = None
         self._on_invalid: Optional[Callable[[Any], Any]] = None
+        self._on_valid: Optional[Callable[[Any], Any]] = None
 
     def _setup_validation_events(self):
         """Bind 'keyup' and 'blur' events to automatic validation checks."""
@@ -78,6 +79,22 @@ class ValidatableMixin:
             return self._on_invalid
         self._on_invalid = handler
         self.bind("invalid", self._on_invalid)
+        return self
+
+    def on_valid(self, handler: Callable[[Any], Any] = None):
+        """
+        Bind a handler for the 'valid' event.
+
+        Args:
+            handler: Callback to run when validation fails.
+
+        Returns:
+            Getter or self (chainable)
+        """
+        if handler is None:
+            return self._on_valid
+        self._on_valid = handler
+        self.bind("valid", self._on_valid)
         return self
 
     def on_validated(self, handler: Callable[[Any], Any] = None):

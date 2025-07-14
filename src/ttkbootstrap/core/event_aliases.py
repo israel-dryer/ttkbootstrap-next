@@ -10,6 +10,8 @@ EVENT_ALIASES = {
     "wheel": "<MouseWheel>",
     "hover": "<Enter>",
     "leave": "<Leave>",
+    "mouse_down": "<ButtonPress>",
+    "mouse_up": "<ButtonRelease>",
 
     # --- Keyboard Events ---
     "keydown": "<KeyPress>",
@@ -68,8 +70,10 @@ EventAlias = Literal[
     "wheel",
     "hover",
     "leave",
+    "mouse_down",
+    "mouse_up",
 
-        # Keyboard Events
+    # Keyboard Events
     "keydown",
     "keyup",
     "keydown.enter",
