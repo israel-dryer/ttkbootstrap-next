@@ -46,7 +46,7 @@ class FileEntry(EntryField):
             Button,
             name='file-dialog',
             text=label,
-            side="left",
+            position="left",
             on_click=self._show_file_chooser
         )
 
