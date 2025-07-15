@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Literal, Union
+from typing import Any, Literal, Union
 
 from . import Button, IconButton
 from .frame import Frame
@@ -17,26 +17,24 @@ class EntryField(Frame, EntryPartMixin, ABC):
     It supports both text and number inputs, and includes methods for enabling/disabling input,
     adding prefix/suffix addons, and toggling readonly mode.
 
-    Parameters:
+    Args:
         parent: The parent container for the EntryField.
-        value (str | int | float, optional): The initial value of the input field.
-        label (str, optional): The label text shown above the input field.
-        message (str, optional): The caption or helper message shown below the input field.
-        kind (str, optional): The input type, either "entry" (default) or "spinbox".
+        value: The initial value of the input field.
+        label: The label text shown above the input field.
+        message: The caption or helper message shown below the input field.
+        kind: The input type, either "entry" (default) or "spinbox".
         **kwargs: Additional keyword arguments passed to the input widget.
-
-    Example:
-        field = EntryField(parent, label="Name", message="Enter your full name.")
-        field.insert_addon(IconButton, side='right', icon='search')
     """
 
     def __init__(
-            self, parent,
+            self,
+            parent,
             value: str | int | float = None,
             label: str = None,
             message: str = None,
             kind="entry",
-            **kwargs):
+            **kwargs
+    ):
         super().__init__(parent)
 
         # add default parts
@@ -108,7 +106,15 @@ class EntryField(Frame, EntryPartMixin, ABC):
         return self
 
     def readonly(self, value: bool = None):
-        """Get or set readonly state of the input."""
+        """
+        Get or set readonly state of the input.
+
+        Args:
+            value: If None, returns current readonly state. Otherwise, sets the state.
+
+        Returns:
+            The current readonly state or self (for chaining).
+        """
         if value == False:
             self._field.state(['disabled'])
         elif value:
@@ -119,16 +125,33 @@ class EntryField(Frame, EntryPartMixin, ABC):
             self._entry.readonly(value)
             return self
 
-    def insert_addon(self, widget, side: Literal['left', 'right'] = "right", name=None, **kwargs):
-        """Insert a widget as an addon to the left or right of the input."""
-        variant = "suffix" if side == "right" else "prefix"
+    def insert_addon(
+            self,
+            widget,
+            position: Literal['left', 'right'] = "right",
+            name=None,
+            pack_options: dict[str, Any] = None,
+            **kwargs
+    ):
+        """
+        Insert a widget as an addon before or after the input.
+
+        Args:
+            widget: A callable widget class (e.g., IconButton).
+            position: The position of the widget relative to the input ("left" or "right").
+            name: Optional name to reference the addon.
+            pack_options: Optional pack options (e.g., 'before', 'after').
+            **kwargs: Additional arguments passed to the widget constructor.
+        """
+        variant = "suffix" if position == "right" else "prefix"
         instance = widget(self._field, variant=variant, **kwargs)
         key = name or str(instance)
         self._addons[key] = instance
-        if side == "right":
-            instance.pack(side=side, after=self._entry)
+        options = pack_options or dict()
+        if position == "right":
+            instance.pack(side=position, **{"after": self._entry, **options})
         else:
-            instance.pack(side=side, before=self._entry)
+            instance.pack(side=position, **{"before": self._entry, **options})
 
         # match parent disabled state
         if 'disabled' in self.entry_widget.state():
@@ -138,14 +161,15 @@ class EntryField(Frame, EntryPartMixin, ABC):
         # bind focus events to field frame
         instance.bind("focus", lambda e: self._field.state(['focus']))
         instance.bind('blur', lambda e: self._field.state(['!focus']))
+        return self
 
-    def _show_error(self, event: any):
+    def _show_error(self, event: Any):
         """Display a validation error message below the input field."""
         self._message.text(event.data['message'])
         self._message.configure(foreground='danger')
         self._message.pack(fill='x', after=self._field)
 
-    def _clear_error(self, _: any):
+    def _clear_error(self, _: Any):
         """Clear the validation error and reset to the original message."""
         self._message.text(self._message_text)
         self._message.configure(foreground='secondary')

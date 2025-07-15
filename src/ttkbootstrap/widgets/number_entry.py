@@ -26,6 +26,14 @@ class NumberEntry(EntryField):
         self.insert_addon(IconButton, icon="dash", name="decrement", on_click=self.decrement)
         self.show_spin_buttons(show_spin_buttons)
 
+    @property
+    def increment_widget(self):
+        return self.addons.get('increment')
+
+    @property
+    def decrement_widget(self):
+        return self.addons.get('decrement')
+
     def increment(self):
         """Emit an 'increment' event to the spinbox part."""
         self._entry.emit("increment")
@@ -36,13 +44,11 @@ class NumberEntry(EntryField):
 
     def show_spin_buttons(self, value: bool):
         """Show or hide the increment/decrement buttons."""
-        inc = self.addons.get('increment')
-        dec = self.addons.get('decrement')
         if value:
-            inc.pack(**self._show_spin_buttons_pack.get('increment', {}))
-            dec.pack(**self._show_spin_buttons_pack.get('decrement', {}))
+            self.increment_widget.pack(**self._show_spin_buttons_pack.get('increment', {}))
+            self.decrement_widget.pack(**self._show_spin_buttons_pack.get('decrement', {}))
         else:
-            self._show_spin_buttons_pack['increment'] = inc.pack()
-            self._show_spin_buttons_pack['decrement'] = dec.pack()
-            inc.pack_forget()
-            dec.pack_forget()
+            self._show_spin_buttons_pack['increment'] = self.increment_widget.pack()
+            self._show_spin_buttons_pack['decrement'] = self.decrement_widget.pack()
+            self.increment_widget.pack_forget()
+            self.decrement_widget.pack_forget()
