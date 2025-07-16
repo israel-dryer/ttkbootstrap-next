@@ -1,34 +1,78 @@
-from typing import Any, Callable, Unpack
+from typing import Any, Callable, Unpack, Literal
 
 from tkinter import ttk
 from ttkbootstrap.core import Signal
-from ttkbootstrap.core.libtypes import ProgressOptions
+from ttkbootstrap.core.libtypes import ProgressOptions, Orient
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
+from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
-class Progress(BaseWidget):
-    _configure_methods = {}
+class ProgressBar(BaseWidget):
+    _configure_methods = {"on_change", "signal", "value", "maximum", "orient", "color", "variant"}
 
     def __init__(
             self,
             parent,
             value: int = 0,
+            color: SemanticColor = "primary",
+            orient: Orient = "horizontal",
+            variant: Literal['default', 'striped'] = "default",
             on_change: Callable[[int], Any] = None,
             **kwargs: Unpack[ProgressOptions]):
-        self._style_builder = ProgressStyleBuilder()
+        """
+        Create a progress bar widget with signal-based value tracking and styling.
+
+        Args:
+            parent: The parent widget.
+            value: The initial value of the progress bar.
+            color: The semantic color for the progress bar (e.g., "primary", "success", "danger").
+            orient: The orientation of the progress bar; either "horizontal" or "vertical".
+            variant: The visual style variant of the progress bar, either "default" or "striped".
+            on_change: Optional callback function invoked with the new value when it changes.
+            **kwargs: Additional keyword arguments
+        """
+        self._style_builder = ProgressStyleBuilder(orient=orient, color=color, variant=variant)
         self._signal = Signal(value)
         self._status = 'active'
         self._on_change = on_change
         self._on_change_fid = None
 
-        self._widget = ttk.Progressbar(parent, variable=self._signal.var, **unsnake_kwargs(kwargs))
+        self._widget = ttk.Progressbar(parent, orient=orient, variable=self._signal.var, **unsnake_kwargs(kwargs))
 
         if self._on_change:
             self.on_change(self._on_change)
 
         super().__init__(parent)
+
+    def orient(self, value: Orient = None):
+        """Get or set the widget orientation"""
+        if value is None:
+            return self.configure('orient')
+        else:
+            self._style_builder.orient(value)
+            self.configure(orient=value)
+            self._style_builder.register_style()
+            return self
+
+    def color(self, value: SemanticColor = None):
+        """Get or set the progressbar color"""
+        if value is None:
+            return self._style_builder.color()
+        else:
+            self._style_builder.color(value)
+            self._style_builder.register_style()
+            return self
+
+    def variant(self, value: Literal['default', 'striped'] = None):
+        """Get or set the progressbar variant: 'default' or 'striped'"""
+        if value is None:
+            return self._style_builder.variant()
+        else:
+            self._style_builder.orient(value)
+            self._style_builder.register_style()
+            return self
 
     def on_change(self, value: Callable[[int], Any] = None):
         """Get or set the callback triggered when the group value changes."""
