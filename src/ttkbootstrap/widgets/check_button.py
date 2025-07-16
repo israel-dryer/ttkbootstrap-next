@@ -24,7 +24,7 @@ class CheckButton(BaseWidget):
             parent,
             text: str,
             color: SemanticColor = None,
-            value: int | str = 1,
+            value: int | str = -1,
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
@@ -61,14 +61,19 @@ class CheckButton(BaseWidget):
         self._widget = ttk.Checkbutton(
             parent,
             textvariable=self._text_signal.var,
-            variable=self._value_signal.var,
             onvalue=on_value,
             offvalue=off_value,
-            command=self._on_toggle,
+            command=self._internal_toggle,
             **unsnake_kwargs(kwargs)
         )
-
         super().__init__(parent)
+
+        # set initial state
+        if value == on_value:
+            self.widget.invoke()
+        if value == off_value:
+            self.widget.invoke()
+            self.widget.invoke()
 
     def on_change(self, value: Callable[[Any], Any] = None):
         """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""
@@ -141,6 +146,7 @@ class CheckButton(BaseWidget):
             self.widget.state(['disabled', 'alternate'])
         else:
             self.widget.state(['disabled'])
+        return self
 
     def enable(self):
         """Enable the checkbutton so it can be interacted with."""
@@ -150,13 +156,23 @@ class CheckButton(BaseWidget):
             self.state(['!disabled', '!readonly'])
         return self
 
+    def _internal_toggle(self):
+        """Handle toggle command from checkbutton widget"""
+        on_value = self.configure('on_value')
+        off_value = self.configure('off_value')
+
+        if self._on_toggle:
+            self._on_toggle()
+        self.value(on_value if self.is_checked() else off_value)
+
     def toggle(self):
         """Trigger the checkbutton as if it were toggled."""
         self.widget.invoke()
+        return self
 
     def is_checked(self):
         """Return True if the current value matches the on_value."""
-        return self.value() == self.configure("on_value")
+        return 'selected' in self.widget.state()
 
     def destroy(self):
         """Unsubscribe callbacks and destroy the widget."""
