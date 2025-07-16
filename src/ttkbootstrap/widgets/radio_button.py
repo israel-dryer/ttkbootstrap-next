@@ -29,7 +29,7 @@ class RadioButton(BaseWidget):
             text: str,
             value: str | int,
             group: Union[str, Signal] = None,
-            color: ForegroundColor = None,
+            color: ForegroundColor = "primary",
             selected: bool = False,
             on_select: Callable = None,
             on_change: Callable[[Any], Any] = None,
