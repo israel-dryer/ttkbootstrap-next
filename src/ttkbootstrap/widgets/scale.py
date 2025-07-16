@@ -2,12 +2,14 @@ from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 
 from ttkbootstrap.core import Signal
-from ttkbootstrap.core.libtypes import SliderOptions
+from ttkbootstrap.core.libtypes import SliderOptions, Orient
 from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.style.builders.scale import ScaleStyleBuilder
+from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
-class Slider(BaseWidget):
+class Scale(BaseWidget):
     _configure_methods = {"signal", "value", "min_value", "max_value", "precision", "on_change"}
 
     def __init__(
@@ -17,20 +19,25 @@ class Slider(BaseWidget):
             min_value: int | float = 0.0,
             max_value: int | float = 100.0,
             precision: int = 0,
+            color: SemanticColor = "primary",
+            orient: Orient = "horizontal",
             on_change: Callable[[float], Any] = None,
             **kwargs: Unpack[SliderOptions]
     ):
-        """Create a new Slider widget with a signal-based value and callback.
+        """Create a new Scale widget with a signal-based value and callback.
 
         Args:
             parent: The parent widget.
             value: The initial value of the slider.
-            min_value: The minimum value for the slider.
-            max_value: The maximum value for the slider.
+            min_value: The minimum value for the slider range.
+            max_value: The maximum value for the slider range.
             precision: The number of decimal places to round the value.
-            on_change: Optional callback invoked when the value changes.
-            **kwargs: Additional keyword arguments passed to ttk.Scale.
+            color: The color used to theme the slider (e.g., "primary", "info").
+            orient: The orientation of the slider; either "horizontal" or "vertical".
+            on_change: Optional callback invoked with the rounded value when the value changes significantly.
+            **kwargs: Additional options supported by ttk.Scale, such as `length`, `command`, or `state`.
         """
+        self._style_builder = ScaleStyleBuilder(color=color, orient=orient)
         self._signal = Signal(value)
         self._on_change = on_change
         self._on_change_fid = None
@@ -41,12 +48,17 @@ class Slider(BaseWidget):
             parent,
             from_=min_value,
             to=max_value,
+            orient=orient,
             variable=self._signal.var,
             **unsnake_kwargs(kwargs)
         )
+
         super().__init__(parent)
         if on_change:
             self._on_change_fid = self.on_change(self._on_change)
+
+        # received focus when clicked
+        self.bind("click", self.focus)
 
     def signal(self, value: Signal = None):
         """Get or set the signal controlling the slider value."""
