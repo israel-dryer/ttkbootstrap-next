@@ -55,8 +55,6 @@ class CheckButtonStyleBuilder(StyleBuilderBase):
             'checkbox-unchecked', foreground_disabled, foreground_disabled, background)
         disabled_indeterminate_img = recolor_image('checkbox-indeterminate', disabled, foreground_disabled, background)
 
-        # TODO create readonly states
-
         spacer_img = create_transparent_image(8, 1)
         self.create_element(
             ElementImage(f'{ttk_style}.spacer', spacer_img, sticky="ew"))
