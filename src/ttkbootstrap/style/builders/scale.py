@@ -24,8 +24,6 @@ class ScaleStyleBuilder(StyleBuilderBase):
             return self
 
     def register_style(self):
-        """[('Horizontal.Scale.focus', {'sticky': 'nswe', 'children': [('Horizontal.Scale.padding', {'sticky': 'nswe', 'children': [('Horizontal.Scale.trough', {'sticky': 'nswe', 'children': [('Horizontal.Scale.slider', {'side': 'left', 'sticky': ''})]})]})]})]"""
-
         ttk_style = self.resolve_name()
         theme = self.theme
         orient = self.orient().title()
@@ -36,10 +34,8 @@ class ScaleStyleBuilder(StyleBuilderBase):
         foreground_disabled = theme.disabled("text")
         track_color = theme.border(background)
         handle_normal = theme.color(self.color())
-        handle_border = theme.border(handle_normal)
         handle_hover = theme.hover(handle_normal)
         handle_pressed = theme.active(handle_normal)
-        handle_focus_border = theme.focus_ring(handle_normal, background)
         handle_disabled = theme.disabled("text")
         track_disabled = theme.disabled("background")
 
