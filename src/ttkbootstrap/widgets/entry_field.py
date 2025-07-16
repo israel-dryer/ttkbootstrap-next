@@ -39,7 +39,7 @@ class EntryField(Frame, EntryPartMixin, ABC):
 
         # add default parts
         self._label = Label(self, label, font="label", anchor="w")
-        self._field = Frame(self, variant="field", padding=5)
+        self._field = Frame(self, variant="field", padding=6)
         self._message = Label(self, message, font="caption", foreground='secondary')
         self._message_text = message
         self._theme = ColorTheme.instance()
