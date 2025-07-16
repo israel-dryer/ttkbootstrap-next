@@ -1,4 +1,14 @@
 from PIL import ImageTk
+from PIL import Image
+
+
+def create_transparent_image(width: int, height: int) -> "ManagedImage":
+    """
+    Create a fully transparent PIL image of the given size.
+    """
+    img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+    pm = ManagedImage(image=img)
+    return pm
 
 
 class ManagedImage(ImageTk.PhotoImage):
