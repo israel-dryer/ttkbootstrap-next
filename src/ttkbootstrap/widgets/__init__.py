@@ -16,3 +16,4 @@ from .entry_field import EntryField
 from .number_entry import NumberEntry
 from .file_entry import FileEntry
 from .switch_button import SwitchButton
+from .badge import Badge
