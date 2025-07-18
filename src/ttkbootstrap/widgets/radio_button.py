@@ -26,8 +26,8 @@ class RadioButton(BaseWidget):
     def __init__(
             self,
             parent,
-            text: str,
-            value: str | int,
+            text: str = None,
+            value: str | int = 0,
             group: Union[str, Signal] = None,
             color: ForegroundColor = "primary",
             selected: bool = False,

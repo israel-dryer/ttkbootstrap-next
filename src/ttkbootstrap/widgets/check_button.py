@@ -22,7 +22,7 @@ class CheckButton(BaseWidget):
     def __init__(
             self,
             parent,
-            text: str,
+            text: str = None,
             color: SemanticColor = None,
             value: int | str = -1,
             on_value: int | str = 1,
