@@ -79,7 +79,7 @@ class IconButton(BaseWidget):
             self._update_icon_assets()
             return self
 
-    def color(self, value: str = None):
+    def color(self, value: SemanticColor = None):
         """Get or set the color role (unimplemented)."""
         if value is None:
             return self._color
