@@ -43,14 +43,16 @@ class ButtonStyleBuilder(StyleBuilderBase):
     # ----- variant style builders ------
 
     def register_style(self):
-        if self.variant() == 'solid':
-            self.solid_button()
-        elif self.variant() == 'outline':
+        if self.variant() == 'outline':
             self.outline_button()
         elif self.variant() == 'ghost':
             self.ghost_button()
         elif self.variant().endswith('fix'):
             self.field_addon_button()
+        elif self.variant() == 'text':
+            self.text_button()
+        else:
+            self.solid_button()
 
     def solid_button(self):
         theme = self.theme
@@ -267,6 +269,35 @@ class ButtonStyleBuilder(StyleBuilderBase):
             foreground=[('disabled', foreground_disabled)],
             background=[('disabled', surface)])
 
+    def text_button(self):
+        theme = self.theme
+        ttk_style = self.resolve_name()
+        surface_token = self.surface()
+        color_token = self.color()
+
+        surface = theme.color(surface_token)
+        foreground = theme.color(color_token)
+        foreground_disabled = theme.disabled("text")
+
+        self.style_layout(
+            ttk_style, Element('Label.border', sticky="nsew").children(
+                [
+                    Element('Label.padding', sticky="nsew").children(
+                        [
+                            Element("Label.label", sticky="")
+                        ])
+                ]))
+
+        self.configure(
+            ttk_style,
+            background=surface,
+            foreground=foreground,
+            relief='flat',
+            stipple="gray12",
+            padding=0,
+            font=self.get_font())
+        self.map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[])
+
     # ----- Button Style Utilities -----
 
     def create_button_style(self):
@@ -289,6 +320,16 @@ class ButtonStyleBuilder(StyleBuilderBase):
             self.build_ghost_icon_assets(icon)
         elif self.variant().endswith('fix'):
             self.build_addon_icon_assets(icon)
+
+    def build_text_icon_assets(self, icon):
+        surface = self.theme.color(self.surface())
+        foreground = self.theme.on_color(surface)
+        foreground_disabled = self.theme.disabled("text")
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground)
+        self.create_icon_asset(icon, 'pressed', foreground)
+        self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_solid_icon_assets(self, icon: str):
         color_token = self.color()
