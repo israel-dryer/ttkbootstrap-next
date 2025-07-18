@@ -1,7 +1,7 @@
 from tkinter.font import Font
 from typing import Literal, Union
 
-ButtonVariant = Literal['solid', 'outline', 'ghost']
+ButtonVariant = Literal['solid', 'outline', 'ghost', 'text']
 
 # === Color Types ===
 

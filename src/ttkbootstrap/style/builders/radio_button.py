@@ -21,7 +21,7 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
         ttk_style = self.resolve_name()
         theme = self.theme
         background = theme.color(self.surface())
-        background_hover = theme.subtle(self.surface())
+        background_hover = theme.hover(background)
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled('text')
         normal = theme.color(self.color())
