@@ -41,6 +41,7 @@ class ButtonOptions(TypedDict, total=False):
         width: The width of the widget in pixels.
     """
     default: Literal['normal', 'active', 'disabled']
+    cursor: str
     take_focus: bool
     underline: int
     width: int
