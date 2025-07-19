@@ -1,12 +1,12 @@
 from abc import ABC
 from typing import Any, Literal, Union
 
-from . import Button, IconButton
-from .frame import Frame
-from .label import Label
-from .parts import EntryPart, NumberSpinboxPart
-from .parts.mixins.entry_part_mixin import EntryPartMixin
-from ..style.theme import ColorTheme
+from ttkbootstrap.widgets import Button, IconButton
+from ttkbootstrap.widgets.layout.frame import Frame
+from ttkbootstrap.widgets.display.label import Label
+from ttkbootstrap.widgets.parts import EntryPart, NumberSpinboxPart
+from ttkbootstrap.widgets.mixins import EntryPartMixin
+from ttkbootstrap.style.theme import ColorTheme
 
 
 class EntryField(Frame, EntryPartMixin, ABC):

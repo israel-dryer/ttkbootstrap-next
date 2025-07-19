@@ -1,5 +1,6 @@
 from typing import Any, Literal, Callable, Union
-from ttkbootstrap.widgets import EntryField, Button
+from .base import EntryField
+from ..buttons.button import Button
 from tkinter import filedialog
 
 DialogType = Literal[

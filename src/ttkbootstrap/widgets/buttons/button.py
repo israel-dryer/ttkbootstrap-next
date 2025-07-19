@@ -3,10 +3,10 @@ from typing import Callable, Literal, Unpack
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonOptions
-from ..style.tokens import ButtonVariant, SemanticColor
-from ..style.builders.button import ButtonStyleBuilder
-from ..utils import unsnake_kwargs
+from ttkbootstrap.core.libtypes import ButtonOptions
+from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
+from ttkbootstrap.style.builders.button import ButtonStyleBuilder
+from ttkbootstrap.utils import unsnake_kwargs
 
 
 class Button(BaseWidget):

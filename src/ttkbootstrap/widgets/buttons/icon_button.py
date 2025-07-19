@@ -2,10 +2,10 @@ from tkinter import ttk
 from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.widget import BaseWidget
-from ..core.libtypes import ButtonOptions
-from ..style.tokens import ButtonVariant, SemanticColor
-from ..style.builders.icon_button import IconButtonStyleBuilder
-from ..utils import unsnake_kwargs
+from ttkbootstrap.core.libtypes import ButtonOptions
+from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
+from ttkbootstrap.style.builders.icon_button import IconButtonStyleBuilder
+from ttkbootstrap.utils import unsnake_kwargs
 
 
 class IconButton(BaseWidget):

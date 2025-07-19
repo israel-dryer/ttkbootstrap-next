@@ -1,5 +1,4 @@
-from ttkbootstrap.widgets import EntryField
-
+from .base import EntryField
 
 class TextEntry(EntryField):
     """
