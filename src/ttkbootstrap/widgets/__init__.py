@@ -1,33 +1,33 @@
 # buttons
-from .buttons.button import Button
-from .buttons.icon_button import IconButton
-from .buttons.radio_button import RadioButton
-from .buttons.check_button import CheckButton
-from .buttons.switch_button import SwitchButton
+from ttkbootstrap.widgets.buttons.button import Button
+from ttkbootstrap.widgets.buttons.icon_button import IconButton
+from ttkbootstrap.widgets.buttons.radio_button import RadioButton
+from ttkbootstrap.widgets.buttons.check_button import CheckButton
+from ttkbootstrap.widgets.buttons.switch_button import SwitchButton
 
 # display
-from .display.label import Label
-from .display.badge import Badge
+from ttkbootstrap.widgets.display.label import Label
+from ttkbootstrap.widgets.display.badge import Badge
 
 # layout
-from .layout.frame import Frame
-from .layout.label_frame import LabelFrame
-from .layout.notebook import Notebook
-from .layout.separator import Separator
-from .layout.size_grip import SizeGrip
-from .layout.scrollbar import Scrollbar
-from .layout.paned_window import PanedWindow
+from ttkbootstrap.widgets.layout.frame import Frame
+from ttkbootstrap.widgets.layout.label_frame import LabelFrame
+from ttkbootstrap.widgets.layout.notebook import Notebook
+from ttkbootstrap.widgets.layout.separator import Separator
+from ttkbootstrap.widgets.layout.size_grip import SizeGrip
+from ttkbootstrap.widgets.layout.scrollbar import Scrollbar
+from ttkbootstrap.widgets.layout.paned_window import PanedWindow
 
 # data
-from .data.progressbar import ProgressBar
-from .data.scale import Scale
+from ttkbootstrap.widgets.data.progressbar import ProgressBar
+from ttkbootstrap.widgets.data.scale import Scale
 
 # other
-from .other.canvas import Canvas
+from ttkbootstrap.widgets.other.canvas import Canvas
 
 # form fields
-from .fields.number_entry import NumberEntry
-from .fields.file_entry import FileEntry
-from .fields.date_entry import DateEntry
-from .fields.text_entry import TextEntry
-from .fields.password_entry import PasswordEntry
+from ttkbootstrap.widgets.fields.number_entry import NumberEntry
+from ttkbootstrap.widgets.fields.file_entry import FileEntry
+from ttkbootstrap.widgets.fields.date_entry import DateEntry
+from ttkbootstrap.widgets.fields.text_entry import TextEntry
+from ttkbootstrap.widgets.fields.password_entry import PasswordEntry

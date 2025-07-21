@@ -1,6 +1,6 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.widgets import Frame
-from ttkbootstrap.widgets.switch_button import SwitchButton
+from ttkbootstrap.widgets.buttons.switch_button import SwitchButton
 
 app = App()
 

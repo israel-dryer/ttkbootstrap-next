@@ -3,13 +3,14 @@ from typing import Unpack
 
 from ttkbootstrap.core import Signal
 from ttkbootstrap.core.libtypes import LabelOptions
+from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
 from ttkbootstrap.utils import unsnake_kwargs
 
 
-class Label(BaseWidget):
+class Label(BaseWidget, IconMixin):
     """A themed label widget with support for signals and color tokens."""
 
     _configure_methods = {"text", "text_signal", "foreground", "background"}
@@ -22,6 +23,7 @@ class Label(BaseWidget):
             background: SurfaceColor= None,
             font: TypographyToken = "body",
             variant: str = "default",
+            icon: str = None,
             **kwargs: Unpack[LabelOptions]
     ):
         """
@@ -34,10 +36,13 @@ class Label(BaseWidget):
             background: Optional background color override (e.g., "gray-200", "layer-2").
             font: The font token to use (default is "body").
             variant: The visual variant of the label
+            icon: The icon to display
             **kwargs: Additional ttk.Label options.
         """
         self._text_signal = Signal(text)
-        self._style_builder = LabelStyleBuilder(foreground, background, variant)
+        self._icon = icon
+        build_options = kwargs.pop('builder', dict())
+        self._style_builder = LabelStyleBuilder(foreground, background, variant, **build_options)
         self._widget = ttk.Label(
             parent,
             font=font,
@@ -45,6 +50,16 @@ class Label(BaseWidget):
             **unsnake_kwargs(kwargs)
         )
         super().__init__(parent)
+        IconMixin.__init__(self)
+
+    def icon(self, value: str = None):
+        """Get or set the icon (unimplemented)."""
+        if value is None:
+            return self._icon
+        else:
+            self._icon = value
+            self._update_icon_assets()
+            return self
 
     def text(self, value: str = None):
         """Get or set the label text."""
@@ -78,3 +93,9 @@ class Label(BaseWidget):
             self._style_builder.background(value)
             self.update_style()
             return self
+
+    def update_style(self):
+        """Update the widget style and bind stateful icons"""
+        super().update_style()
+        if self._icon:
+            self._bind_stateful_icons()

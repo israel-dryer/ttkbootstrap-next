@@ -1,3 +1,6 @@
+from typing import Union
+
+
 def clamp(value, min_val, max_val):
     """Return a value that is bounded by a minimum and maximum.
 
@@ -27,3 +30,10 @@ def unsnake(string):
 def unsnake_kwargs(kwargs):
     """Remove underscores from snake_case key"""
     return {unsnake(k): v for k, v in kwargs.items()}
+
+
+def resolve_options(obj: Union[dict, str], default_key: str):
+    """Coerce to an object of options"""
+    if isinstance(obj, str) or obj is None:
+        return {default_key: obj}
+    return obj

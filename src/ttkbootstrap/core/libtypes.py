@@ -39,12 +39,14 @@ class ButtonOptions(TypedDict, total=False):
         take_focus: Specifies if the widget accepts focus during keyboard traversal.
         underline: The integer index (0-based) of a character to underline in the text.
         width: The width of the widget in pixels.
+        builder: key-value options passed to the style builder
     """
     default: Literal['normal', 'active', 'disabled']
     cursor: str
     take_focus: bool
     underline: int
     width: int
+    builder: dict
 
 
 class FrameOptions(TypedDict, total=False):
@@ -56,12 +58,14 @@ class FrameOptions(TypedDict, total=False):
         padding: Space around the frame content.
         take_focus: Specifies if the frame accepts focus during keyboard traversal.
         width: The width of the frame in pixels.
+        builder: key-value options passed to the style builder
     """
     cursor: str
     height: int
     padding: Padding
     take_focus: bool
     width: int
+    builder: dict
 
 
 class LabelOptions(TypedDict, total=False):
@@ -78,6 +82,7 @@ class LabelOptions(TypedDict, total=False):
         underline: The integer index (0-based) of a character to underline in the text.
         width: The width of the widget in pixels.
         wrap_length: The maximum line length in pixels.
+        builder: key-value options passed to the style builder
     """
     anchor: Anchor
     compound: Compound
@@ -89,6 +94,7 @@ class LabelOptions(TypedDict, total=False):
     underline: int
     width: int
     wrap_length: int
+    builder: dict
 
 
 class LabelFrameOptions(TypedDict, total=False):

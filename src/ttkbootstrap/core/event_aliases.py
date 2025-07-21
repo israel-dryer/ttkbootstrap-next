@@ -9,6 +9,7 @@ EVENT_ALIASES = {
     "drag": "<B1-Motion>",
     "wheel": "<MouseWheel>",
     "hover": "<Enter>",
+    "enter": "<Enter>",
     "leave": "<Leave>",
     "mouse_down": "<ButtonPress>",
     "mouse_up": "<ButtonRelease>",
@@ -50,6 +51,8 @@ EVENT_ALIASES = {
     "increment": "<<Increment>>",  # used in Spinbox
     "decrement": "<<Decrement>>",
     "deactivate": "<<Deactivate>>",
+    "selected": "<<Selected>>",
+    "deselected": "<<Deselected>>",
     "selection": "<<Selection>>",  # listbox, text selection
     "theme_changed": "<<ThemeChanged>>",  # ttk theme changed
     "input_method_changed": "<<IMChanged>>",
@@ -69,6 +72,7 @@ EventAlias = Literal[
     "drag",
     "wheel",
     "hover",
+    "enter",
     "leave",
     "mouse_down",
     "mouse_up",
@@ -108,6 +112,8 @@ EventAlias = Literal[
     "menu_select",
     "activate",
     "deactivate",
+    "selected",
+    "deselected",
     "selection",
     "theme_changed",
     "input_method_changed",

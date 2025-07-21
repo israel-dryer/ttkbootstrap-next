@@ -1,9 +1,13 @@
 from tkinter import TclError
+from tkinter.font import nametofont
 
+from ttkbootstrap.icons import BootstrapIcon
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 from ttkbootstrap.style.element import ElementImage, Element
 from ttkbootstrap.style.tokens import ForegroundColor, SurfaceColor
 from ttkbootstrap.style.utils import recolor_image
+
+_images = []
 
 
 class LabelStyleBuilder(StyleBuilderBase):
@@ -15,6 +19,11 @@ class LabelStyleBuilder(StyleBuilderBase):
             background=background,
             variant=variant,
             **kwargs)
+        self._stateful_icons: dict[str, BootstrapIcon] = dict()
+
+    @property
+    def stateful_icons(self):
+        return self._stateful_icons
 
     def foreground(self, value: ForegroundColor = None):
         if value is None:
@@ -37,9 +46,18 @@ class LabelStyleBuilder(StyleBuilderBase):
             self.options.update(variant=value)
             return self
 
+    def select_background(self, value: str = None):
+        if value is None:
+            return self.options.get('select_background') or 'primary'
+        else:
+            self.options.update(select_background=value)
+            return self
+
     def register_style(self):
         if self.variant().endswith('fix'):
             self.build_addon_style()
+        elif self.variant() == 'list':
+            self.build_list_style()
         else:
             self.build_default_style()
 
@@ -100,3 +118,87 @@ class LabelStyleBuilder(StyleBuilderBase):
             stipple="gray12",
             padding=0
         )
+
+    def build_list_style(self):
+        ttk_style = self.resolve_name()
+        theme = self.theme
+        background = theme.color(self.surface())
+        background_hover = theme.elevate(background, 1)
+        background_pressed = theme.elevate(background, 2)
+        background_selected = theme.color(self.select_background())
+        background_selected_hover = theme.hover(background_selected)
+        foreground_token = self.foreground()
+        if foreground_token is None:
+            foreground = self.theme.on_color(background)
+        else:
+            try:
+                foreground = self.theme.color(foreground_token, "text")
+            except TclError:
+                foreground = self.foreground()
+
+        foreground_selected = theme.on_color(background_selected)
+        self.configure(ttk_style, background=background, foreground=foreground)
+        self.map(
+            ttk_style,
+            background=[
+                ('selected hover', background_selected_hover),
+                ('selected', background_selected),
+                ('pressed', background_pressed),
+                ('hover', background_hover)],
+            foreground=[('selected', foreground_selected)]
+        )
+
+    def build_icon_assets(self, icon: str):
+        if icon is None: return
+        if self.variant() == 'list':
+            self.build_list_icon_assets(icon)
+        else:
+            self.build_default_icon_assets(icon)
+
+    def build_default_icon_assets(self, icon: str):
+        background = self.theme.color(self.surface())
+        if self.foreground() is None:
+            foreground = self.theme.on_color(background)
+        else:
+            try:
+                foreground = self.theme.color(self.foreground(), "text")
+            except TclError:
+                foreground = self.foreground()
+
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground)
+        self.create_icon_asset(icon, 'pressed', foreground)
+        self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground)
+
+    def create_icon_asset(self, icon: str, state: str, color: str):
+        # create stateful icons to be mapped by the buttons event handling logic
+        self._stateful_icons[state] = BootstrapIcon(icon, self.icon_font_size(), color)
+
+    def build_list_icon_assets(self, icon: str):
+        background = self.theme.color(self.surface())
+        if self.foreground() is None:
+            foreground = self.theme.on_color(background)
+        else:
+            try:
+                foreground = self.theme.color(self.foreground(), "text")
+            except TclError:
+                foreground = self.foreground()
+
+        background_selected = self.theme.color(self.select_background())
+        foreground_selected = self.theme.on_color(background_selected)
+
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground)
+        self.create_icon_asset(icon, 'pressed', foreground)
+        self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground)
+        self.create_icon_asset(icon, 'selected', foreground_selected)
+
+    @classmethod
+    def icon_font_size(cls) -> int:
+        """Return the icon size scaled from font size."""
+        factor = 0.9
+        fnt = nametofont('body-lg')
+        font_size = fnt.metrics('linespace')
+        return int(font_size * factor)

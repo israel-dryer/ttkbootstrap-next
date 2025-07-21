@@ -1,2 +1,2 @@
-from .bootstrap import BootstrapIcon
-from .lucide import LucideIcon
+from ttkbootstrap.icons.bootstrap import BootstrapIcon
+from ttkbootstrap.icons.lucide import LucideIcon

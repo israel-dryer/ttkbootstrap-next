@@ -1,8 +1,8 @@
 from ttkbootstrap.core import App
-from ttkbootstrap.widgets import Frame, NumberEntry, Button, FileEntry, Label
-from ttkbootstrap.widgets.date_entry import DateEntry
-from ttkbootstrap.widgets.password_box import PasswordEntry
-from ttkbootstrap.widgets.text_entry import TextEntry
+from ttkbootstrap.widgets import Frame, NumberEntry, FileEntry, Label
+from ttkbootstrap.widgets import DateEntry
+from ttkbootstrap.widgets import PasswordEntry
+from ttkbootstrap.widgets import TextEntry
 
 app = App()
 

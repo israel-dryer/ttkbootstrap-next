@@ -1,6 +1,6 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.style.theme import ColorTheme
-from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets.buttons.button import Button
 
 app = App()
 

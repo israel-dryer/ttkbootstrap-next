@@ -28,6 +28,13 @@ class IconButtonStyleBuilder(StyleBuilderBase):
 
     # ----- style builder options ------
 
+    def select_background(self, value: SemanticColor = None):
+        if value is None:
+            return self.options.get('select_background') or 'primary'
+        else:
+            self.options.update(select_background=value)
+            return self
+
     def color(self, value: SemanticColor = None):
         if value is None:
             return self.options.get('color') or 'primary'
@@ -60,8 +67,44 @@ class IconButtonStyleBuilder(StyleBuilderBase):
             self.text_button()
         elif self.variant().endswith('fix'):
             self.field_addon_button()
+        elif self.variant() == 'list':
+            self.list_button()
         else:
             self.solid_button()
+
+    def list_button(self):
+        theme = self.theme
+        ttk_style = self.resolve_name()
+
+        surface = theme.color(self.surface())
+        background_hover = theme.elevate(surface, 1)
+        background_pressed = theme.elevate(surface, 2)
+        background_selected = theme.color(self.select_background())
+        background_selected_hover = theme.hover(background_selected)
+
+        # button element
+        self.style_layout(ttk_style, Element('Label.border', sticky="nsew").children([
+            Element('Label.padding', sticky="nsew").children([
+                Element("Label.label", sticky="")
+            ])
+        ]))
+
+        self.configure(
+            ttk_style,
+            background=surface,
+            padding=0,
+            relief='flat',
+            stipple="gray12",
+            font=self.get_font())
+
+        self.map(
+            ttk_style,
+            foreground=[],
+            background=[
+                ('selected hover', background_selected_hover),
+                ('selected', background_selected),
+                ('pressed', background_pressed),
+                ('hover', background_hover)])
 
     def solid_button(self):
         theme = self.theme
@@ -317,6 +360,8 @@ class IconButtonStyleBuilder(StyleBuilderBase):
             self.build_ghost_icon_assets(icon)
         elif self.variant().endswith('fix'):
             self.build_addon_icon_assets(icon)
+        elif self.variant() == 'list':
+            self.build_list_icon_assets(icon)
         else:
             self.build_solid_icon_assets(icon)
 
@@ -371,6 +416,20 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'pressed', foreground)
         self.create_icon_asset(icon, 'focus', foreground)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
+
+    def build_list_icon_assets(self, icon: str):
+        background = self.theme.color(self.surface())
+        background_selected = self.theme.color(self.color())
+        foreground = self.theme.on_color(background)
+        foreground_selected = self.theme.on_color(background_selected)
+        foreground_disabled = self.theme.disabled("text")
+
+        self.create_icon_asset(icon, 'normal', foreground)
+        self.create_icon_asset(icon, 'hover', foreground)
+        self.create_icon_asset(icon, 'pressed', foreground)
+        self.create_icon_asset(icon, 'focus', foreground)
+        self.create_icon_asset(icon, 'disabled', foreground_disabled)
+        self.create_icon_asset(icon, 'selected', foreground_selected)
 
     def create_icon_asset(self, icon: str, state: str, color: str):
         # create stateful icons to be mapped by the buttons event handling logic

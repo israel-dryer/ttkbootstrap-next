@@ -2,6 +2,7 @@ from tkinter import ttk
 from typing import Callable, Literal, Unpack
 
 from ttkbootstrap.core import Signal
+from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.core.libtypes import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
@@ -9,7 +10,7 @@ from ttkbootstrap.style.builders.button import ButtonStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
 
 
-class Button(BaseWidget):
+class Button(BaseWidget, IconMixin):
     """
     A styled Button widget with fluent configuration and reactive text binding.
     """
@@ -44,7 +45,6 @@ class Button(BaseWidget):
         self._text_signal = Signal(text)
         self._icon = icon
         self._icon_position = icon_position
-        self._stateful_icons_bound = False
         self._style_builder = ButtonStyleBuilder(color, variant)
 
         # remove invalid arguments
@@ -59,7 +59,7 @@ class Button(BaseWidget):
             **unsnake_kwargs(kwargs)
         )
         super().__init__(parent)
-        self._update_icon_assets()
+        IconMixin.__init__(self)
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
@@ -152,58 +152,3 @@ class Button(BaseWidget):
         super().update_style()
         if self._icon:
             self._bind_stateful_icons()
-
-    def _update_icon_assets(self):
-        if self._icon:
-            self._style_builder.build_icon_assets(self._icon)
-            if not self._stateful_icons_bound:
-                self._bind_stateful_icons()
-            self._toggle_disable_icon(self.is_disabled())
-
-    def _bind_stateful_icons(self):
-        if self._stateful_icons_bound:
-            return
-        icons = self._style_builder.stateful_icons
-        self.configure(image=icons['normal'])
-
-        def on_enter(_):
-            if self.is_disabled(): return
-            self.configure(image=icons['hover'])
-
-        def on_leave(_):
-            if self.is_disabled():
-                return
-            elif self.has_focus():
-                self.configure(image=icons['focus'])
-            else:
-                self.configure(image=icons['normal'])
-
-        def on_press(_):
-            if self.is_disabled(): return
-            self.configure(image=icons['pressed'])
-
-        def on_focus_in(_):
-            if self.is_disabled(): return
-            self.configure(image=icons['focus'])
-
-        def on_focus_out(_):
-            if self.is_disabled(): return
-            self.configure(image=icons['normal'])
-
-        self.bind('enter', on_enter)
-        self.bind('leave', on_leave)
-        self.bind('focus', on_focus_in)
-        self.bind('blur', on_focus_out)
-        self.bind('mouse_down', on_press)
-        self._stateful_icons_bound = True
-
-        # set disabled state
-        if self.is_disabled():
-            self.configure(image=icons['disabled'], compound="left")
-
-    def _toggle_disable_icon(self, disable=True):
-        icons = self._style_builder.stateful_icons
-        if disable:
-            self.configure(image=icons['disabled'])
-        else:
-            self.configure(image=icons['normal'])

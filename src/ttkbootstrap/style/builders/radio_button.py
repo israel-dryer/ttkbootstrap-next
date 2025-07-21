@@ -6,9 +6,9 @@ from ttkbootstrap.style.utils import recolor_image
 
 class RadioButtonStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color):
+    def __init__(self, color, variant="default"):
 
-        super().__init__('TRadiobutton', color=color)
+        super().__init__('TRadiobutton', color=color, variant=variant)
 
     def color(self, value: str = None):
         if value is None:
@@ -17,7 +17,68 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
             self.options.update(color=value)
             return self
 
+    def variant(self, value: str = None):
+        if value is None:
+            return self.options.get('variant') or 'default'
+        else:
+            self.options.update(variant=value)
+            return self
+
     def register_style(self):
+        if self.variant() == 'list':
+            self.build_list_style()
+        else:
+            self.build_default_style()
+
+    def build_list_style(self):
+        ttk_style = self.resolve_name()
+        theme = self.theme
+        background = theme.color(self.surface())
+        background_hover = theme.elevate(background, 1)
+        background_selected = theme.subtle(self.color(), background)
+        foreground = theme.on_color(background)
+        normal = theme.color(self.color())
+        foreground_active = theme.on_color(normal)
+        hovered = theme.hover(normal)
+        border = theme.border(background)
+
+        # checkbutton element images
+        normal_checked_img = recolor_image('radio-selected', foreground_active, normal, background_selected)
+        normal_unchecked_img = recolor_image('radio-unselected', background, border, background)
+
+        hovered_checked_img = recolor_image('radio-selected', foreground_active, hovered, background_selected)
+        hovered_unchecked_img = recolor_image('radio-unselected', background_hover, border, background_hover)
+
+        spacer_img = create_transparent_image(8, 1)
+        self.create_element(
+            ElementImage(f'{ttk_style}.spacer', spacer_img, sticky="ew"))
+
+        self.create_element(
+            ElementImage(f'{ttk_style}.indicator', normal_unchecked_img, sticky="ns", padding=3).state_specs(
+                [
+                    # Hover states
+                    ('hover selected', hovered_checked_img),
+                    ('hover !selected !alternate', hovered_unchecked_img),
+
+                    # Normal base states
+                    ('selected', normal_checked_img),
+                    ('!selected !alternate', normal_unchecked_img),
+                ]
+            ))
+
+        self.style_layout(
+            ttk_style, Element('Radiobutton.padding', sticky="nsew").children(
+                [
+                    Element(f'{ttk_style}.indicator', side="left", sticky=""),
+                    Element(f'{ttk_style}.spacer', side="left"),
+                    Element('Radiobutton.label', side="left", sticky="nsew")
+                ])
+        )
+
+        self.configure(ttk_style, background=background, foreground=foreground)
+        self.map(ttk_style, background=[('selected', background_selected), ('hover', background_hover)], foreground=[])
+
+    def build_default_style(self):
         ttk_style = self.resolve_name()
         theme = self.theme
         background = theme.color(self.surface())

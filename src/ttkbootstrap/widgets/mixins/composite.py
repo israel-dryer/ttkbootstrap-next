@@ -1,44 +1,56 @@
+from typing import Callable
+
+from ttkbootstrap.core.widget import BaseWidget
+
+
 from ttkbootstrap.core.widget import BaseWidget
 
 
 class CompositeWidgetMixin:
-    """Mixin that allows composite widgets to synchronize interactive states
-    (e.g., hover, pressed) between a container and its child widgets."""
+    """Mixin to synchronize interactive states (hover, pressed, etc.) between a container
+    and its internal child widgets, with correct handling of overlapping events."""
 
     def __init__(self):
-        self._composite_widgets: "BaseWidget" = []
+        # composite state registry
+        self._composite_states = dict(enter=[], leave=[], mouse_down=[], mouse_up=[])
+        self._composite_callbacks = dict(
+            enter=self._on_enter,
+            leave=self._on_leave,
+            mouse_down=self._on_mouse_down,
+            mouse_up=self._on_mouse_up
+        )
+        self._hover_count = 0
 
-    def register_composite_widgets(self, widgets: list["BaseWidget"]):
-        """Register child widgets that should sync states with the container.
+    def _register_composite_states(self, widget, events=None):
+        events = events or ['enter', 'leave', 'mouse_down', 'mouse_up']
+        for event in events:
+            self._composite_states[event].append(widget)
+            widget.bind(event, self._composite_callbacks[event])
 
-        Args:
-            widgets: A list of Widget instances.
-        """
-        self._composite_widgets = widgets
+    def _apply_state(self, event: str, state: str, enable: bool):
+        for widget in self._composite_states[event]:
+            if enable:
+                widget.state([state])
+            else:
+                widget.state([f"!{state}"])
 
-        for widget in widgets + [self]:
-            widget.bind("enter", self._on_enter)
-            widget.bind("leave", self._on_leave)
-            widget.bind("mouse_down", self._on_press)
-            widget.bind("mouse_up", self._on_release)
+    def _on_enter(self, _):
+        self._hover_count += 1
+        if self._hover_count == 1:
+            self._apply_state('enter', 'hover', True)
 
-    def _apply_state(self, state: str, enable: bool):
-        """Apply or remove a state to all registered widgets."""
-        for widget in self._composite_widgets + [self]:
-            if hasattr(widget, "state"):
-                if enable:
-                    widget.state([state])
-                else:
-                    widget.state([f"!{state}"])
+    def _on_leave(self, _):
+        self._hover_count = max(0, self._hover_count - 1)
+        if self._hover_count == 0:
+            self._apply_state('leave', 'hover', False)
 
-    def _on_enter(self, event=None):
-        self._apply_state("hover", True)
+    def _on_mouse_down(self, _):
+        if hasattr(self, 'select') and hasattr(self, 'is_selected'):
+            self.select()
+            if self.is_selected:
+                self._apply_state('mouse_down', 'selected', True)
+            else:
+                self._apply_state('mouse_down', 'selected', False)
 
-    def _on_leave(self, event=None):
-        self._apply_state("hover", False)
-
-    def _on_press(self, event=None):
-        self._apply_state("pressed", True)
-
-    def _on_release(self, event=None):
-        self._apply_state("pressed", False)
+    def _on_mouse_up(self, _):
+        pass

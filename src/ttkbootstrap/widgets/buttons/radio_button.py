@@ -33,6 +33,7 @@ class RadioButton(BaseWidget):
             selected: bool = False,
             on_select: Callable = None,
             on_change: Callable[[Any], Any] = None,
+            variant="default",
             **kwargs: Unpack[RadioButtonOptions]
     ):
         """
@@ -49,7 +50,7 @@ class RadioButton(BaseWidget):
             on_change: A callback triggered whenever the group value changes.
             **kwargs: Additional keyword arguments passed to ttk.Radiobutton.
         """
-        self._style_builder = RadioButtonStyleBuilder(color)
+        self._style_builder = RadioButtonStyleBuilder(color, variant=variant)
         self._on_select = on_select
         self._on_change = on_change
         self._text_signal = Signal(text)

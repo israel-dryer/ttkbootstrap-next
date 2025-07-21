@@ -1,6 +1,6 @@
 from ttkbootstrap.core import App
-from ttkbootstrap.widgets import CheckButton, Frame, IconButton, LabelFrame, RadioButton
-from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets import CheckButton, Frame, IconButton, LabelFrame, RadioButton, Button
+
 
 app = App("Button Demo")
 

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 from ttkbootstrap.style.builders.badge import BadgeStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.widgets import Label
@@ -12,7 +12,8 @@ class Badge(Label):
             parent,
             text: str,
             color: SemanticColor = "primary",
-            variant: Literal['default', 'pill', 'circle'] = "default"
+            variant: Union[Literal['default', 'pill', 'circle'], str] = "default",
+            **kwargs
     ):
         """
         Initialize a Badge widget.
@@ -32,6 +33,7 @@ class Badge(Label):
                 - "circle": Circular shape.
                 Defaults to "default".
         """
+        build_options = kwargs.pop('builder', dict())
         super().__init__(parent, text, font='label')
         # override the label style builder
-        self._style_builder = BadgeStyleBuilder(color, variant)
+        self._style_builder = BadgeStyleBuilder(color, variant, **build_options)

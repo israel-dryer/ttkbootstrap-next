@@ -18,7 +18,13 @@ class Frame(BaseWidget, ContainerMixin):
 
     _configure_methods = {"surface"}
 
-    def __init__(self, parent, surface: SurfaceColor = None, variant: str = None, **kwargs: Unpack[FrameOptions]):
+    def __init__(
+            self,
+            parent,
+            *,
+            surface: SurfaceColor = None,
+            variant: str = None,
+            **kwargs: Unpack[FrameOptions]):
         """
         Initialize a new themed Frame widget.
 
@@ -28,11 +34,11 @@ class Frame(BaseWidget, ContainerMixin):
             variant: An optional style variant (e.g., 'bordered').
             **kwargs: Additional keyword arguments passed to ttk.Frame.
         """
-        self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
-
+        build_options = kwargs.pop('builder', dict())
         self._surface_token = surface
+        self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=surface)
-        self._style_builder = FrameStyleBuilder(variant=variant)
+        self._style_builder = FrameStyleBuilder(variant=variant, **build_options)
 
     def surface(self, value: SurfaceColor=None):
         """Get or set the surface token for this widget."""

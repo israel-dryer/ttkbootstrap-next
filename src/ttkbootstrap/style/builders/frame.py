@@ -15,18 +15,11 @@ class FrameStyleBuilder(StyleBuilderBase):
             self.options.update(variant=value)
             return self
 
-    def color(self, value: str = None):
+    def select_background(self, value: str = None):
         if value is None:
-            return self.options.get('color') or 'primary'
+            return self.options.get('select_background') or 'primary'
         else:
-            self.options.update(color=value)
-            return self
-
-    def size(self, value: str = None):
-        if value is None:
-            return self.options.get('size') or 'md'
-        else:
-            self.options.update(size=value)
+            self.options.update(select_background=value)
             return self
 
     def surface(self, value: str = None):
@@ -38,29 +31,40 @@ class FrameStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         if self.variant() == 'field':
-            self.field()
+            self.build_field()
+        elif self.variant() == 'list':
+            self.build_list()
         else:
-            self.default()
+            self.build_default()
 
-    def default(self):
+    def build_default(self):
         ttk_style = self.resolve_name()
         background = self.theme.color(self.surface())
         self.configure(ttk_style, background=background)
 
-    def field(self):
+    def build_list(self):
+        ttk_style = self.resolve_name()
+        background = self.theme.color(self.surface())
+        background_hover = self.theme.elevate(background, 1)
+        background_pressed = self.theme.elevate(background, 2)
+        background_selected = self.theme.color(self.select_background(), background)
+        background_selected_hover = self.theme.hover(background_selected)
+        self.configure(ttk_style, background=background)
+        self.map(
+            ttk_style,
+            background=[
+                ('selected hover', background_selected_hover),
+                ('selected', background_selected),
+                ('pressed', background_pressed),
+                ('hover', background_hover)
+            ])
 
-        def img_border(size):
-            if size == "sm":
-                return 6
-            elif size == "md":
-                return 8
-            else:
-                return 10
+    def build_field(self):
 
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.color()
+        color_token = self.select_background()
 
         surface = theme.color(surface_token)
         color = theme.color(color_token)
