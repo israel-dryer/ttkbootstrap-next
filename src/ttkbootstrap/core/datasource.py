@@ -86,6 +86,9 @@ class DataSource:
         self._page = max(0, self._page - 1)
         return self.get_page()
 
+    def has_next_page(self) -> bool:
+        return (self._page + 1) * self.page_size < self.total_count()
+
     def total_count(self) -> int:
         query = f"SELECT COUNT(*) FROM {self._table}"
         if self._where:
