@@ -1,7 +1,7 @@
 from tkinter import ttk
 from typing import Unpack
 
-from ttkbootstrap.core.libtypes import ScrollbarOptions
+from ttkbootstrap.core.libtypes import ScrollbarOptions, Orient
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
@@ -12,7 +12,7 @@ class Scrollbar(BaseWidget):
 
     _configure_methods = {}
 
-    def __init__(self, parent, **kwargs: Unpack[ScrollbarOptions]):
+    def __init__(self, parent, orient: Orient="vertical", **kwargs: Unpack[ScrollbarOptions]):
         """
         Initialize a new themed scrollbar.
 
@@ -20,8 +20,8 @@ class Scrollbar(BaseWidget):
             parent: The parent widget.
             **kwargs: Configuration options for the ttk.Scrollbar widget.
         """
-        self._style_builder = ScrollbarStyleBuilder()
-        self._widget = ttk.Scrollbar(parent, **unsnake_kwargs(kwargs))
+        self._style_builder = ScrollbarStyleBuilder(orient=orient)
+        self._widget = ttk.Scrollbar(parent, orient=orient, **unsnake_kwargs(kwargs))
         super().__init__(parent)
 
     def delta(self, x: int, y: int) -> float:

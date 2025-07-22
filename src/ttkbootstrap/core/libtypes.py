@@ -276,12 +276,10 @@ class ScrollbarOptions(TypedDict, total=False):
     Attributes:
         cursor: The cursor that appears when the mouse is over the widget.
         take_focus: Indicates whether the widget accepts focus during keyboard traversal.
-        orient: Indicates whether the widget should be laid or horizontally or vertically
         command: The `x_view` or `y_view` method of a scrollable widget
     """
     cursor: str
     take_focus: bool
-    orient: Orient
     command: Callable
 
 
