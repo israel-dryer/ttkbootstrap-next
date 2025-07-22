@@ -22,7 +22,7 @@ class CompositeWidgetMixin:
         self._hover_count = 0
 
     def _register_composite_states(self, widget, events=None):
-        events = events or ['enter', 'leave', 'mouse_down', 'mouse_up']
+        events = events or ['enter', 'leave', 'mouse-down', 'mouse-up']
         for event in events:
             self._composite_states[event].append(widget)
             widget.bind(event, self._composite_callbacks[event])
@@ -48,9 +48,9 @@ class CompositeWidgetMixin:
         if hasattr(self, 'select') and hasattr(self, 'is_selected'):
             self.select()
             if self.is_selected:
-                self._apply_state('mouse_down', 'selected', True)
+                self._apply_state('mouse-down', 'selected', True)
             else:
-                self._apply_state('mouse_down', 'selected', False)
+                self._apply_state('mouse-down', 'selected', False)
 
     def _on_mouse_up(self, _):
         pass

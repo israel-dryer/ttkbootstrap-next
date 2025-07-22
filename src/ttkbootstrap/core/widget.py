@@ -28,7 +28,7 @@ class BaseWidget(
 
         # get surface color
         self._surface_token = kwargs.pop('surface', None)
-        self.bind('theme_changed', lambda _: self.update_style())
+        self.bind('theme-changed', lambda _: self.update_style())
 
     @property
     def parent(self):

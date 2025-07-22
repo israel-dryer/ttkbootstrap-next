@@ -94,7 +94,7 @@ class IconMixin:
         self.bind('leave', on_leave)
         self.bind('focus', on_focus_in)
         self.bind('blur', on_focus_out)
-        self.bind('mouse_down', on_press)
+        self.bind('mouse-down', on_press)
         self.bind('selected', on_selected)
         self.bind('deselected', on_deselected)
 

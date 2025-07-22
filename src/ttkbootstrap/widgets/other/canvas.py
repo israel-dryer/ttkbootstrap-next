@@ -66,7 +66,7 @@ class Canvas(BaseWidget, ContainerMixin):
         item = self.widget.create_text(x, y, text=text, **unsnake_kwargs(kwargs))
         if bind_fill_to_theme:
             self.bind(
-                'theme_changed', lambda _: self.configure_item(
+                'theme-changed', lambda _: self.configure_item(
                     item, fill=self._theme.on_color(self._theme.color(self._style_builder.surface()))), add=True)
         return item
 
