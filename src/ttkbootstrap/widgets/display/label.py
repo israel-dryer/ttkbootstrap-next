@@ -52,15 +52,6 @@ class Label(BaseWidget, IconMixin):
         super().__init__(parent)
         IconMixin.__init__(self)
 
-    def icon(self, value: str = None):
-        """Get or set the icon (unimplemented)."""
-        if value is None:
-            return self._icon
-        else:
-            self._icon = value
-            self._update_icon_assets()
-            return self
-
     def text(self, value: str = None):
         """Get or set the label text."""
         if value is None:

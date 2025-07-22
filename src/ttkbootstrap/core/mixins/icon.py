@@ -6,6 +6,7 @@ class IconMixin:
     _icon: str
     is_disabled: Any
     configure: Any
+    process_idle_tasks: Any
     has_focus: Any
     bind: Any
 
@@ -13,6 +14,31 @@ class IconMixin:
         self._selected_state_icon = False
         self._stateful_icons_bound = False
         self._update_icon_assets()
+
+    def icon(self, value=None):
+        """Get or set the widget icon"""
+        if value is None:
+            return self._icon
+        self._icon = value
+        self._update_icon_assets()
+
+        # Re-apply current state image
+        icons = self._style_builder.stateful_icons
+
+        if self._selected_state_icon and 'selected' in icons:
+            self.configure(image=icons['selected'])
+        elif self._is_icon_disabled():
+            self.configure(image=icons['disabled'])
+        elif self.has_focus():
+            self.configure(image=icons['focus'])
+        else:
+            self.configure(image=icons['normal'])
+
+        # update icon position if adding icon after button is initialized
+        if hasattr(self, 'icon_position') and hasattr(self, '_icon_position'):
+            self.icon_position(self._icon_position)
+        self.process_idle_tasks()
+        return self
 
     def _update_icon_assets(self):
         if not self._icon: return
@@ -43,6 +69,8 @@ class IconMixin:
 
         def on_press(_):
             if self._is_icon_disabled():
+                return
+            if 'pressed' in icons:
                 self.configure(image=icons['pressed'])
 
         def on_focus_in(_):
@@ -82,6 +110,7 @@ class IconMixin:
             self.configure(image=icons['disabled'])
         else:
             self.configure(image=icons['normal'])
+        self.process_idle_tasks()
 
     def _is_icon_disabled(self):
         if hasattr(self, 'is_disabled'):

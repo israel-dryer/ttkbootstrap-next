@@ -104,3 +104,15 @@ class BindingMixin:
             self.widget.event_generate(sequence, data=json.dumps(data))
         else:
             self.widget.event_generate(sequence)
+
+    def process_all_events(self):
+        """Enter event loop until all pending events have been processed by Tcl."""
+        self.widget.update()
+        return self
+
+    def process_idle_tasks(self):
+        """Enter the event loop until all idle callbacks have been called. This
+        will update the display of windows but not process events caused by
+        the user."""
+        self.widget.update_idletasks()
+        return self

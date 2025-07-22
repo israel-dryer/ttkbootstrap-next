@@ -71,15 +71,6 @@ class IconButton(BaseWidget, IconMixin):
         self.configure(command=func)
         return self
 
-    def icon(self, value: str = None):
-        """Get or set the icon (unimplemented)."""
-        if value is None:
-            return self._icon
-        else:
-            self._icon = value
-            self._update_icon_assets()
-            return self
-
     def color(self, value: SemanticColor = None):
         """Get or set the color role (unimplemented)."""
         if value is None:
