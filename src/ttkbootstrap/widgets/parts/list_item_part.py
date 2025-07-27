@@ -139,9 +139,13 @@ class ListItemPart(Frame):
 
         if self.data['selected']:
             self.parent.emit('unselect', data=self.data)
+            for widget in self._composite_widgets:
+                widget.emit('unselect')
             return False
         else:
             self.parent.emit('select', data=self.data)
+            for widget in self._composite_widgets:
+                widget.emit('select')
             return True
 
     def delete(self):
