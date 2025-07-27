@@ -100,8 +100,8 @@ class IconMixin:
         self.bind('focus', on_focus_in)
         self.bind('blur', on_focus_out)
         self.bind('mouse-down', on_press)
-        self.bind('selected', on_selected)
-        self.bind('deselected', on_deselected)
+        self.bind('select', on_selected)
+        self.bind('unselect', on_deselected)
 
         self._stateful_icons_bound = True
 
