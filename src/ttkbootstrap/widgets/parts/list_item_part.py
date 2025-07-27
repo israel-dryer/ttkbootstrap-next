@@ -139,13 +139,9 @@ class ListItemPart(Frame):
 
         if self.data['selected']:
             self.parent.emit('unselect', data=self.data)
-            for widget in self._composite_widgets:
-                widget.emit('unselect')
             return False
         else:
             self.parent.emit('select', data=self.data)
-            for widget in self._composite_widgets:
-                widget.emit('select')
             return True
 
     def delete(self):
@@ -156,21 +152,30 @@ class ListItemPart(Frame):
     def _update_selection(self, selected=False):
         if self.selection_mode() != 'none':
             if not self._selection_widget:
+                if self.selection_mode() == 'multiple':
+                    icon = 'check-square-fill' if selected else 'square'
+                else:
+                    icon = 'check-circle-fill' if selected else 'circle'
                 self._selection_widget = Label(
                     self._frame_start,
-                    icon='check-circle-fill' if selected else 'circle',
+                    icon=icon,
                     variant='list'
                 )
                 if self._selection_controls_visible:
                     self._selection_widget.pack(side='left', padx=6)
                 self._add_composite_widget(self._selection_widget)
             else:
-                self._selection_widget.icon('check-circle-fill' if selected else 'circle')
+                if self.selection_mode() == 'multiple':
+                    self._selection_widget.icon('check-square-fill' if selected else 'square')
+                else:
+                    self._selection_widget.icon('check-circle-fill' if selected else 'circle')
                 for widget in self._composite_widgets:
                     widget.state(['selected' if selected else '!selected'])
         else:
             if self._selection_widget:
                 self._selection_widget.destroy()
+        for widget in self._composite_widgets:
+            widget.emit('select' if selected else 'unselect')
 
     def _update_icon(self, icon=None):
         if icon is not None:
