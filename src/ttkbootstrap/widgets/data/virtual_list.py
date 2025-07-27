@@ -37,7 +37,7 @@ class VirtualList(Frame):
         )
         self._datasource = datasource
         self._row_factory = row_factory or self._default_row_factory
-        self._rows: list[dict] = []
+        self._rows: list[ListItemPart] = []
         self._start_index = 0
         self._total_rows = datasource.total_count()
 
@@ -68,7 +68,7 @@ class VirtualList(Frame):
     def _on_resize(self, event):
         width = event.width
         for row in self._rows:
-            row.widget.configure(width=width)
+            row.configure(width=width)
 
     def _on_scroll(self, *args):
         if args[0] == "moveto":
