@@ -311,7 +311,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
                         ])
                 ]))
 
-    def build_icon_assets(self, icon: str):
+    def build_icon_assets(self, icon: dict):
         if self.variant() == 'solid':
             self.build_solid_icon_assets(icon)
         elif self.variant() == 'outline':
@@ -331,7 +331,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'focus', foreground)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
-    def build_solid_icon_assets(self, icon: str):
+    def build_solid_icon_assets(self, icon: dict):
         color_token = self.color()
         background = self.theme.color(color_token)
         foreground = self.theme.on_color(background)
@@ -342,7 +342,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'focus', foreground)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
-    def build_outline_icon_assets(self, icon: str):
+    def build_outline_icon_assets(self, icon: dict):
         color_token = self.color()
         accent = self.theme.color(color_token)
         foreground_active = self.theme.on_color(accent)
@@ -353,7 +353,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'focus', foreground_active)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
-    def build_ghost_icon_assets(self, icon: str):
+    def build_ghost_icon_assets(self, icon: dict):
         color_token = self.color()
         foreground = self.theme.color(color_token)
         foreground_disabled = self.theme.disabled("text")
@@ -363,7 +363,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'focus', foreground)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
-    def build_addon_icon_assets(self, icon: str):
+    def build_addon_icon_assets(self, icon: dict):
         surface = self.theme.color(self.surface())
         foreground = self.theme.on_color(surface)
         foreground_disabled = self.theme.disabled("text")
@@ -373,9 +373,12 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'focus', foreground)
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
-    def create_icon_asset(self, icon: str, state: str, color: str):
+    def create_icon_asset(self, icon: dict, state: str, color: str):
         # create stateful icons to be mapped by the buttons event handling logic
-        self._stateful_icons[state] = BootstrapIcon(icon, self.icon_font_size(), color)
+        options = dict(icon)
+        options.setdefault('color', color)
+        options.setdefault('size', self.icon_font_size())
+        self._stateful_icons[state] = BootstrapIcon(**options)
 
     def icon_font_size(self) -> int:
         """Return the icon size scaled from font size."""

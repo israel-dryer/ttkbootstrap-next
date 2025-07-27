@@ -7,7 +7,7 @@ from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
-from ttkbootstrap.utils import unsnake_kwargs
+from ttkbootstrap.utils import unsnake_kwargs, resolve_options
 
 
 class Label(BaseWidget, IconMixin):
@@ -23,7 +23,7 @@ class Label(BaseWidget, IconMixin):
             background: SurfaceColor= None,
             font: TypographyToken = "body",
             variant: str = "default",
-            icon: str = None,
+            icon: str | dict = None,
             **kwargs: Unpack[LabelOptions]
     ):
         """
@@ -40,7 +40,7 @@ class Label(BaseWidget, IconMixin):
             **kwargs: Additional ttk.Label options.
         """
         self._text_signal = Signal(text)
-        self._icon = icon
+        self._icon = resolve_options(icon, 'name') if icon else None
         build_options = kwargs.pop('builder', dict())
         self._style_builder = LabelStyleBuilder(foreground, background, variant, **build_options)
         self._widget = ttk.Label(

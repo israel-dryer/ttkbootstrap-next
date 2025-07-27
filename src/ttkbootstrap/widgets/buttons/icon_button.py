@@ -6,7 +6,7 @@ from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.core.libtypes import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.icon_button import IconButtonStyleBuilder
-from ttkbootstrap.utils import unsnake_kwargs
+from ttkbootstrap.utils import unsnake_kwargs, resolve_options
 
 
 class IconButton(BaseWidget, IconMixin):
@@ -40,7 +40,7 @@ class IconButton(BaseWidget, IconMixin):
         self._style_name: Optional[str] = None
         self._color = color
         self._variant = variant
-        self._icon = icon
+        self._icon = resolve_options(icon, 'name') or None
         build_options = kwargs.pop('builder', dict())
         self._style_builder = IconButtonStyleBuilder(color, variant, **build_options)
 

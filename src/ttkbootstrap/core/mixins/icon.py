@@ -1,9 +1,11 @@
 from typing import Any
 
+from ttkbootstrap.utils import resolve_options
+
 
 class IconMixin:
     _style_builder: Any
-    _icon: str
+    _icon: dict
     is_disabled: Any
     configure: Any
     process_idle_tasks: Any
@@ -26,8 +28,9 @@ class IconMixin:
         """Get or set the widget icon"""
         if value is None:
             return self._icon
-        if self._icon != value:
-            self._icon = value
+        key_value = resolve_options(value, 'name')
+        if self._icon['name'] != key_value['name']:
+            self._icon = key_value
             self._current_icon_image = None  # force image reset
             self._update_icon_assets()
 
