@@ -53,6 +53,79 @@ class BindingMixin:
         self._callbacks[func_id] = func
         return func_id
 
+    def bind_class(self, class_name: str, event: str, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
+        """Bind a callback to a widget class using alias-aware wrapping."""
+        sequence = self._normalize(event)
+        func_id = event_callback_wrapper(self.widget, func, sequence, dedup=dedup)
+        script = f"{func_id} {get_event_substring()}"
+        self.widget.bind_class(class_name, sequence, f"+{script}" if add else script)
+        self._bound_events[f"class::{class_name}::{sequence}"].append(func_id)
+        self._callbacks[func_id] = func
+        return func_id
+
+    def unbind_class(self, class_name: str, event: str, func_id: str | None = None):
+        """Unbind one or all handlers for a class-level binding."""
+        sequence = self._normalize(event)
+        key = f"class::{class_name}::{sequence}"
+        current_ids = self._bound_events.get(key, [])
+
+        if func_id:
+            if func_id in current_ids:
+                current_ids.remove(func_id)
+                self._callbacks.pop(func_id, None)
+        else:
+            for fid in current_ids:
+                self._callbacks.pop(fid, None)
+            current_ids.clear()
+
+        self.widget.bind_class(class_name, sequence, "")
+        for fid in current_ids:
+            script = f"{fid} {get_event_substring()}"
+            self.widget.bind_class(class_name, sequence, f"+{script}")
+
+        if not current_ids:
+            self._bound_events.pop(key, None)
+
+    def bind_all(self, event: str, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
+        """Bind a global event handler using alias-aware wrapping."""
+        sequence = self._normalize(event)
+        func_id = event_callback_wrapper(self.widget, func, sequence, dedup=dedup)
+        script = f"{func_id} {get_event_substring()}"
+        self.widget.bind_all(sequence, f"+{script}" if add else script)
+        self._bound_events[f"all::{sequence}"].append(func_id)
+        self._callbacks[func_id] = func
+        return func_id
+
+    def unbind_all(self, event: str, func_id: str | None = None):
+        """Remove all callbacks bound globally for a specific event."""
+        sequence = self._normalize(event)
+        key = f"all::{sequence}"
+        current_ids = self._bound_events.get(key, [])
+
+        if func_id:
+            if func_id in current_ids:
+                current_ids.remove(func_id)
+                self._callbacks.pop(func_id, None)
+        else:
+            for fid in current_ids:
+                self._callbacks.pop(fid, None)
+            current_ids.clear()
+
+        self.widget.bind_all(sequence, "")
+        for fid in current_ids:
+            script = f"{fid} {get_event_substring()}"
+            self.widget.bind_all(sequence, f"+{script}")
+
+        if not current_ids:
+            self._bound_events.pop(key, None)
+
+    def bind_tags(self, tags: list[str] = None):
+        """Get or set the bindtags for the widget."""
+        if tags is None:
+            return self.widget.bindtags()
+        self.widget.bindtags(tags)
+        return self
+
     def unbind(self, event: str, func_id: str | None = None):
         """Unbind a specific function or all functions from an event.
 
