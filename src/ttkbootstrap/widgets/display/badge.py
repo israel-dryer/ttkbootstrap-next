@@ -37,3 +37,4 @@ class Badge(Label):
         super().__init__(parent, text, font='label')
         # override the label style builder
         self._style_builder = BadgeStyleBuilder(color, variant, **build_options)
+        self.update_style()

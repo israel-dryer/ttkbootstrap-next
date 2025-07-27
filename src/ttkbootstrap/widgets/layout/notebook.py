@@ -32,6 +32,7 @@ class Notebook(BaseWidget, ContainerMixin):
         self._style_builder = NotebookStyleBuilder()
         self._widget = ttk.Notebook(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)
+        self.update_style()
 
     def enable_keyboard_traversal(self):
         """Enable keyboard traversal between tabs."""

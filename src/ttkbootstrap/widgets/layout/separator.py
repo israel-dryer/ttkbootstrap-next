@@ -23,6 +23,7 @@ class Separator(BaseWidget):
         self._style_builder = SeparatorStyleBuilder(color, orient)
         self._widget = ttk.Separator(parent, orient=orient)
         super().__init__(parent)
+        self.update_style()
 
     def color(self, value: SeparatorColor = None):
         """Get or set the separator color."""

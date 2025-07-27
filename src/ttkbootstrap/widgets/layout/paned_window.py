@@ -45,6 +45,7 @@ class PanedWindow(BaseWidget, ContainerMixin):
         self._widget = ttk.PanedWindow(parent, orient=orient, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=surface)
         self._style_builder = PanedWindowStyleBuilder(sash_color, sash_thickness, orient)
+        self.update_style()
 
     def surface(self, value: SurfaceColor = None):
         """Get or set the surface token for this widget."""

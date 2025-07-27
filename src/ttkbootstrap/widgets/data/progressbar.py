@@ -45,6 +45,7 @@ class ProgressBar(BaseWidget):
             self.on_change(self._on_change)
 
         super().__init__(parent)
+        self.update_style()
 
     def orient(self, value: Orient = None):
         """Get or set the widget orientation"""

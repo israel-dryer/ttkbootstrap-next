@@ -59,6 +59,7 @@ class Scale(BaseWidget):
 
         # received focus when clicked
         self.bind("click", self.focus)
+        self.update_style()
 
     def signal(self, value: Signal = None):
         """Get or set the signal controlling the slider value."""

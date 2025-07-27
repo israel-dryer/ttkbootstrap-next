@@ -77,6 +77,7 @@ class RadioButton(BaseWidget):
             self.select()
 
         super().__init__(parent)
+        self.update_style()
 
     def text(self, value: str = None):
         """Get or set the label text."""

@@ -66,6 +66,7 @@ class EntryField(Frame, EntryPartMixin, ABC):
         # bind validation message
         self._entry.bind("invalid", self._show_error)
         self._entry.bind("valid", self._clear_error)
+        self.update_style()
 
     @property
     def addons(self):

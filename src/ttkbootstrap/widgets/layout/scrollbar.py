@@ -23,6 +23,7 @@ class Scrollbar(BaseWidget):
         self._style_builder = ScrollbarStyleBuilder(orient=orient)
         self._widget = ttk.Scrollbar(parent, orient=orient, **unsnake_kwargs(kwargs))
         super().__init__(parent)
+        self.update_style()
 
     def delta(self, x: int, y: int) -> float:
         """Return the fractional change if the scrollbar were moved by (x, y) pixels."""

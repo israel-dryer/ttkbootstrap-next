@@ -39,6 +39,7 @@ class Frame(BaseWidget, ContainerMixin):
         self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=surface)
         self._style_builder = FrameStyleBuilder(variant=variant, **build_options)
+        self.update_style()
 
     def surface(self, value: SurfaceColor=None):
         """Get or set the surface token for this widget."""

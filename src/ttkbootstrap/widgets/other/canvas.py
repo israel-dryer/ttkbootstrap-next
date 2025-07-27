@@ -34,6 +34,7 @@ class Canvas(BaseWidget, ContainerMixin):
         self._style_builder = CanvasStyleBuilder(self)
         self._style_builder.register_style()
         self._theme = self._style_builder.theme
+        self.update_style()
 
     def add_widget(self, x: float, y: float, widget: BaseWidget, **kwargs: CanvasWidgetOptions) -> int:
         """Embed a widget at the given (x, y) coordinates."""

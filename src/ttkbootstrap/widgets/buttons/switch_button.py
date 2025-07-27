@@ -65,6 +65,7 @@ class SwitchButton(BaseWidget):
             **unsnake_kwargs(kwargs)
         )
         super().__init__(parent)
+        self.update_style()
 
     def on_change(self, value: Callable[[Any], Any] = None):
         """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""

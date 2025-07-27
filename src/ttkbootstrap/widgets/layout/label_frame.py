@@ -40,6 +40,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
             border_color=border_color, label_color=label_color)
         self._widget = ttk.LabelFrame(parent, text=text, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=background)
+        self.update_style()
 
     def background(self, value: SurfaceColor = None):
         """Get or set the border color for this widget."""

@@ -28,6 +28,7 @@ class SizeGrip(BaseWidget):
         self._style_builder = SizeGripStyleBuilder(color)
         self._widget = ttk.Sizegrip(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)
+        self.update_style()
 
     def color(self, value: SemanticColor = None):
         """Get or set the sizegrip color."""
