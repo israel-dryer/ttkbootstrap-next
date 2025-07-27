@@ -28,6 +28,13 @@ class GeometryMixin:
         else:
             return self.widget.grid(option)
 
+    def grid_row_configure(self, index, *, option=None, **kwargs):
+        if option is None:
+            self.widget.rowconfigure(index, **kwargs)
+            return self
+        else:
+            return self.widget.rowconfigure(index, option)
+
     def grid_column_configure(self, index, *, option=None, **kwargs):
         if option is None:
             self.widget.columnconfigure(index, **kwargs)
