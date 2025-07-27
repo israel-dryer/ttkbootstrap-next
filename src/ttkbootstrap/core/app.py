@@ -46,6 +46,10 @@ class App(BaseWidget, ContainerMixin):
             return self
 
     @property
+    def _bind(self, *args):
+        return self.widget._bind
+
+    @property
     def surface_token(self):
         return self._surface_token
 
