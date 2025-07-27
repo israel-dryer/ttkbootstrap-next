@@ -49,6 +49,15 @@ class BaseWidget(
         else:
             return self._parent.surface_token
 
+    def schedule(self, ms, func, *args):
+        return self.widget.after(ms, func, *args)
+
+    def schedule_after_idle(self, func, *args):
+        return self.widget.after_idle(func, *args)
+
+    def schedule_cancel(self, id):
+        return self.widget.after_cancel(id)
+
     def is_ttk(self) -> bool:
         """Check if the underlying widget is a ttk widget.
 
