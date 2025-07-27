@@ -419,7 +419,7 @@ class IconButtonStyleBuilder(StyleBuilderBase):
 
     def build_list_icon_assets(self, icon: str):
         background = self.theme.color(self.surface())
-        background_selected = self.theme.color(self.color())
+        background_selected = self.theme.color(self.select_background())
         foreground = self.theme.on_color(background)
         foreground_selected = self.theme.on_color(background_selected)
         foreground_disabled = self.theme.disabled("text")
