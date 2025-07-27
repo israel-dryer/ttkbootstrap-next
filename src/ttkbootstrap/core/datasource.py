@@ -303,3 +303,13 @@ class DataSource:
             writer.writeheader()
             for row in rows:
                 writer.writerow(dict(row))
+
+    def get_page_from_index(self, start_index: int, count: int) -> List[Dict[str, Any]]:
+        query = f"SELECT * FROM {self._table}"
+        if self._where:
+            query += f" WHERE {self._where}"
+        if self._order_by:
+            query += f" ORDER BY {self._order_by}"
+        query += f" LIMIT {count} OFFSET {start_index}"
+        cursor = self.conn.execute(query)
+        return [dict(row) for row in cursor.fetchall()]
