@@ -51,6 +51,7 @@ class Label(BaseWidget, IconMixin):
         )
         super().__init__(parent)
         IconMixin.__init__(self)
+        self.update_style()
 
     def text(self, value: str = None):
         """Get or set the label text."""

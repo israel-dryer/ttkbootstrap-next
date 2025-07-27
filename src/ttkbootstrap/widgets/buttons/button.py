@@ -60,6 +60,7 @@ class Button(BaseWidget, IconMixin):
         )
         super().__init__(parent)
         IconMixin.__init__(self)
+        self.update_style()
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""

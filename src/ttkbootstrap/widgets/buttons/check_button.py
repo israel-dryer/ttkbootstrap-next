@@ -75,6 +75,8 @@ class CheckButton(BaseWidget):
             self.widget.invoke()
             self.widget.invoke()
 
+        self.update_style()
+
     def on_change(self, value: Callable[[Any], Any] = None):
         """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""
         if value is None:
