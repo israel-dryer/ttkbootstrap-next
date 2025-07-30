@@ -37,6 +37,10 @@ class App(BaseWidget, ContainerMixin):
     def theme(self):
         return self._theme
 
+    def geometry(self, *args):
+        self.widget.geometry(*args)
+        return self
+
     def surface(self, value=None):
         if value is None:
             return self._surface_token
