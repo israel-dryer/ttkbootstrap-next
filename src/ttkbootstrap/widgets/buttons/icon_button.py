@@ -19,7 +19,7 @@ class IconButton(BaseWidget, IconMixin):
     def __init__(
             self,
             parent,
-            icon: str = None,
+            icon: str | dict = None,
             color: SemanticColor = "primary",
             variant: ButtonVariant = "solid",
             on_click: Callable = None,

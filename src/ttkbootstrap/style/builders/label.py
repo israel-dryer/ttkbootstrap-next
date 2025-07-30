@@ -179,6 +179,7 @@ class LabelStyleBuilder(StyleBuilderBase):
         self._stateful_icons[state] = BootstrapIcon(**options)
 
     def build_list_icon_assets(self, icon: dict):
+        icon['size'] = 14
         background = self.theme.color(self.surface())
         if self.foreground() is None:
             foreground = self.theme.on_color(background)

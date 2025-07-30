@@ -418,6 +418,7 @@ class IconButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_list_icon_assets(self, icon: dict):
+        icon['size'] = 14
         background = self.theme.color(self.surface())
         background_selected = self.theme.color(self.select_background())
         foreground = self.theme.on_color(background)
