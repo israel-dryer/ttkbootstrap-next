@@ -3,29 +3,40 @@ from ttkbootstrap.widgets import Canvas, Frame, Label, Scrollbar
 
 root = App(theme="dark")
 
-frame = Frame(root)
-frame.pack(fill="both", expand=True)
+# Outer container
+container = Frame(root)
+container.pack(fill="both", expand=True)
 
-canvas = Canvas(frame)
+# Canvas inside the container
+canvas = Canvas(container)
 canvas.pack(side="left", fill="both", expand=True)
 
-scrollbar = Scrollbar(frame, orient="vertical", command=canvas.y_view)
-scrollbar.pack(side="right", fill="y")
+# Vertical scrollbar
+vsb = Scrollbar(container, orient="vertical", command=canvas.y_view)
+vsb.pack(side="right", fill="y")
 
-canvas.configure(yscrollcommand=scrollbar.set)
+# Horizontal scrollbar
+hsb = Scrollbar(root, orient="horizontal", command=canvas.x_view)
+hsb.pack(side="bottom", fill="x")
 
-# Create a scrollable frame inside the canvas
-scrollable_frame = Frame(canvas)
-canvas.add_widget(0, 0, scrollable_frame)
+canvas.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
 
-# Update scrollregion when contents change
-def on_configure(event):
+# Internal frame with hardcoded width for horizontal overflow
+scrollable_frame = Frame(canvas, width=2000, height=800)  # hard-coded size
+window_id = canvas.add_widget(0, 0, scrollable_frame, anchor="nw")
+
+# Update scrollregion to enable scrolling
+def on_frame_configure(event):
     canvas.configure(scrollregion=canvas.get_bounding_box("all"))
 
-scrollable_frame.bind("<Configure>", on_configure)
+scrollable_frame.bind("<Configure>", on_frame_configure)
 
-# Example content
+# Example content to overflow horizontally
 for i in range(50):
-   Label(scrollable_frame, text=f"Item {i}").pack()
+    Label(
+        scrollable_frame,
+        text=f"Item {i} - " + "✦" * 10,
+        anchor="w"
+    ).place(x=i * 150, y=i * 30)  # absolute placement for demo
 
 root.run()
