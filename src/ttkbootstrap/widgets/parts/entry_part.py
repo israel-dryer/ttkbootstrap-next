@@ -1,7 +1,7 @@
 from tkinter import ttk
 from typing import Any, Callable, Unpack
 
-from ttkbootstrap.core import Signal
+from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import EntryOptions
 from ttkbootstrap.core.mixins.validatable import ValidatableMixin
 from ttkbootstrap.core.widget import BaseWidget
