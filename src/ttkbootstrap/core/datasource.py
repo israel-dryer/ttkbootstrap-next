@@ -31,7 +31,7 @@ class DataSource:
 
     def set_data(self, records: List[Dict[str, Any]]):
         if not records:
-            return
+            return self
 
         # Ensure each record has an 'id'
         for i, record in enumerate(records):
@@ -56,6 +56,7 @@ class DataSource:
                 placeholders = ", ".join("?" for _ in self._columns)
                 values = tuple(row.get(col) for col in self._columns)
                 self.conn.execute(f"INSERT INTO {self._table} VALUES ({placeholders})", values)
+        return self
 
     def set_filter(self, where_sql: str = ""):
         self._where = where_sql
