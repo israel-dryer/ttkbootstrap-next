@@ -28,7 +28,7 @@ class DateEntry(EntryField):
 
         super().__init__(parent, value, label, message, **kwargs)
 
-        self.insert_addon(IconButton, name='date-picker', icon="calendar-week")
+        self.insert_addon(IconButton, name='date-picker', icon="calendar-week", take_focus=False)
         self.show_date_picker_button(show_date_picker_button)
 
     def show_date_picker_button(self, value: bool):
