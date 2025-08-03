@@ -34,6 +34,8 @@ def unsnake_kwargs(kwargs):
 
 def resolve_options(obj: Union[dict, str], default_key: str):
     """Coerce to an object of options"""
-    if isinstance(obj, str) or obj is None:
+    if obj is None:
+        return dict()
+    if isinstance(obj, str):
         return {default_key: obj}
     return obj
