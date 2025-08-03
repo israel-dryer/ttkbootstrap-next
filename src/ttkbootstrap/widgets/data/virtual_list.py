@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 
 from ttkbootstrap.widgets import Frame, Label, Scrollbar
 from ttkbootstrap.core.datasource import DataSource
@@ -12,7 +12,7 @@ class VirtualList(Frame):
     def __init__(
             self,
             parent,
-            datasource: DataSource,
+            items: Union[list[dict], DataSource],
             row_factory: Callable=None,
             dragging_enabled = False,
             deleting_enabled = False,
@@ -35,11 +35,11 @@ class VirtualList(Frame):
             selection_mode = selection_mode,
             selection_controls_visible = selection_controls_visible
         )
-        self._datasource = datasource
+        self._datasource = items if isinstance(items, DataSource) else DataSource().set_data(items)
         self._row_factory = row_factory or self._default_row_factory
         self._rows: list[ListItemPart] = []
         self._start_index = 0
-        self._total_rows = datasource.total_count()
+        self._total_rows = items.total_count()
 
 
         # Layout
