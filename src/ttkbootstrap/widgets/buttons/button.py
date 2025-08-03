@@ -1,7 +1,7 @@
 from tkinter import ttk
 from typing import Callable, Literal, Unpack
 
-from ttkbootstrap.core import Signal
+from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.core.libtypes import ButtonOptions

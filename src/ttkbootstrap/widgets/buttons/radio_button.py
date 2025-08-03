@@ -1,7 +1,7 @@
 from typing import Any, Callable, Union, Unpack
 
 from tkinter import ttk
-from ttkbootstrap.core import Signal
+from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import RadioButtonOptions
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder

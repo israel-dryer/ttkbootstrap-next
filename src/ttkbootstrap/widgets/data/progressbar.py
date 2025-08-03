@@ -1,7 +1,7 @@
 from typing import Any, Callable, Unpack, Literal
 
 from tkinter import ttk
-from ttkbootstrap.core import Signal
+from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import ProgressOptions, Orient
 from ttkbootstrap.core.widget import BaseWidget
 from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
