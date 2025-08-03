@@ -33,6 +33,7 @@ class EntryField(Frame, EntryPartMixin, ABC):
             label: str = None,
             message: str = None,
             kind="entry",
+            enable_validation = False,
             **kwargs
     ):
         super().__init__(parent)
@@ -42,6 +43,7 @@ class EntryField(Frame, EntryPartMixin, ABC):
         self._field = Frame(self, variant="field", padding=6)
         self._message = Label(self, message, font="caption", foreground='secondary')
         self._message_text = message
+        self._enable_validation = enable_validation
         self._theme = ColorTheme.instance()
 
         self._addons: dict[str, Union[Button, IconButton, Label]] = dict()
@@ -57,15 +59,18 @@ class EntryField(Frame, EntryPartMixin, ABC):
         if label:
             self._label.pack(fill='x', before=self._field)
 
-        self._message.pack(fill='x', after=self._field)
+        if self._enable_validation or self._message_text:
+            self._message.pack(fill='x', after=self._field)
+
+        if self._enable_validation:
+            self._entry.bind("invalid", self._show_error)
+            self._entry.bind("valid", self._clear_error)
 
         # bind focus events to field frame
         self._entry.bind("focus", lambda e: self._field.state(['focus']))
         self._entry.bind('blur', lambda e: self._field.state(['!focus']))
 
-        # bind validation message
-        self._entry.bind("invalid", self._show_error)
-        self._entry.bind("valid", self._clear_error)
+
         self.update_style()
 
     @property
