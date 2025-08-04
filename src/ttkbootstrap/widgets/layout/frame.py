@@ -2,7 +2,7 @@ from typing import Unpack
 
 from ttkbootstrap.core.libtypes import FrameOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
 from ttkbootstrap.style.tokens import SurfaceColor
 from tkinter import ttk
@@ -20,7 +20,7 @@ class Frame(BaseWidget, ContainerMixin):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             *,
             surface: SurfaceColor = None,
             variant: str = None,
@@ -34,6 +34,7 @@ class Frame(BaseWidget, ContainerMixin):
             variant: An optional style variant (e.g., 'bordered').
             **kwargs: Additional keyword arguments passed to ttk.Frame.
         """
+        parent = parent or current_layout()
         build_options = kwargs.pop('builder', dict())
         self._surface_token = surface
         self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
@@ -41,7 +42,7 @@ class Frame(BaseWidget, ContainerMixin):
         self._style_builder = FrameStyleBuilder(variant=variant, **build_options)
         self.update_style()
 
-    def surface(self, value: SurfaceColor=None):
+    def surface(self, value: SurfaceColor = None):
         """Get or set the surface token for this widget."""
         if value is None:
             return self._surface_token

@@ -2,7 +2,7 @@ from tkinter import ttk
 from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.core.libtypes import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.icon_button import IconButtonStyleBuilder
@@ -18,7 +18,7 @@ class IconButton(BaseWidget, IconMixin):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             icon: str | dict = None,
             color: SemanticColor = "primary",
             variant: ButtonVariant = "solid",
@@ -36,6 +36,8 @@ class IconButton(BaseWidget, IconMixin):
             on_click: Callback function for click events.
             **kwargs: Additional ttk.Button options.
         """
+        parent = parent or current_layout()  # must auto parent before __init__
+
         self._on_click = on_click
         self._style_name: Optional[str] = None
         self._color = color

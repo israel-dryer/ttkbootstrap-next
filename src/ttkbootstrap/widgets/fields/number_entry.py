@@ -19,7 +19,7 @@ class NumberEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the underlying spinbox part.
     """
 
-    def __init__(self, parent, value="", label="", message="", show_spin_buttons=True, **kwargs):
+    def __init__(self, parent=None, value="", label="", message="", show_spin_buttons=True, **kwargs):
         self._show_spin_buttons = show_spin_buttons
         self._show_spin_buttons_pack = {}
         super().__init__(parent, value, label, message, kind="spinbox", **kwargs)

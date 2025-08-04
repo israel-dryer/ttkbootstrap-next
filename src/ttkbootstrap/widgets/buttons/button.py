@@ -3,7 +3,7 @@ from typing import Callable, Literal, Unpack
 
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.core.libtypes import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
@@ -19,8 +19,8 @@ class Button(BaseWidget, IconMixin):
 
     def __init__(
             self,
-            parent,
-            text: str,
+            parent=None,
+            text: str = "",
             color: SemanticColor = None,
             variant: ButtonVariant = "solid",
             icon: str = None,
@@ -41,6 +41,7 @@ class Button(BaseWidget, IconMixin):
             on_click: Callback function for click events.
             **kwargs: Additional ttk.Button options.
         """
+        parent = parent or current_layout()
         self._on_click = on_click
         self._text_signal = Signal(text)
         self._icon = resolve_options(icon, 'name') or None

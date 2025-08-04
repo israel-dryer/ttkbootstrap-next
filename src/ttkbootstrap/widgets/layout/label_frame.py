@@ -2,7 +2,7 @@ from typing import Unpack
 
 from ttkbootstrap.core.libtypes import LabelFrameOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from tkinter import ttk
 
 from ttkbootstrap.style.builders.label_frame import LabelFrameStyleBuilder
@@ -18,7 +18,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             text: str = None,
             label_color: ForegroundColor = None,
             background: SurfaceColor = None,
@@ -35,7 +35,7 @@ class LabelFrame(BaseWidget, ContainerMixin):
             border_color: The border color or accent theme token.
             **kwargs: Additional options accepted by the base LabelFrame widget.
         """
-
+        parent = parent or current_layout()
         self._style_builder = LabelFrameStyleBuilder(
             border_color=border_color, label_color=label_color)
         self._widget = ttk.LabelFrame(parent, text=text, **unsnake_kwargs(kwargs))

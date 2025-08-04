@@ -3,7 +3,7 @@ from typing import Any, Callable, Unpack, Literal
 from tkinter import ttk
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import ProgressOptions, Orient
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.utils import unsnake_kwargs
@@ -14,7 +14,7 @@ class ProgressBar(BaseWidget):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             value: int = 0,
             color: SemanticColor = "primary",
             orient: Orient = "horizontal",
@@ -33,6 +33,7 @@ class ProgressBar(BaseWidget):
             on_change: Optional callback function invoked with the new value when it changes.
             **kwargs: Additional keyword arguments
         """
+        parent or current_layout()
         self._style_builder = ProgressStyleBuilder(orient=orient, color=color, variant=variant)
         self._signal = Signal(value)
         self._status = 'active'

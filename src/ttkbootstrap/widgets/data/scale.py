@@ -3,7 +3,7 @@ from tkinter import ttk
 
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import SliderOptions, Orient
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.scale import ScaleStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.utils import unsnake_kwargs
@@ -14,7 +14,7 @@ class Scale(BaseWidget):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             value: int | float = 0.0,
             min_value: int | float = 0.0,
             max_value: int | float = 100.0,
@@ -37,6 +37,7 @@ class Scale(BaseWidget):
             on_change: Optional callback invoked with the rounded value when the value changes significantly.
             **kwargs: Additional options supported by ttk.Scale, such as `length`, `command`, or `state`.
         """
+        parent = parent or current_layout()
         self._style_builder = ScaleStyleBuilder(color=color, orient=orient)
         self._signal = Signal(value)
         self._on_change = on_change

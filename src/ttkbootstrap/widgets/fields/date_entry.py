@@ -1,3 +1,4 @@
+from ttkbootstrap.core.widget import current_layout
 from ttkbootstrap.widgets.fields.base import EntryField
 from ttkbootstrap.widgets.buttons.icon_button import IconButton
 
@@ -23,10 +24,9 @@ class DateEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
-    def __init__(self, parent, value="", label="", message="", show_date_picker_button=True, **kwargs):
+    def __init__(self, parent=None, value="", label="", message="", show_date_picker_button=True, **kwargs):
         self._date_picker_button_visible = show_date_picker_button
         self._date_picker_button_pack = {}
-
         super().__init__(parent, value, label, message, **kwargs)
 
         self.insert_addon(IconButton, name='date-picker', icon="calendar-week", take_focus=False)

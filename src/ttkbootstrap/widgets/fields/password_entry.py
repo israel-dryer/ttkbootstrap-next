@@ -18,7 +18,7 @@ class PasswordEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
-    def __init__(self, parent, value="", label="", message="", show_visible_toggle=False, **kwargs):
+    def __init__(self, parent=None, value="", label="", message="", show_visible_toggle=False, **kwargs):
         self._show_visible_toggle = show_visible_toggle
         self._show_visible_pack = {}
 

@@ -3,7 +3,7 @@ from typing import Any, Callable, Optional, Unpack
 from tkinter import ttk
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import CheckButtonOptions
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.utils import unsnake_kwargs
@@ -21,7 +21,7 @@ class CheckButton(BaseWidget):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             text: str = None,
             color: SemanticColor = None,
             value: int | str = -1,
@@ -47,6 +47,7 @@ class CheckButton(BaseWidget):
             on_toggle: Command callback invoked on toggle.
             **kwargs: Additional keyword arguments passed to `ttk.Checkbutton`.
         """
+        parent = parent or current_layout()
         self._tristate_value = tristate_value
         self._style_builder = CheckButtonStyleBuilder(color)
         self._on_change = on_change

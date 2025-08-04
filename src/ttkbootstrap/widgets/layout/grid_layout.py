@@ -1,6 +1,6 @@
 from typing import Any, TypedDict, Literal, Unpack, Union
 from ttkbootstrap.widgets.layout.frame import Frame
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout, layout_context_stack
 
 Sticky = Literal['n', 'e', 's', 'w', 'ns', 'ew', 'nsew', '']
 
@@ -29,15 +29,16 @@ class GridColumnOptions(TypedDict, total=False):
 class GridLayout(Frame):
 
     def __init__(
-        self,
-        parent,
-        gap: int | tuple[int, int] = 0,  # (column_gap, row_gap)
-        padding: Union[int, tuple[int, int], tuple[int, int, int, int]] = 0,
-        cols: int | list[str | int] = 12,
-        rows: int | list[str | int] = None,
-        auto_layout=True,
-        **kwargs
+            self,
+            parent=None,
+            gap: int | tuple[int, int] = 0,  # (column_gap, row_gap)
+            padding: Union[int, tuple[int, int], tuple[int, int, int, int]] = 0,
+            cols: int | list[str | int] = 12,
+            rows: int | list[str | int] = None,
+            auto_layout=True,
+            **kwargs
     ):
+        parent = parent or current_layout()
         self._gap = self._normalize_gap(gap)
         self._padding = self._normalize_padding(padding)
         self._cols = cols if isinstance(cols, list) else [1] * cols
@@ -53,20 +54,26 @@ class GridLayout(Frame):
         # Column sizing (weight or fixed width)
         for index, col in enumerate(self._cols):
             if isinstance(col, int):
-                self.col_configure(index, weight=col)
+                self.configure_column(index, weight=col)
             elif isinstance(col, str) and col.endswith("px"):
-                self.col_configure(index, weight=0)
+                self.configure_column(index, weight=0)
                 self.widget.grid_columnconfigure(index, minsize=int(col.removesuffix("px")))
 
         # Row sizing (weight or fixed height)
         if self._rows:
             for index, row in enumerate(self._rows):
                 if isinstance(row, int):
-                    self.row_configure(index, weight=row)
+                    self.configure_row(index, weight=row)
                 elif isinstance(row, str) and row.endswith("px"):
-                    self.row_configure(index, weight=0)
+                    self.configure_row(index, weight=0)
                     self.widget.grid_rowconfigure(index, minsize=int(row.removesuffix("px")))
 
+    def __enter__(self):
+        layout_context_stack().append(self)
+        return self
+
+    def __exit__(self, *args):
+        layout_context_stack().pop()
 
     @staticmethod
     def _normalize_gap(gap) -> tuple[int, int]:
@@ -135,17 +142,17 @@ class GridLayout(Frame):
             widget.widget.grid_forget()
             del self._mounted[widget]
 
-    def row_configure(self, index: int, **options: Unpack[GridRowOptions]):
+    def configure_row(self, index: int, **options: Unpack[GridRowOptions]):
         self.widget.rowconfigure(index, **options)
 
-    def col_configure(self, index: int, **options: Unpack[GridColumnOptions]):
+    def configure_column(self, index: int, **options: Unpack[GridColumnOptions]):
         self.widget.columnconfigure(index, **options)
 
-    def child_configure(
-        self,
-        widget: BaseWidget,
-        option: str = None,
-        **options: Unpack[GridLayoutOptions]
+    def configure_child(
+            self,
+            widget: BaseWidget,
+            option: str = None,
+            **options: Unpack[GridLayoutOptions]
     ):
         if widget not in self._mounted:
             raise ValueError("Widget is not managed by this layout.")
@@ -177,4 +184,3 @@ class GridLayout(Frame):
         self._next_col += offset + col_span
 
         return options
-

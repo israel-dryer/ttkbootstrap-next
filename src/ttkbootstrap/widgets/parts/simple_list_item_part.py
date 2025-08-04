@@ -6,7 +6,7 @@ from ttkbootstrap.widgets.display.label import Label
 
 class SimpleListItemPart(Frame):
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent=None, **kwargs):
 
         # properties
         self._data = kwargs.get('data', dict())

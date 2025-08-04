@@ -3,7 +3,7 @@ from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import RadioButtonOptions
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
 from ttkbootstrap.style.tokens import ForegroundColor
 from ttkbootstrap.utils import unsnake_kwargs
@@ -25,7 +25,7 @@ class RadioButton(BaseWidget):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             text: str = None,
             value: str | int = 0,
             group: Union[str, Signal] = None,
@@ -50,6 +50,7 @@ class RadioButton(BaseWidget):
             on_change: A callback triggered whenever the group value changes.
             **kwargs: Additional keyword arguments passed to ttk.Radiobutton.
         """
+        parent = parent or current_layout()
         self._style_builder = RadioButtonStyleBuilder(color, variant=variant)
         self._on_select = on_select
         self._on_change = on_change

@@ -4,7 +4,7 @@ from typing import Any, Callable, Unpack
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import EntryOptions
 from ttkbootstrap.core.mixins.validatable import ValidatableMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.entry import EntryStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
 
@@ -14,7 +14,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             value: str = "",
             on_change: Callable[[str], Any] = None,
             on_enter: Callable[[str], Any] = None,
@@ -34,6 +34,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
             initial_focus: Whether to give the entry focus after creation.
             **kwargs: Additional entry options.
         """
+        parent = parent or current_layout()
         self._on_change = None
         self._on_change_fid = None
         self._on_enter = None

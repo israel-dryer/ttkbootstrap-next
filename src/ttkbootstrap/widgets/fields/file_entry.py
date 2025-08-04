@@ -29,7 +29,7 @@ class FileEntry(EntryField):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             value: str = "No file chosen",
             label: str = "Choose File",
             dialog_type: DialogType = "openfilename",

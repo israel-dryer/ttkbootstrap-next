@@ -1,6 +1,7 @@
 from typing import Callable, Union
 
-from ttkbootstrap.widgets import Frame, Label, Scrollbar
+from ttkbootstrap.core.widget import current_layout
+from ttkbootstrap.widgets import Frame, Scrollbar
 from ttkbootstrap.core.datasource import DataSource
 from ttkbootstrap.widgets.parts import ListItemPart
 
@@ -11,8 +12,8 @@ ROW_HEIGHT = 32
 class VirtualList(Frame):
     def __init__(
             self,
-            parent,
-            items: Union[list[dict], DataSource],
+            parent=None,
+            items: Union[list[dict], DataSource] = None,
             row_factory: Callable=None,
             dragging_enabled = False,
             deleting_enabled = False,
@@ -22,6 +23,7 @@ class VirtualList(Frame):
             selection_mode = 'none',
             selection_controls_visible = False
     ):
+        parent = parent or current_layout()
         super().__init__(parent)
         self._scrollbar_visible = scrollbar_visible
         self.grid_column_configure(0, weight=1)
@@ -35,7 +37,7 @@ class VirtualList(Frame):
             selection_mode = selection_mode,
             selection_controls_visible = selection_controls_visible
         )
-        self._datasource = items if isinstance(items, DataSource) else DataSource().set_data(items)
+        self._datasource = items if isinstance(items, DataSource) else DataSource().set_data(items or [])
         self._row_factory = row_factory or self._default_row_factory
         self._rows: list[ListItemPart] = []
         self._start_index = 0

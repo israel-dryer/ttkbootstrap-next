@@ -3,7 +3,7 @@ from typing import Unpack
 
 from ttkbootstrap.core.libtypes import NotebookOptions, NotebookTabOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
 
@@ -21,7 +21,7 @@ class Notebook(BaseWidget, ContainerMixin):
 
     _configure_methods = {"surface", "background"}
 
-    def __init__(self, parent, **kwargs: Unpack[NotebookOptions]):
+    def __init__(self, parent=None, **kwargs: Unpack[NotebookOptions]):
         """
         Initialize a new Notebook widget.
 
@@ -29,6 +29,7 @@ class Notebook(BaseWidget, ContainerMixin):
             parent: The parent widget.
             **kwargs: Additional ttk.Notebook keyword arguments.
         """
+        parent = parent or current_layout()
         self._style_builder = NotebookStyleBuilder()
         self._widget = ttk.Notebook(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)

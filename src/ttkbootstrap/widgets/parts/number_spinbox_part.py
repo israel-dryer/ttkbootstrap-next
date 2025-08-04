@@ -4,7 +4,7 @@ from tkinter import ttk
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.libtypes import EntryOptions
 from ttkbootstrap.core.mixins.validatable import ValidatableMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.spinbox import SpinBoxStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
 
@@ -34,7 +34,7 @@ class NumberSpinboxPart(BaseWidget, ValidatableMixin):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             value: int | float = 0,
             on_change: Callable[[Any], int | float] = None,
             on_enter: Callable[[Any], int | float] = None,
@@ -47,6 +47,7 @@ class NumberSpinboxPart(BaseWidget, ValidatableMixin):
             initial_focus: bool = False,
             **kwargs: Unpack[EntryOptions],
     ):
+        parent = parent or current_layout()
         self._on_enter = None
         self._on_change = None
         self._on_changed = None

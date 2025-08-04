@@ -1,7 +1,7 @@
 from tkinter import Tk
 from ttkbootstrap.core.libtypes import ColorMode
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, layout_context_stack, set_default_root
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
 from ttkbootstrap.style.theme import ColorTheme
 from ttkbootstrap.style.tokens import SurfaceColor
@@ -17,6 +17,7 @@ class App(BaseWidget, ContainerMixin):
             use_default_fonts: bool = True,
             surface: SurfaceColor = "background"
     ):
+        set_default_root(self)
         self._widget = Tk()
         super().__init__(None, surface=surface)
         self._style_builder = WindowStyleBuilder(self)
@@ -32,6 +33,13 @@ class App(BaseWidget, ContainerMixin):
             Typography.use_fonts()
 
         self._style_builder.register_style()
+
+    def __enter__(self):
+        layout_context_stack().append(self)
+        return self
+
+    def __exit__(self, *args):
+        layout_context_stack().pop()
 
     @property
     def theme(self):

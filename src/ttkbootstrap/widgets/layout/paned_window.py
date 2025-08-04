@@ -3,7 +3,7 @@ from typing import Union, Unpack
 from tkinter import ttk
 from ttkbootstrap.core.libtypes import Orient, PaneOptions, PanedWindowOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.paned_window import PanedWindowStyleBuilder
 from ttkbootstrap.style.tokens import ForegroundColor, SurfaceColor
 from ttkbootstrap.utils import unsnake, unsnake_kwargs
@@ -24,7 +24,7 @@ class PanedWindow(BaseWidget, ContainerMixin):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             orient: Orient = "horizontal",
             sash_color: ForegroundColor = None,
             sash_thickness: int = 4,
@@ -41,6 +41,7 @@ class PanedWindow(BaseWidget, ContainerMixin):
             surface: Background surface color.
             **kwargs: Additional ttk PanedWindow options.
         """
+        parent = parent or current_layout()
         self._surface_token = surface
         self._widget = ttk.PanedWindow(parent, orient=orient, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=surface)

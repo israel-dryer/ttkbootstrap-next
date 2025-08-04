@@ -5,7 +5,7 @@ import tkinter as tk
 from PIL import Image
 
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
 from ttkbootstrap.utils import unsnake, unsnake_kwargs
 from ttkbootstrap.core.libtypes import (
@@ -21,7 +21,7 @@ class Canvas(BaseWidget, ContainerMixin):
 
     _configure_methods = {}
 
-    def __init__(self, parent, **kwargs: Unpack[CanvasOptions]):
+    def __init__(self, parent=None, **kwargs: Unpack[CanvasOptions]):
         """
         Initialize a new Canvas widget.
 
@@ -29,6 +29,7 @@ class Canvas(BaseWidget, ContainerMixin):
             parent: The parent widget.
             **kwargs: Keyword arguments for canvas configuration. These are converted from snake_case to camelCase to match Tkinter options.
         """
+        parent = parent or current_layout()
         self._widget = tk.Canvas(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)
         self._style_builder = CanvasStyleBuilder(self)

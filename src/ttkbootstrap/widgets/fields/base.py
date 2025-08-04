@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Any, Literal, Union
 
+from ttkbootstrap.core.widget import current_layout
 from ttkbootstrap.widgets import Button, IconButton
 from ttkbootstrap.widgets.layout.frame import Frame
 from ttkbootstrap.widgets.display.label import Label
@@ -28,7 +29,7 @@ class EntryField(Frame, EntryPartMixin, ABC):
 
     def __init__(
             self,
-            parent,
+            parent=None,
             value: str | int | float = None,
             label: str = None,
             message: str = None,
@@ -36,6 +37,7 @@ class EntryField(Frame, EntryPartMixin, ABC):
             enable_validation = False,
             **kwargs
     ):
+        parent = parent or current_layout()
         super().__init__(parent)
 
         # add default parts

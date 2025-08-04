@@ -11,6 +11,22 @@ from .mixins.winfo import WidgetInfoMixin
 if TYPE_CHECKING:
     from ttkbootstrap.core.app import App
 
+_layout_context_stack = []
+_default_root = None
+
+def default_root():
+    return _default_root
+
+def set_default_root(app: "BaseWidget"):
+    global _default_root
+    _default_root = app
+
+def current_layout():
+    return _layout_context_stack[-1] if _layout_context_stack else default_root()
+
+def layout_context_stack():
+    return _layout_context_stack
+
 
 class BaseWidget(
     BindingMixin,
@@ -24,7 +40,7 @@ class BaseWidget(
 
     def __init__(self, parent: Union["BaseWidget", Misc, "App"] = None, **kwargs):
         super().__init__()
-        self._parent = parent
+        self._parent = parent or current_layout()
 
         # get surface color
         self._surface_token = kwargs.pop('surface', None)
