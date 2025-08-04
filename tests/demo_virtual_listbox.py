@@ -23,8 +23,8 @@ if __name__ == "__main__":
 
     vl = VirtualList(
         app,
-        datasource=ds,
-        selection_mode='single',
+        items=ds,
+        selection_mode='multiple',
         chevron_visible=True,
         selection_controls_visible=True
     )

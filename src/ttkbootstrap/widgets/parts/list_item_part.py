@@ -1,7 +1,11 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from ttkbootstrap.widgets import Badge, Frame, IconButton, Label
+from ttkbootstrap.widgets.display.badge import Badge
+from ttkbootstrap.widgets.display.label import Label
+from ttkbootstrap.widgets.layout.frame import Frame
 
+if TYPE_CHECKING:
+    from ttkbootstrap.widgets.buttons.icon_button import IconButton
 
 class ListItemPart(Frame):
 
@@ -49,10 +53,10 @@ class ListItemPart(Frame):
         self._title_widget: Optional[Label] = None
         self._text_widget: Optional[Label] = None
         self._caption_widget: Optional[Label] = None
-        self._delete_widget: Optional[IconButton] = None
+        self._delete_widget: Optional["IconButton"] = None
         self._badge_widget: Optional[Badge] = None
         self._chevron_widget: Optional[Label] = None
-        self._drag_widget: Optional[IconButton] = None
+        self._drag_widget: Optional["IconButton"] = None
 
         self._composite_widgets = set()
         for widget in [self, self._frame_start, self._frame_end, self._frame_center]:
@@ -299,6 +303,7 @@ class ListItemPart(Frame):
         if self._chevron_visible:
             # add widget if not already existing
             if not self._chevron_widget:
+                from ttkbootstrap.widgets.buttons.icon_button import IconButton
                 self._chevron_widget = IconButton(
                     self._frame_end,
                     icon='chevron-right',
@@ -319,6 +324,7 @@ class ListItemPart(Frame):
         if self._deleting_enabled:
             # add widget if not already existing
             if not self._delete_widget:
+                from ttkbootstrap.widgets.buttons.icon_button import IconButton
                 self._delete_widget = IconButton(
                     self._frame_end,
                     icon='x-lg',
@@ -340,6 +346,7 @@ class ListItemPart(Frame):
         if self._dragging_enabled:
             # add widget if not already existing
             if not self._drag_widget:
+                from ttkbootstrap.widgets.buttons.icon_button import IconButton
                 self._drag_widget = IconButton(
                     self._frame_end,
                     icon='grip-vertical',

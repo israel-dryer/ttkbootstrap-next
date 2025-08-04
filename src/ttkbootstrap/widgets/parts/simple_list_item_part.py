@@ -1,7 +1,8 @@
 from typing import Optional
 
-from ttkbootstrap.widgets import Frame, IconButton, Label
-
+from ttkbootstrap.widgets.layout.frame import Frame
+from ttkbootstrap.widgets.buttons.icon_button import IconButton
+from ttkbootstrap.widgets.display.label import Label
 
 class SimpleListItemPart(Frame):
 
