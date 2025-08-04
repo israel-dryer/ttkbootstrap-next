@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 BindScope = Literal['all', 'class', 'widget']
 Fill = Literal['x', 'y', 'both', 'none']
 Side = Literal['left', 'right', 'top', 'center']
+Sticky = Literal['n', 'e', 's', 'w', 'ns', 'ew', 'nsew', '']
 TraceOperation = Literal["array", "read", "write", "unset"]
 VariableType = Union["Signal", "Variable", str]
 Anchor = Literal['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'center']
