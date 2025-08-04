@@ -1,5 +1,6 @@
-from .base import EntryField
-from ..buttons.icon_button import IconButton
+from ttkbootstrap.widgets.fields.base import EntryField
+from ttkbootstrap.widgets.buttons.icon_button import IconButton
+
 
 # TODO Date picker dialog
 # TODO Date format
