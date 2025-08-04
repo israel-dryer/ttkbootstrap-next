@@ -1,11 +1,3 @@
-from typing import Callable
-
-from ttkbootstrap.core.widget import BaseWidget
-
-
-from ttkbootstrap.core.widget import BaseWidget
-
-
 class CompositeWidgetMixin:
     """Mixin to synchronize interactive states (hover, pressed, etc.) between a container
     and its internal child widgets, with correct handling of overlapping events."""
