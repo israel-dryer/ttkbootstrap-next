@@ -1,7 +1,7 @@
 from typing import Literal, Union
 from ttkbootstrap.style.builders.badge import BadgeStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
-from ttkbootstrap.widgets import Label
+from ttkbootstrap.widgets.display.label import Label
 
 
 class Badge(Label):
