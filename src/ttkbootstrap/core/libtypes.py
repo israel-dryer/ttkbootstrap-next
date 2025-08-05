@@ -1,8 +1,6 @@
 from tkinter.font import Font
 from typing import Callable, Literal, Union, TypedDict, TYPE_CHECKING, Tuple
 
-from ttkbootstrap.core.widget import BaseWidget
-
 if TYPE_CHECKING:
     from tkinter import PhotoImage, Variable
     from ttkbootstrap.icons import BootstrapIcon, LucideIcon
@@ -12,7 +10,7 @@ if TYPE_CHECKING:
 
 BindScope = Literal['all', 'class', 'widget']
 Fill = Literal['x', 'y', 'both', 'none']
-Side = Literal['left', 'right', 'top', 'center']
+Side = Literal['left', 'right', 'top', 'center', 'bottom']
 Sticky = Literal['n', 'e', 's', 'w', 'ns', 'ew', 'nsew', '']
 TraceOperation = Literal["array", "read", "write", "unset"]
 VariableType = Union["Signal", "Variable", str]
@@ -23,6 +21,11 @@ ColorMode = Union[Literal['light', 'dark'], str]
 ColorModel = Literal['hex', 'hsl', 'rgb']
 ButtonSize = Literal['sm', 'md', 'lg']
 Justify = Literal['left', 'center', 'right']
+JustifyLayout = Literal["left", "center", "right", "stretch"]
+Margin = int | tuple[int, int] | tuple[int, int, int, int]
+LayoutMethod = Literal['pack', 'grid', 'place']
+AlignLayout = Literal["top", "center", "bottom", "stretch"]
+Direction = Literal["row", "row-reverse", "column", "column-reverse"]
 Orient = Literal['horizontal', 'vertical']
 ImageType = Union["PhotoImage", "BootstrapIcon", "LucideIcon"]
 Padding = Union[int, Tuple[int, int], Tuple[int, int, int, int]]
@@ -32,6 +35,18 @@ ScrollCommand = Callable[[str, str], None]
 
 
 ## Cursor https://www.tcl-lang.org/man/tcl8.6/TkCmd/cursors.htm
+
+
+class SemanticLayoutOptions(TypedDict, total=False):
+    justify: JustifyLayout
+    align: AlignLayout
+    expand: bool
+    margin: Margin
+    row: int
+    column: int
+    rowspan: int
+    colspan: int
+
 
 class ButtonOptions(TypedDict, total=False):
     """

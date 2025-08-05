@@ -2,6 +2,7 @@ from typing import Unpack
 
 from ttkbootstrap.core.libtypes import FrameOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
+from ttkbootstrap.core.mixins.layout import LayoutMixin
 from ttkbootstrap.core.widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
 from ttkbootstrap.style.tokens import SurfaceColor
@@ -37,6 +38,11 @@ class Frame(BaseWidget, ContainerMixin):
         parent = parent or current_layout()
         build_options = kwargs.pop('builder', dict())
         self._surface_token = surface
+
+        # extract layout options
+        layout: dict = self.layout_from_options(kwargs) # type:ignore
+        LayoutMixin.__init__(self, layout)
+
         self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent, surface=surface)
         self._style_builder = FrameStyleBuilder(variant=variant, **build_options)

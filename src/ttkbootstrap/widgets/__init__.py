@@ -10,7 +10,7 @@ from ttkbootstrap.widgets.display.label import Label
 from ttkbootstrap.widgets.display.badge import Badge
 
 # layout
-from ttkbootstrap.widgets.layout.grid_layout import GridLayout
+from ttkbootstrap.widgets.layout.grid_frame import GridFrame
 from ttkbootstrap.widgets.layout.frame import Frame
 from ttkbootstrap.widgets.layout.label_frame import LabelFrame
 from ttkbootstrap.widgets.layout.notebook import Notebook

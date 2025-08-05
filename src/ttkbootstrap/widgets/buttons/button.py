@@ -1,13 +1,18 @@
 from tkinter import ttk
-from typing import Callable, Literal, Unpack
+from typing import Callable, Literal, Unpack, cast
 
+from ttkbootstrap.core.mixins.layout import LayoutMixin
 from ttkbootstrap.core.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.widget import BaseWidget, current_layout
-from ttkbootstrap.core.libtypes import ButtonOptions
+from ttkbootstrap.core.libtypes import ButtonOptions, SemanticLayoutOptions, Justify
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs, resolve_options
+
+
+class _Options(ButtonOptions, SemanticLayoutOptions):
+    pass
 
 
 class Button(BaseWidget, IconMixin):
@@ -15,7 +20,8 @@ class Button(BaseWidget, IconMixin):
     A styled Button widget with fluent configuration and reactive text binding.
     """
 
-    _configure_methods = {"text", "text_signal", "on_click", "icon", "icon_position", "color", "variant"}
+    _configure_methods = {"text", "text_signal", "justify_text", "on_click", "icon", "icon_position", "color",
+                          "variant"}
 
     def __init__(
             self,
@@ -26,7 +32,7 @@ class Button(BaseWidget, IconMixin):
             icon: str = None,
             icon_position: Literal['left', 'right'] = 'left',
             on_click: Callable = None,
-            **kwargs: Unpack[ButtonOptions]
+            **kwargs: Unpack[_Options]
     ):
         """
         Initialize a new Button.
@@ -39,7 +45,7 @@ class Button(BaseWidget, IconMixin):
             icon: Optional icon identifier.
             icon_position: The position of the icon in the button.
             on_click: Callback function for click events.
-            **kwargs: Additional ttk.Button options.
+            **kwargs: Additional Button options.
         """
         parent = parent or current_layout()
         self._on_click = on_click
@@ -51,6 +57,13 @@ class Button(BaseWidget, IconMixin):
         # remove invalid arguments
         for key in ['compound']:
             kwargs.pop(key, None)
+
+        # extract layout options
+        layout: dict = self.layout_from_options(kwargs)  # type:ignore
+        LayoutMixin.__init__(self, layout)
+
+        print("layout", layout, "kwargs", kwargs)
+        print("Widget kwargs before ttk.Button:", kwargs)
 
         self._widget = ttk.Button(
             parent,
@@ -109,6 +122,14 @@ class Button(BaseWidget, IconMixin):
             self._style_builder.color(value)
             self.update_style()
             self._update_icon_assets()
+            return self
+
+    def justify_text(self, value: Justify):
+        """Specify how the text is aligned when on multiple lines"""
+        if value is None:
+            return self.widget.cget('justify')
+        else:
+            self.widget.configure(justify=value)
             return self
 
     def variant(self, value: ButtonVariant = None):

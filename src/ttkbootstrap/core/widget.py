@@ -6,6 +6,7 @@ from .mixins.configure import ConfigureMixin
 from .mixins.focus import FocusMixIn
 from .mixins.geometry import GeometryMixin
 from .mixins.grab import GrabMixIn
+from .mixins.layout import LayoutMixin
 from .mixins.winfo import WidgetInfoMixin
 
 if TYPE_CHECKING:
@@ -34,7 +35,8 @@ class BaseWidget(
     GrabMixIn,
     GeometryMixin,
     WidgetInfoMixin,
-    ConfigureMixin
+    ConfigureMixin,
+    LayoutMixin
 ):
     _widget: Union["BaseWidget", Misc]
 
