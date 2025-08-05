@@ -20,7 +20,7 @@ class PackLayoutOptions(TypedDict, total=False):
 WidgetWithOptions: TypeAlias = tuple[BaseWidget, PackLayoutOptions]
 
 
-class PackLayout(Frame):
+class PackFrame(Frame):
     """
     A layout container using the Tkinter pack geometry manager with added support
     for gap and default layout options.

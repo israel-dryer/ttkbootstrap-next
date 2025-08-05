@@ -1,4 +1,4 @@
-from typing import Any, TypedDict, Literal, Unpack, Union
+from typing import Any, TypeAlias, TypedDict, Literal, Unpack, Union
 from ttkbootstrap.widgets.layout.frame import Frame
 from ttkbootstrap.core.widget import BaseWidget, current_layout, layout_context_stack
 
@@ -26,7 +26,10 @@ class GridColumnOptions(TypedDict, total=False):
     width: int
 
 
-class GridLayout(Frame):
+WidgetWithOptions: TypeAlias = tuple[BaseWidget, GridLayoutOptions]
+
+
+class GridFrame(Frame):
 
     def __init__(
             self,
@@ -136,6 +139,15 @@ class GridLayout(Frame):
             row=row, col=col, row_span=row_span, col_span=col_span,
             sticky=sticky, pad_x=pad_x, pad_y=pad_y
         )
+
+    def add_all(self, widgets: list[BaseWidget | WidgetWithOptions]):
+        """Add a sequence of widgets with optional layout configurations."""
+        for item in widgets:
+            if isinstance(item, tuple):
+                widget, opts = item
+                self.add(widget, **opts)
+            else:
+                self.add(item)
 
     def remove(self, widget: BaseWidget):
         if widget in self._mounted:
