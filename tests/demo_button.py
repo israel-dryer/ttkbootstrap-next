@@ -1,32 +1,53 @@
 from ttkbootstrap.core import App
-from ttkbootstrap.widgets import CheckButton, Frame, IconButton, LabelFrame, RadioButton, Button
+from ttkbootstrap.style.theme import ColorTheme
+from ttkbootstrap.widgets import CheckButton, GridFrame, IconButton, LabelFrame, RadioButton, Button
+from ttkbootstrap.widgets.layout.pack_frame import PackFrame
+
+"""
+    - Add a `mount()` function to the layouts
+"""
+
+class ButtonFrameSection(LabelFrame):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # add children
+        with GridFrame(self, cols=4) as grid:
+            grid.add(btn := IconButton(icon='moon-fill', variant="ghost", on_click=self.toggle_theme))
+            grid.add(IconButton(icon='house-fill', variant="ghost"))
+            grid.add(IconButton(icon='bag-check-fill', variant="ghost"))
+            grid.add(CheckButton(text='Is Deployed'))
+            self._theme_button = btn
+            self.add(grid)
+
+    def toggle_theme(self):
+        theme = ColorTheme.instance()
+        if theme.name == "light":
+            theme.use('dark')
+            self._theme_button.icon('sun-fill')
+        else:
+            theme.use('light')
+            self._theme_button.icon('moon-fill')
 
 
-app = App("Button Demo")
+with App("Button Demo") as app:
+    with PackFrame(side="top", gap=16) as main:
+        main.pack(fill='both', padx=16, pady=16)
 
-b1 = Button(app, "Primary", color="primary", icon="house-fill").pack(padx=16, pady=16)
-b2 = Button(app, "Secondary", color="secondary", icon="house-fill", variant="ghost").pack(padx=16, pady=16)
-f1 = LabelFrame(app, border_color="primary-subtle", padding=8).pack(padx=10, pady=10, fill='x')
-i1 = IconButton(f1, "moon-fill", variant="ghost").pack(side="left")
-IconButton(f1, "badge-hd-fill", variant="ghost").pack(side="left")
-IconButton(f1, "bag-check-fill", variant="ghost").pack(side="left")
-CheckButton(f1, "Is Deployed").pack(padx=10, pady=10)
-#
-f3 = Frame(app, padding=16).pack()
-RadioButton(app, "Red", color="danger", value="red", group="colors", on_change=lambda x: print(x)).pack(side="left")
-RadioButton(app, "Blue", value="blue", group="colors", selected=True).pack(side="left")
-RadioButton(app, "Green", color="success", value="green", group="colors").pack(side="left")
+        with PackFrame(gap=8, side="top") as f:
+            f.add(Button(text="Primary", icon="house-fill"))
+            f.add(Button(text="Secondary", icon="house-fill", color="secondary", variant="ghost"))
+            main.add(f)
 
+        main.add(ButtonFrameSection(padding=8))
 
-def toggle_theme():
-    if app.theme.name == "light":
-        app.theme.use('dark')
-        i1.icon('sun-fill')
-    else:
-        app.theme.use('light')
-        i1.icon('moon-fill')
+        with PackFrame(gap=8) as rb:
+            rb.add(RadioButton(text="Red", color="danger", value="red", group="colors"))
+            rb.add(RadioButton(text="Green", color="success", value="green", group="colors"))
+            rb.add(RadioButton(text="Blue", color="primary", value="primary", group="colors"))
+
+        main.add_all([rb])
 
 
-i1.on_click(toggle_theme)
-
-app.run()
+    app.run()
