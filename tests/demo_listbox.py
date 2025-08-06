@@ -1,5 +1,5 @@
 import tkinter as tk
-from ttkbootstrap.core.datasource import DataSource
+from ttkbootstrap.datasource.sqlite_source import DataSource
 
 
 class ListRow(tk.Frame):

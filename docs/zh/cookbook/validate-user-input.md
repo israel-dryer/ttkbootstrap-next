@@ -8,7 +8,8 @@
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
+
 
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
@@ -19,6 +20,7 @@ def validate_number(x) -> bool:
     else:
         return False
 
+
 def validate_alpha(x) -> bool:
     """Validates that the input is alpha"""
     if x.isdigit():
@@ -27,6 +29,7 @@ def validate_alpha(x) -> bool:
         return True
     else:
         return True
+
 
 # create the toplevel window
 root = ttk.Window()

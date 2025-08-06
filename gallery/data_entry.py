@@ -3,7 +3,7 @@
     Modified: 2021-12-11
 """
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 
 class DataEntryForm(ttk.Frame):

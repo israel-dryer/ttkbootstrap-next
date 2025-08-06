@@ -17,7 +17,7 @@
 ```python
 import tkinter as tk
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = tk.Tk()
 
@@ -39,7 +39,7 @@ root.mainloop()
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 
@@ -77,7 +77,7 @@ ttkbootstrap 小部件具有[数十种预定义的样式](../styleguide/index.zh
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 
@@ -116,7 +116,7 @@ root.mainloop()
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 
@@ -133,7 +133,7 @@ for color in root.style.colors:
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 

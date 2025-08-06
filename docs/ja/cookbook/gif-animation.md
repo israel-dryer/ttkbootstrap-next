@@ -11,7 +11,7 @@ to the label image from a list of images.
 from pathlib import Path
 from itertools import cycle
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from PIL import Image, ImageTk, ImageSequence
 
 
@@ -41,7 +41,6 @@ class AnimatedGif(ttk.Frame):
 
 
 if __name__ == "__main__":
-
     app = ttk.Window("Animated GIF", themename="superhero")
 
     gif = AnimatedGif(app)

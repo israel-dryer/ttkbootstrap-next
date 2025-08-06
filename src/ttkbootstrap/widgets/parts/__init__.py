@@ -1,3 +1,0 @@
-from ttkbootstrap.widgets.parts.entry_part import EntryPart
-from ttkbootstrap.widgets.parts.number_spinbox_part import NumberSpinboxPart
-from ttkbootstrap.widgets.parts.list_item_part import ListItemPart

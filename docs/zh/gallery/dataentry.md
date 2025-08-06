@@ -19,11 +19,11 @@
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 
 class DataEntryForm(ttk.Frame):
-    
+
     def __init__(self, master):
         super().__init__(master, padding=(20, 10))
         self.pack(fill=BOTH, expand=YES)
@@ -34,7 +34,7 @@ class DataEntryForm(ttk.Frame):
         self.phone = ttk.StringVar(value="")
 
         # form header
-        hdr_txt = "Please enter your contact information" 
+        hdr_txt = "Please enter your contact information"
         hdr = ttk.Label(master=self, text=hdr_txt, width=50)
         hdr.pack(fill=X, pady=10)
 
@@ -92,7 +92,6 @@ class DataEntryForm(ttk.Frame):
 
 
 if __name__ == "__main__":
-
     app = ttk.Window("Data Entry", "superhero", resizable=(False, False))
     DataEntryForm(app)
     app.mainloop()

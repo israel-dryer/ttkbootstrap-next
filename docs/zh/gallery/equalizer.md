@@ -20,12 +20,12 @@
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from random import randint
 
 
 class Equalizer(ttk.Frame):
-    
+
     def __init__(self, master):
         super().__init__(master, padding=20)
         self.pack(fill=BOTH, expand=YES)
@@ -74,7 +74,6 @@ class Equalizer(ttk.Frame):
 
 
 if __name__ == "__main__":
-
     app = ttk.Window("Equalizer", "litera", resizable=(False, False))
     Equalizer(app)
     app.mainloop()

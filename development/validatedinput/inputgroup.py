@@ -1,7 +1,7 @@
 import ttkbootstrap as ttk
 from ttkbootstrap import Entry, Frame, Label
-from ttkbootstrap.constants import *
-from tkinter import Event
+from ttkbootstrap.z_remove.constants import *
+
 
 class InputGroup(Frame):
     def __init__(

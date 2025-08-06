@@ -1,9 +1,10 @@
 from typing import Any, Callable, Unpack
 
-from ttkbootstrap.core.signal import Signal
-from ttkbootstrap.core.validation import RuleType, ValidationOptions, ValidationRule
-from ttkbootstrap.widgets.parts.entry_part import EntryPart
-from ttkbootstrap.widgets.parts.number_spinbox_part import NumberSpinboxPart
+from ttkbootstrap.signals.signal import Signal
+from ttkbootstrap.validation.types import RuleType, ValidationOptions
+from ttkbootstrap.validation.rules import ValidationRule
+from ttkbootstrap.widgets._parts.entry_part import EntryPart
+from ttkbootstrap.widgets._parts.number_spinbox_part import NumberSpinboxPart
 
 # TODO add an enhanced formatting api similar to:
 #  https://js.devexpress.com/Angular/Documentation/ApiReference/UI_Components/dxNumberBox/Configuration/#format

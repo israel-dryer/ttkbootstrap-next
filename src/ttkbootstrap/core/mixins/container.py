@@ -2,7 +2,7 @@ from tkinter import Misc
 from typing import TYPE_CHECKING, Union, Any
 
 if TYPE_CHECKING:
-    from ttkbootstrap.core.widget import BaseWidget
+    from ttkbootstrap.core.base_widget import BaseWidget
 
 class ContainerMixin:
     """Mixin that exposes container-related access from widget"""

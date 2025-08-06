@@ -14,7 +14,7 @@ from tkinter import font
 import ttkbootstrap as ttk
 from ttkbootstrap import utility
 from ttkbootstrap.icons import Icon
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from tkinter import BaseWidget
 from ttkbootstrap.localization import MessageCatalog
 

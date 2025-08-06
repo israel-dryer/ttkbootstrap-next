@@ -5,9 +5,9 @@
         - the legacy tk widgets do not update after DateDialog is used.
 """
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from ttkbootstrap.dialogs import Messagebox
-from ttkbootstrap.scrolled import ScrolledText
+from ttkbootstrap.z_remove.scrolled import ScrolledText
 
 
 def setup_demo(master):

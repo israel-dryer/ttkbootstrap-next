@@ -2,7 +2,7 @@
 from pathlib import Path
 from itertools import cycle
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from PIL import Image, ImageTk, ImageSequence
 
 

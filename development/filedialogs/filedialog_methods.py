@@ -1,12 +1,8 @@
-from json import load
 from pathlib import Path
 import pathlib
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from PIL import Image, ImageTk
-import ctypes
-import string
-from ctypes import windll
 from typing import List
 from math import ceil
 from datetime import datetime

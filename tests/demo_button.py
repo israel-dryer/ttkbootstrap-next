@@ -1,7 +1,7 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.style.theme import ColorTheme
 from ttkbootstrap.widgets import CheckButton, GridFrame, IconButton, LabelFrame, RadioButton, Button
-from ttkbootstrap.widgets.layout.pack_frame import PackFrame
+from ttkbootstrap.layouts.pack_frame import PackFrame
 
 """
     - Add a `mount()` function to the layouts

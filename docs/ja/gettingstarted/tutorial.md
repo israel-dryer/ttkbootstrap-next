@@ -21,7 +21,7 @@ This approach uses a familiar pattern. However, there are a few differences:
 ```python
 import tkinter as tk
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = tk.Tk()
 
@@ -50,7 +50,7 @@ examples.
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 
@@ -95,7 +95,7 @@ The example below shows a button for every color.
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 
@@ -137,7 +137,7 @@ As for the `Style` object, you can either create the style object using the
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 
@@ -154,7 +154,7 @@ are both buttons, but of different **types**.
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window()
 

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from .base import StyleBuilderBase
 
 if TYPE_CHECKING:
-    from ttkbootstrap.core.widget import BaseWidget
+    from ttkbootstrap.core.base_widget import BaseWidget
 
 class CanvasStyleBuilder(StyleBuilderBase):
 

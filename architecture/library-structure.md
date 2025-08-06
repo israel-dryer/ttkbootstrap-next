@@ -109,9 +109,8 @@ ttkbootstrap/
 │       ├── paned_window.py
 │       ├── progressbar.py
 │       ├── radio_button.py
-│       ├── scale.py
-│       ├── scrollbar.py
 │       ├── separator.py
+│       ├── scale.py
 │       ├── size_grip.py
 │       ├── spinbox.py
 │       ├── switch_button.py
@@ -126,9 +125,6 @@ ttkbootstrap/
 │   ├── notebook.py
 │   ├── pack_frame.py
 │   ├── paned_window.py
-│   ├── scrollbar.py
-│   ├── separator.py
-│   ├── size_grip.py
 │   ├── layout_mixin.py
 │   ├── layout_utils.py
 │   └── types.py

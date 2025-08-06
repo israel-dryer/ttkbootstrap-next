@@ -4,7 +4,7 @@ from queue import Queue
 from random import randint
 from threading import Thread
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from ttkbootstrap.dialogs import Messagebox
 
 

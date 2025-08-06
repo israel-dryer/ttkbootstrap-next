@@ -5,8 +5,9 @@
 """
 import tkinter as tk
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-from ttkbootstrap import colorutils, utility
+from ttkbootstrap.z_remove.constants import *
+from ttkbootstrap import utility
+from ttkbootstrap.z_remove import colorutils
 from PIL import ImageGrab, ImageTk, Image
 from collections import namedtuple
 

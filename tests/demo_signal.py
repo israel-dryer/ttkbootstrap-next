@@ -1,5 +1,5 @@
 import tkinter as tk
-from ttkbootstrap.core.signal import Signal  # Replace with actual path or relative import
+from ttkbootstrap.signals.signal import Signal  # Replace with actual path or relative import
 
 def main():
     root = tk.Tk()

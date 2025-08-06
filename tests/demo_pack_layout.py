@@ -1,8 +1,8 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.widgets import LabelFrame
-from ttkbootstrap.widgets.buttons.icon_button import IconButton
+from ttkbootstrap.widgets.icon_button import IconButton
 
-from ttkbootstrap.widgets.layout.pack_frame import PackFrame
+from ttkbootstrap.layouts.pack_frame import PackFrame
 
 with App(theme="dark") as app:
 

@@ -3,7 +3,7 @@
     Modified: 2021-12-10
 """
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from random import randint
 
 

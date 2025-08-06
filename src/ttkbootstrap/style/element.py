@@ -1,6 +1,6 @@
 from typing import Optional, Union, Tuple, Iterable, Any
 
-from ..core.image import ManagedImage
+from ..images.photo import Photo
 
 
 class Element:
@@ -98,7 +98,7 @@ class ElementImage:
 
     Attributes:
         _name (str): Name of the image element.
-        _image (str | ManagedImage): The default image.
+        _image (str | Photo): The default image.
         _image_specs (list): List of state-specific overrides.
         _options (dict): Element rendering options like width, padding, sticky, etc.
     """
@@ -106,7 +106,7 @@ class ElementImage:
     def __init__(
             self,
             name: str,
-            image: Union[ManagedImage, str],
+            image: Union[Photo, str],
             *,
             border: Optional[Union[int, Tuple[int, int]]] = None,
             height: Optional[int] = None,
@@ -128,7 +128,7 @@ class ElementImage:
         """
         self._name = name
         self._image = image
-        self._image_specs: list[tuple[str, Union[str, ManagedImage]]] = []
+        self._image_specs: list[tuple[str, Union[str, Photo]]] = []
         self._options: dict[str, Any] = {
             "border": border,
             "height": height,
@@ -147,7 +147,7 @@ class ElementImage:
         """
         return self._name
 
-    def add_spec(self, state: str, image: Union[str, ManagedImage]) -> None:
+    def add_spec(self, state: str, image: Union[str, Photo]) -> None:
         """
         Add a state-specific image override.
 
@@ -164,7 +164,7 @@ class ElementImage:
         options = {k: v for k, v in self._options.items() if v is not None}
         return self.name, args, options
 
-    def state_specs(self, specs: list[Tuple[str, Union[str, ManagedImage]]]):
+    def state_specs(self, specs: list[Tuple[str, Union[str, Photo]]]):
         for spec in specs:
             self.add_spec(*spec)
         return self

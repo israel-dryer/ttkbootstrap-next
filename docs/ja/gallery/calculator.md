@@ -18,7 +18,7 @@ The theme used in this example is **flatly**.
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 
 class Calculator(ttk.Frame):
@@ -153,7 +153,6 @@ class Calculator(ttk.Frame):
 
 
 if __name__ == "__main__":
-
     app = ttk.Window(
         title="Calculator",
         themename="flatly",

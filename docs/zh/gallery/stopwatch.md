@@ -20,7 +20,7 @@
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 
 class Stopwatch(ttk.Frame):
@@ -122,10 +122,9 @@ class Stopwatch(ttk.Frame):
 
 
 if __name__ == "__main__":
-
     app = ttk.Window(
-        title="Stopwatch", 
-        themename="cosmo", 
+        title="Stopwatch",
+        themename="cosmo",
         resizable=(False, False)
     )
     Stopwatch(app)

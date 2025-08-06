@@ -1,6 +1,6 @@
-from ttkbootstrap.core import App
+from ttkbootstrap import App
 from ttkbootstrap.widgets import Button
-from ttkbootstrap.widgets.layout.pack_frame import PackFrame
+from ttkbootstrap.layouts.pack_frame import PackFrame
 
 # with App("Demo App", theme="dark") as app:
 #

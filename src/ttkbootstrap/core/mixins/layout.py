@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING, Any
 
-from ttkbootstrap.core.libtypes import Margin, LayoutMethod, SemanticLayoutOptions
+from ttkbootstrap.common.types import Margin, LayoutMethod, SemanticLayoutOptions
 
 if TYPE_CHECKING:
-    from ttkbootstrap.core.widget import BaseWidget
+    from ttkbootstrap.core.base_widget import BaseWidget
 
 
 class LayoutMixin:

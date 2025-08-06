@@ -1,6 +1,6 @@
 from typing import Any
 
-from ttkbootstrap.utils import resolve_options
+from ttkbootstrap.common.utils import resolve_options
 
 
 class IconMixin:

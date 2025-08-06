@@ -1,6 +1,6 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.widgets import Frame
-from ttkbootstrap.widgets.layout.paned_window import PanedWindow
+from ttkbootstrap.layouts.paned_window import PanedWindow
 
 app = App()
 

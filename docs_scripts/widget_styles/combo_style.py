@@ -1,6 +1,7 @@
 import tkinter as tk
 import ttkbootstrap as ttk
-from ttkbootstrap import utility
+from ttkbootstrap.z_remove import utility
+
 utility.enable_high_dpi_awareness()
 
 root = tk.Tk()

@@ -7,13 +7,13 @@ from typing import Any, Optional
 from PIL import Image, ImageDraw, ImageFont
 from importlib.resources import files
 
-from ttkbootstrap.core.image import ManagedImage
-from ttkbootstrap.logger import logger
+from ttkbootstrap.images.photo import Photo
+from ttkbootstrap.common.logger import logger
 
 _transparent_image_cache = {}
 
 
-def create_transparent_icon(size: int = 16) -> ManagedImage:
+def create_transparent_icon(size: int = 16) -> Photo:
     """
     Create a fully transparent PIL image of the given size.
 
@@ -27,7 +27,7 @@ def create_transparent_icon(size: int = 16) -> ManagedImage:
         return _transparent_image_cache.get(size)
     else:
         img = Image.new("RGBA", (size, size), (255, 0, 0, 0))
-        pm = ManagedImage(image=img)
+        pm = Photo(image=img)
         _transparent_image_cache[size] = pm
         return pm
 
@@ -35,7 +35,7 @@ def create_transparent_icon(size: int = 16) -> ManagedImage:
 class Icon(ABC):
     _icon_map: dict[str, str] = {}
     _font_path: Optional[str] = None
-    _cache: dict[tuple[str, int, str, str], ManagedImage] = {}
+    _cache: dict[tuple[str, int, str, str], Photo] = {}
     _initialized: bool = False
     _icon_set: str = ""
 
@@ -54,7 +54,7 @@ class Icon(ABC):
         self.name = name
         self.size = size
         self.color = color
-        self._img: Optional[ManagedImage] = self._render()
+        self._img: Optional[Photo] = self._render()
 
     @property
     def image(self):
@@ -109,7 +109,7 @@ class Icon(ABC):
         cls._font_path = font_path
         cls._initialized = True
 
-    def _render(self) -> ManagedImage:
+    def _render(self) -> Photo:
         """
         Render the icon as a `PhotoImage`, using PIL and caching the result.
 
@@ -143,7 +143,7 @@ class Icon(ABC):
 
         draw.text((dx, dy), glyph, font=font, fill=self.color)
 
-        tk_img = ManagedImage(image=img)
+        tk_img = Photo(image=img)
         Icon._cache[key] = tk_img
         return tk_img
 

@@ -21,7 +21,7 @@ The theme used in this example is **yeti**.
 ```python
 from pathlib import Path
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from ttkbootstrap.icons import Emoji
 
 
@@ -33,18 +33,18 @@ class MediaPlayer(ttk.Frame):
         self.hdr_var = ttk.StringVar()
         self.elapsed_var = ttk.DoubleVar(value=0)
         self.remain_var = ttk.DoubleVar(value=190)
-        
+
         self.create_header()
         self.create_media_window()
         self.create_progress_meter()
         self.create_buttonbox()
-    
+
     def create_header(self):
         """The application header to display user messages"""
         self.hdr_var.set("Open a file to begin playback")
         lbl = ttk.Label(
-            master=self, 
-            textvariable=self.hdr_var, 
+            master=self,
+            textvariable=self.hdr_var,
             bootstyle=(LIGHT, INVERSE),
             padding=10
         )
@@ -61,13 +61,13 @@ class MediaPlayer(ttk.Frame):
         """Create frame with progress meter with lables"""
         container = ttk.Frame(self)
         container.pack(fill=X, expand=YES, pady=10)
-        
+
         self.elapse = ttk.Label(container, text='00:00')
         self.elapse.pack(side=LEFT, padx=10)
 
         self.scale = ttk.Scale(
-            master=container, 
-            command=self.on_progress, 
+            master=container,
+            command=self.on_progress,
             bootstyle=SECONDARY
         )
         self.scale.pack(side=LEFT, fill=X, expand=YES)
@@ -107,14 +107,14 @@ class MediaPlayer(ttk.Frame):
             text=Emoji.get('double vertical bar'),
             padding=10,
         )
-        pause_btn.pack(side=LEFT, fill=X, expand=YES)        
+        pause_btn.pack(side=LEFT, fill=X, expand=YES)
 
         stop_btn = ttk.Button(
             master=container,
             text=Emoji.get('black square for stop'),
             padding=10,
         )
-        stop_btn.pack(side=LEFT, fill=X, expand=YES)          
+        stop_btn.pack(side=LEFT, fill=X, expand=YES)
 
         stop_btn = ttk.Button(
             master=container,
@@ -122,19 +122,18 @@ class MediaPlayer(ttk.Frame):
             bootstyle=SECONDARY,
             padding=10
         )
-        stop_btn.pack(side=LEFT, fill=X, expand=YES)             
-
+        stop_btn.pack(side=LEFT, fill=X, expand=YES)
 
     def on_progress(self, val: float):
         """Update progress labels when the scale is updated."""
         elapsed = self.elapsed_var.get()
         remaining = self.remain_var.get()
         total = int(elapsed + remaining)
-        
+
         elapse = int(float(val) * total)
         elapse_min = elapse // 60
         elapse_sec = elapse % 60
-        
+
         remain_tot = total - elapse
         remain_min = remain_tot // 60
         remain_sec = remain_tot % 60
@@ -144,10 +143,9 @@ class MediaPlayer(ttk.Frame):
 
         self.elapse.configure(text=f'{elapse_min:02d}:{elapse_sec:02d}')
         self.remain.configure(text=f'{remain_min:02d}:{remain_sec:02d}')
-        
+
 
 if __name__ == '__main__':
-
     app = ttk.Window("Media Player", "yeti")
     mp = MediaPlayer(app)
     mp.scale.set(0.35)  # set default

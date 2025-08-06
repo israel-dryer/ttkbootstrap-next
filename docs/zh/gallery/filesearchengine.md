@@ -24,19 +24,18 @@ from queue import Queue
 from threading import Thread
 from tkinter.filedialog import askdirectory
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-from ttkbootstrap import utility
+from ttkbootstrap.z_remove.constants import *
+from ttkbootstrap.z_remove import utility
 
 
 class FileSearchEngine(ttk.Frame):
-
     queue = Queue()
     searching = False
 
     def __init__(self, master):
         super().__init__(master, padding=15)
         self.pack(fill=BOTH, expand=YES)
-        
+
         # application variables
         _path = pathlib.Path().absolute().as_posix()
         self.path_var = ttk.StringVar(value=_path)
@@ -54,8 +53,8 @@ class FileSearchEngine(ttk.Frame):
         self.create_results_view()
 
         self.progressbar = ttk.Progressbar(
-            master=self, 
-            mode=INDETERMINATE, 
+            master=self,
+            mode=INDETERMINATE,
             bootstyle=(STRIPED, SUCCESS)
         )
         self.progressbar.pack(fill=X, expand=YES)
@@ -69,9 +68,9 @@ class FileSearchEngine(ttk.Frame):
         path_ent = ttk.Entry(path_row, textvariable=self.path_var)
         path_ent.pack(side=LEFT, fill=X, expand=YES, padx=5)
         browse_btn = ttk.Button(
-            master=path_row, 
-            text="Browse", 
-            command=self.on_browse, 
+            master=path_row,
+            text="Browse",
+            command=self.on_browse,
             width=8
         )
         browse_btn.pack(side=LEFT, padx=5)
@@ -85,10 +84,10 @@ class FileSearchEngine(ttk.Frame):
         term_ent = ttk.Entry(term_row, textvariable=self.term_var)
         term_ent.pack(side=LEFT, fill=X, expand=YES, padx=5)
         search_btn = ttk.Button(
-            master=term_row, 
-            text="Search", 
-            command=self.on_search, 
-            bootstyle=OUTLINE, 
+            master=term_row,
+            text="Search",
+            command=self.on_search,
+            bootstyle=OUTLINE,
             width=8
         )
         search_btn.pack(side=LEFT, padx=5)
@@ -101,25 +100,25 @@ class FileSearchEngine(ttk.Frame):
         type_lbl.pack(side=LEFT, padx=(15, 0))
 
         contains_opt = ttk.Radiobutton(
-            master=type_row, 
-            text="Contains", 
-            variable=self.type_var, 
+            master=type_row,
+            text="Contains",
+            variable=self.type_var,
             value="contains"
         )
         contains_opt.pack(side=LEFT)
-        
+
         startswith_opt = ttk.Radiobutton(
-            master=type_row, 
-            text="StartsWith", 
-            variable=self.type_var, 
+            master=type_row,
+            text="StartsWith",
+            variable=self.type_var,
             value="startswith"
         )
         startswith_opt.pack(side=LEFT, padx=15)
-        
+
         endswith_opt = ttk.Radiobutton(
-            master=type_row, 
-            text="EndsWith", 
-            variable=self.type_var, 
+            master=type_row,
+            text="EndsWith",
+            variable=self.type_var,
             value="endswith"
         )
         endswith_opt.pack(side=LEFT)
@@ -128,8 +127,8 @@ class FileSearchEngine(ttk.Frame):
     def create_results_view(self):
         """Add result treeview to labelframe"""
         self.resultview = ttk.Treeview(
-            master=self, 
-            bootstyle=INFO, 
+            master=self,
+            bootstyle=INFO,
             columns=[0, 1, 2, 3, 4],
             show=HEADINGS
         )
@@ -142,32 +141,32 @@ class FileSearchEngine(ttk.Frame):
         self.resultview.heading(3, text='Size', anchor=E)
         self.resultview.heading(4, text='Path', anchor=W)
         self.resultview.column(
-            column=0, 
-            anchor=W, 
-            width=utility.scale_size(self, 125), 
+            column=0,
+            anchor=W,
+            width=utility.scale_size(self, 125),
             stretch=False
         )
         self.resultview.column(
-            column=1, 
-            anchor=W, 
-            width=utility.scale_size(self, 140), 
+            column=1,
+            anchor=W,
+            width=utility.scale_size(self, 140),
             stretch=False
         )
         self.resultview.column(
-            column=2, 
-            anchor=E, 
-            width=utility.scale_size(self, 50), 
+            column=2,
+            anchor=E,
+            width=utility.scale_size(self, 50),
             stretch=False
         )
         self.resultview.column(
-            column=3, 
-            anchor=E, 
-            width=utility.scale_size(self, 50), 
+            column=3,
+            anchor=E,
+            width=utility.scale_size(self, 50),
             stretch=False
         )
         self.resultview.column(
-            column=4, 
-            anchor=W, 
+            column=4,
+            anchor=W,
             width=utility.scale_size(self, 300)
         )
 
@@ -182,48 +181,51 @@ class FileSearchEngine(ttk.Frame):
         search_term = self.term_var.get()
         search_path = self.path_var.get()
         search_type = self.type_var.get()
-        
+
         if search_term == '':
             return
-        
+
         # start search in another thread to prevent UI from locking
         Thread(
-            target=FileSearchEngine.file_search, 
-            args=(search_term, search_path, search_type), 
+            target=FileSearchEngine.file_search,
+            args=(search_term, search_path, search_type),
             daemon=True
         ).start()
         self.progressbar.start(10)
-        
+
         iid = self.resultview.insert(
-            parent='', 
-            index=END, 
+            parent='',
+            index=END,
         )
         self.resultview.item(iid, open=True)
         self.after(100, lambda: self.check_queue(iid))
 
     def check_queue(self, iid):
         """Check file queue and print results if not empty"""
-        if all([
-            FileSearchEngine.searching, 
-            not FileSearchEngine.queue.empty()
-        ]):
+        if all(
+                [
+                    FileSearchEngine.searching,
+                    not FileSearchEngine.queue.empty()
+                ]):
             filename = FileSearchEngine.queue.get()
             self.insert_row(filename, iid)
             self.update_idletasks()
             self.after(100, lambda: self.check_queue(iid))
-        elif all([
-            not FileSearchEngine.searching,
-            not FileSearchEngine.queue.empty()
-        ]):
+        elif all(
+                [
+                    not FileSearchEngine.searching,
+                    not FileSearchEngine.queue.empty()
+                ]):
             while not FileSearchEngine.queue.empty():
                 filename = FileSearchEngine.queue.get()
                 self.insert_row(filename, iid)
             self.update_idletasks()
             self.progressbar.stop()
-        elif all([
-            FileSearchEngine.searching,
-            FileSearchEngine.queue.empty()
-        ]):
+        elif all(
+                [
+                    FileSearchEngine.searching,
+                    FileSearchEngine.queue.empty()
+                ]):
             self.after(100, lambda: self.check_queue(iid))
         else:
             self.progressbar.stop()
@@ -239,8 +241,8 @@ class FileSearchEngine(ttk.Frame):
             _size = FileSearchEngine.convert_size(_stats.st_size)
             _path = file.as_posix()
             iid = self.resultview.insert(
-                parent='', 
-                index=END, 
+                parent='',
+                index=END,
                 values=(_name, _modified, _type, _size, _path)
             )
             self.resultview.selection_set(iid)
@@ -305,11 +307,10 @@ class FileSearchEngine(ttk.Frame):
         if kb > 1000:
             return f'{mb:,.1f} MB'
         else:
-            return f'{kb:,d} KB'        
+            return f'{kb:,d} KB'
 
 
 if __name__ == '__main__':
-  
     app = ttk.Window("File Search Engine", "journal")
     FileSearchEngine(app)
     app.mainloop()

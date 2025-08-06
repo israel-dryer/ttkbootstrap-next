@@ -1,7 +1,7 @@
 from ttkbootstrap.core import App
 from ttkbootstrap.style.style import Style
 from ttkbootstrap.widgets import CheckButton, Frame, IconButton, Notebook
-from ttkbootstrap.widgets.buttons.button import Button
+from ttkbootstrap.widgets.button import Button
 
 app = App("Button Demo", surface="layer-4")
 style = Style()

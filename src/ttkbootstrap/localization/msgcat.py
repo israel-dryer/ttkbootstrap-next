@@ -1,4 +1,4 @@
-from ttkbootstrap.window import get_default_root
+from ttkbootstrap.z_remove.window import get_default_root
 
 
 class MessageCatalog:

@@ -1,9 +1,6 @@
 from ttkbootstrap.core import App
-from ttkbootstrap.core.datasource import DataSource
-from ttkbootstrap.widgets import Label, Button
-from ttkbootstrap.widgets.data.virtual_list import VirtualList
-from ttkbootstrap.widgets.parts import ListItemPart
-from ttkbootstrap.widgets.parts.simple_list_item_part import SimpleListItemPart
+from ttkbootstrap.datasource.sqlite_source import DataSource
+from ttkbootstrap.widgets.virtual_list import VirtualList
 
 if __name__ == "__main__":
     app = App(title="Virtual List", theme="light")

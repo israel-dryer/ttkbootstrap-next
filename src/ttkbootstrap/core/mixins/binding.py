@@ -4,11 +4,12 @@ from collections import defaultdict
 from tkinter import Misc
 from typing import Any, TYPE_CHECKING, Callable, Union
 
-from ..event_aliases import EVENT_ALIASES
-from ..tkcommand import event_callback_wrapper, get_event_substring
+from ttkbootstrap.interop.aliases import EVENT_ALIASES
+from ttkbootstrap.interop.substitutions import get_event_substring
+from ttkbootstrap.interop.commands import event_callback_wrapper
 
 if TYPE_CHECKING:
-    from ..widget import BaseWidget
+    pass
 
 
 class BindingMixin:

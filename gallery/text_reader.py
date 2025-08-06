@@ -3,8 +3,8 @@
     Modified: 2021-12-12
 """
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-from ttkbootstrap.scrolled import ScrolledText
+from ttkbootstrap.z_remove.constants import *
+from ttkbootstrap.z_remove.scrolled import ScrolledText
 from tkinter.filedialog import askopenfilename
 
 

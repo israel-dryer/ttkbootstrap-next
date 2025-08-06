@@ -1,4 +1,4 @@
-from ttkbootstrap.core.libtypes import Orient
+from ttkbootstrap.common.types import Orient
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 from ttkbootstrap.style.tokens import ForegroundColor
 

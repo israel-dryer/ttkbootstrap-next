@@ -3,7 +3,7 @@ from tkinter import Misc
 from typing import NamedTuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from ttkbootstrap.core.widget import BaseWidget
+    from ttkbootstrap.core.base_widget import BaseWidget
 
 
 class Geometry(NamedTuple):

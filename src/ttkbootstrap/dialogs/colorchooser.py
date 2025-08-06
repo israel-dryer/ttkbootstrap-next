@@ -1,15 +1,15 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.validation import add_range_validation, add_validation, validator
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from tkinter import Frame as tkFrame
 from tkinter import Label as tkLabel
 from ttkbootstrap import utility
 from collections import namedtuple
-from ttkbootstrap import colorutils
-from ttkbootstrap.colorutils import RGB, HSL, HEX, HUE, SAT, LUM
+from ttkbootstrap.z_remove import colorutils
+from ttkbootstrap.z_remove.colorutils import RGB, HSL, HEX, HUE, SAT, LUM
 from PIL import ImageColor
 from ttkbootstrap.dialogs.colordropper import ColorDropperDialog
-from ttkbootstrap.tooltip import ToolTip
+from ttkbootstrap.z_remove.tooltip import ToolTip
 from ttkbootstrap.localization import MessageCatalog
 
 STD_SHADES = [0.9, 0.8, 0.7, 0.4, 0.3]

@@ -6,6 +6,9 @@
 # from tkinter import Canvas, Menu, Text
 # from tkinter import PhotoImage
 
-def default_root():
-    import tkinter as tk
-    return tk._default_root
+# def default_root():
+#     import tkinter as tk
+#     return tk._default_root
+
+
+from .app import App

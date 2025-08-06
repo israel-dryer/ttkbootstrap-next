@@ -4,7 +4,7 @@ from tkinter import Widget
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from ttkbootstrap.core.widget import BaseWidget
+    from ttkbootstrap.core.base_widget import BaseWidget
 
 
 class GeometryMixin:

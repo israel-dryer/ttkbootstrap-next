@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from PIL import Image, ImageOps, ImageColor
+from PIL import Image, ImageOps
 
-from ttkbootstrap.core.image import ManagedImage
-from ttkbootstrap.core.libtypes import ColorModel
-from ttkbootstrap.utils import clamp
+from ttkbootstrap.images.photo import Photo
+from ttkbootstrap.common.types import ColorModel
+from ttkbootstrap.common.utils import clamp
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets" / "widgets"
 
@@ -258,7 +258,7 @@ def recolor_image(
         transparent_color: str | None = None,
         *,
         scale: float = 0.5,
-) -> ManagedImage:
+) -> Photo:
     """
     Recolor a white-layout PNG image using luminance interpolation.
 
@@ -321,7 +321,7 @@ def recolor_image(
         )
         result = result.resize(new_size, Image.Resampling.LANCZOS)
 
-    return ManagedImage(image=result)
+    return Photo(image=result)
 
 
 def should_darken(bg_hex: str) -> bool:

@@ -4,7 +4,7 @@
 """
 from pathlib import Path
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from ttkbootstrap.style import Bootstyle
 
 

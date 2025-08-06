@@ -6,7 +6,7 @@
 from pathlib import Path
 from tkinter import PhotoImage
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 from ttkbootstrap.dialogs import Messagebox
 
 

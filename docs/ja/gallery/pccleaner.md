@@ -19,7 +19,7 @@ The theme used in this example is **pulse**.
 ```python
 from pathlib import Path
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 PATH = Path(__file__).parent / 'assets'
 
@@ -208,13 +208,13 @@ class Cleaner(ttk.Frame):
 
         # privacy card
         priv_card = ttk.Frame(
-            master=cards_frame, 
-            padding=1, 
+            master=cards_frame,
+            padding=1,
         )
         priv_card.pack(side=LEFT, fill=BOTH, padx=(10, 5), pady=10)
 
         priv_container = ttk.Frame(
-            master=priv_card, 
+            master=priv_card,
             padding=40,
         )
         priv_container.pack(fill=BOTH, expand=YES)
@@ -241,38 +241,38 @@ class Cleaner(ttk.Frame):
             padding=1,
         )
         junk_card.pack(side=LEFT, fill=BOTH, padx=(5, 10), pady=10)
-        
+
         junk_container = ttk.Frame(junk_card, padding=40)
         junk_container.pack(fill=BOTH, expand=YES)
-        
+
         junk_lbl = ttk.Label(
-            master=junk_container, 
+            master=junk_container,
             image='junk',
-            text='PRIVACY', 
-            compound=TOP, 
+            text='PRIVACY',
+            compound=TOP,
             anchor=CENTER,
         )
         junk_lbl.pack(fill=BOTH, padx=20, pady=(40, 0))
-        
+
         ttk.Label(
-            master=junk_container, 
+            master=junk_container,
             textvariable='junk_lbl',
-            bootstyle=PRIMARY, 
+            bootstyle=PRIMARY,
             justify=CENTER
         ).pack(pady=(0, 20))
         self.setvar('junk_lbl', '1,150 MB of unneccesary file(s)\nremoved')
 
         # user notification
         note_frame = ttk.Frame(
-            master=results_frame, 
-            bootstyle=SECONDARY, 
+            master=results_frame,
+            bootstyle=SECONDARY,
             padding=40
         )
         note_frame.pack(fill=BOTH)
-        
+
         note_msg = ttk.Label(
-            master=note_frame, 
-            text='We recommend that you better protect your data', 
+            master=note_frame,
+            text='We recommend that you better protect your data',
             anchor=CENTER,
             font=('Helvetica', 12, 'italic'),
             bootstyle=(INVERSE, SECONDARY)
@@ -281,7 +281,6 @@ class Cleaner(ttk.Frame):
 
 
 if __name__ == '__main__':
-
     app = ttk.Window("PC Cleaner", "pulse")
     Cleaner(app)
     app.mainloop()

@@ -2,7 +2,7 @@ from tkinter import Misc
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from ..widget import BaseWidget
+    from ..base_widget import BaseWidget
 
 
 class FocusMixIn:

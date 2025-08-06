@@ -25,12 +25,10 @@ the `row_span` and `col_span` options.
 
 Certain methods may be exposed on the widget itself to make things easier for tkinter users, such as `mount()`, `unmound()`, and `layout()` which call to the parent layout methods.
 
-
-
 ```python
 from typing import TypedDict, Literal, Unpack
 from ttkbootstrap.widgets import Frame
-from ttkbootstrap.core.widget import BaseWidget
+from ttkbootstrap.core.base_widget import BaseWidget
 
 type Sticky = Literal['n', 'e', 's', 'w', 'ns', 'ew', 'nsew']
 
@@ -77,21 +75,21 @@ class GridLayout(Frame):
     def add(self, widget, **options: Unpack[GridLayoutOptions]):
         # expose on the widget via the `widget.mount(**options)` method?
         pass
-    
+
     def remove(self, widget: BaseWidget):
         # expose on the widget via the `widget.unmount()` method
         pass
 
     def add_all(self, widgets: list[tuple[BaseWidget, GridLayoutOptions]]):
         pass
-    
-    def row_configure(self, index:int, **options: GridRowOptions):
+
+    def row_configure(self, index: int, **options: GridRowOptions):
         pass
-    
-    def col_configure(self, index:int, **options: GridColumnOptions):
+
+    def col_configure(self, index: int, **options: GridColumnOptions):
         pass
-    
-    def child_configure(self, widget: BaseWidget, option:str=None, **options: GridLayoutOptions):
+
+    def child_configure(self, widget: BaseWidget, option: str = None, **options: GridLayoutOptions):
         # expose on the widget via the `widget.layout()` method?
         # should return the configuration option if requested, otherwise configure and return self
         pass

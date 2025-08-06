@@ -1,4 +1,4 @@
-from ttkbootstrap.core.image import create_transparent_image
+from ttkbootstrap.images.utils import create_transparent_image
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 from ttkbootstrap.style.element import Element, ElementImage
 from ttkbootstrap.style.utils import recolor_image

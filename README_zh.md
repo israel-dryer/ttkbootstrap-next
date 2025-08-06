@@ -44,7 +44,7 @@ python -m pip install ttkbootstrap
 
 ```python
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+from ttkbootstrap.z_remove.constants import *
 
 root = ttk.Window(themename="superhero")
 
