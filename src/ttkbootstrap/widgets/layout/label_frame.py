@@ -1,13 +1,14 @@
-from typing import Unpack
+from typing import Unpack, cast
 
-from ttkbootstrap.core.libtypes import LabelFrameOptions
+from ttkbootstrap.core.libtypes import Fill, LabelFrameOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget, current_layout
+from ttkbootstrap.core.widget import BaseWidget, current_layout, layout_context_stack
 from tkinter import ttk
 
 from ttkbootstrap.style.builders.label_frame import LabelFrameStyleBuilder
 from ttkbootstrap.style.tokens import BorderColor, ForegroundColor, SurfaceColor
 from ttkbootstrap.utils import unsnake_kwargs
+from ttkbootstrap.widgets.layout.pack_frame import PackLayoutOptions
 
 
 class LabelFrame(BaseWidget, ContainerMixin):
@@ -42,6 +43,13 @@ class LabelFrame(BaseWidget, ContainerMixin):
         super().__init__(parent, surface=background)
         self.update_style()
 
+    def __enter__(self):
+        layout_context_stack().append(self)
+        return self
+
+    def __exit__(self, *args):
+        layout_context_stack().pop()
+
     def background(self, value: SurfaceColor = None):
         """Get or set the border color for this widget."""
         if value is None:
@@ -68,3 +76,14 @@ class LabelFrame(BaseWidget, ContainerMixin):
             self._style_builder.border_color(value)
             self.update_style()
             return self
+
+    def add(self, widget: BaseWidget, **options: Unpack[PackLayoutOptions]):
+        """Add widget to the layout"""
+        options.setdefault('fill', cast(Fill, 'x'))
+        widget.widget.pack(**options)
+        return self
+
+    def remove(self, widget: BaseWidget):
+        """Remove a widget from the layout"""
+        widget.widget.pack_forget()
+        return self

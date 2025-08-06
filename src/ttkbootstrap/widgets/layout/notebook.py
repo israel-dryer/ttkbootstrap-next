@@ -3,7 +3,7 @@ from typing import Unpack
 
 from ttkbootstrap.core.libtypes import NotebookOptions, NotebookTabOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.widget import BaseWidget, current_layout
+from ttkbootstrap.core.widget import BaseWidget, current_layout, layout_context_stack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.utils import unsnake_kwargs
 
@@ -34,6 +34,13 @@ class Notebook(BaseWidget, ContainerMixin):
         self._widget = ttk.Notebook(parent, **unsnake_kwargs(kwargs))
         super().__init__(parent)
         self.update_style()
+
+    def __enter__(self):
+        layout_context_stack().append(self)
+        return self
+
+    def __exit__(self, *args):
+        layout_context_stack().pop()
 
     def enable_keyboard_traversal(self):
         """Enable keyboard traversal between tabs."""

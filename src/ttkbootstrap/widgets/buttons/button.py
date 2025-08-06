@@ -62,9 +62,6 @@ class Button(BaseWidget, IconMixin):
         layout: dict = self.layout_from_options(kwargs)  # type:ignore
         LayoutMixin.__init__(self, layout)
 
-        print("layout", layout, "kwargs", kwargs)
-        print("Widget kwargs before ttk.Button:", kwargs)
-
         self._widget = ttk.Button(
             parent,
             command=on_click,
@@ -75,6 +72,7 @@ class Button(BaseWidget, IconMixin):
         super().__init__(parent)
         IconMixin.__init__(self)
         self.update_style()
+        self._auto_mount()
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
