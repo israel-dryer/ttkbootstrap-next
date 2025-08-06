@@ -22,6 +22,7 @@ class LayoutMixin:
         _layout_options (dict): Parsed semantic layout configuration stored at initialization.
     """
 
+    parent: "BaseWidget"
     widget: "BaseWidget"
 
     def __init__(self, layout: dict = None, **kwargs):
@@ -34,6 +35,10 @@ class LayoutMixin:
             **kwargs: (Unused) for compatibility with flexible subclassing.
         """
         self._layout_options = layout or {}
+
+    def _auto_mount(self):
+        if getattr(self.parent, 'add') is not None:
+            getattr(self.parent, 'add')(self)
 
     def mount(self, method: LayoutMethod = "pack", **kwargs):
         """
