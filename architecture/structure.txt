@@ -1,6 +1,3 @@
-# ttkbootstrap Project Structure
-
-```plaintext
 ttkbootstrap/
 ├── __init__.py
 ├── app.py
@@ -26,7 +23,7 @@ ttkbootstrap/
 │       ├── layout.py
 │       └── winfo.py
 
-├── tkinterop/                      # Integration with Tkinter internals
+├── interop/                       # Integration with Tkinter internals
 │   ├── __init__.py
 │   ├── commands.py
 │   ├── aliases.py
@@ -172,5 +169,3 @@ ttkbootstrap/
 │   ├── __init__.py
 │   ├── message_catalog.py
 │   └── messages.py
-```
-
