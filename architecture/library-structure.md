@@ -50,6 +50,12 @@ ttkbootstrap/
 │   ├── file_source.py
 │   └── utils.py
 
+├── routing/                         # User-facing routing
+│   ├── __init__.py
+│   ├── router.py
+│   ├── views.py
+│   └── types.py
+
 ├── images/                         # Image-related utilities
 │   ├── __init__.py
 │   ├── photo.py
