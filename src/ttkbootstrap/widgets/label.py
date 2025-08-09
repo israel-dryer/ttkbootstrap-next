@@ -2,9 +2,10 @@ from tkinter import ttk
 from typing import Unpack
 
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.common.types import LabelOptions
+from ttkbootstrap.widgets.types import LabelOptions
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
 from ttkbootstrap.common.utils import unsnake_kwargs, resolve_options

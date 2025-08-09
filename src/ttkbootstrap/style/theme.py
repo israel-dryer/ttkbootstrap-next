@@ -350,9 +350,30 @@ class ColorTheme:
 
     def color(self, token: str, surface: str = None, role="background") -> str:
         """Return a Color object by name."""
-        if 'subtle' in token:
-            color, _ = token.split('-')
-            return self.subtle(color, surface, role)
+        if '-' in token:
+            color, level = token.split('-')
+            if len(level) == 1:
+                if 'subtle' in token: # color-subtle
+                    return self.subtle(color, surface, role)
+                else:
+                    # color-1 (elevated color)
+                    base = self._colors.get(color)
+                    return self.elevate(base, int(level))
+            elif len(level) == 2:
+                if 'subtle' in token:  # color-subtle-2 (elevated subtle color)
+                    base = self.subtle(color, surface, role)
+                    return self.elevate(base, int(level[1]))
+
+            if level and len(level) == 1:
+                if 'subtle' in token:
+                    base = self.subtle(color, surface, role)
+                    return self.elevate(base, int(level))
+                else:
+                    base = self._colors.get(color)
+                    return self.elevate(base, int(level))
+            elif 'subtle' in token:
+                color, _ = token.split('-')
+                return self.subtle(color, surface, role)
         return self._colors.get(token)
 
     def subtle(self, token: str, surface=None, role="background") -> str:

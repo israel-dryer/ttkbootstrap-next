@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 from ttkbootstrap.images.photo import Photo
-from ttkbootstrap.common.types import ColorModel
+from ttkbootstrap.style.types import ColorModel
 from ttkbootstrap.common.utils import clamp
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets" / "widgets"

@@ -1,25 +1,21 @@
-from ttkbootstrap.core import App
+from ttkbootstrap import App
 from ttkbootstrap.style.theme import ColorTheme
-from ttkbootstrap.widgets import CheckButton, GridFrame, IconButton, LabelFrame, RadioButton, Button
+from ttkbootstrap.widgets import CheckButton, IconButton, RadioButton, Button
 from ttkbootstrap.layouts.pack_frame import PackFrame
+from ttkbootstrap.layouts.grid_frame import GridFrame
 
-"""
-    - Add a `mount()` function to the layouts
-"""
 
-class ButtonFrameSection(LabelFrame):
+class ButtonFrameSection(PackFrame):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # add children
-        with GridFrame(self, cols=4) as grid:
-            grid.add(btn := IconButton(icon='moon-fill', variant="ghost", on_click=self.toggle_theme))
-            grid.add(IconButton(icon='house-fill', variant="ghost"))
-            grid.add(IconButton(icon='bag-check-fill', variant="ghost"))
-            grid.add(CheckButton(text='Is Deployed'))
-            self._theme_button = btn
-            self.add(grid)
+        with PackFrame(parent=self):
+            self._theme_button = IconButton(icon='moon-fill', variant="ghost", on_click=self.toggle_theme)
+            IconButton(icon='house-fill', variant="ghost")
+            IconButton(icon='bag-check-fill', variant="ghost")
+            CheckButton(text='Is Deployed')
 
     def toggle_theme(self):
         theme = ColorTheme.instance()
@@ -31,23 +27,24 @@ class ButtonFrameSection(LabelFrame):
             self._theme_button.icon('moon-fill')
 
 
-with App("Button Demo") as app:
-    with PackFrame(side="top", gap=16) as main:
-        main.pack(fill='both', padx=16, pady=16)
+with App("Button Demo", theme="dark") as app:
+    app.geometry('800x600')
 
-        with PackFrame(gap=8, side="top") as f:
-            f.add(Button(text="Primary", icon="house-fill"))
-            f.add(Button(text="Secondary", icon="house-fill", color="secondary", variant="ghost"))
-            main.add(f)
+    with GridFrame(columns=["250px", 1], rows=[1], sticky="nsew", expand=True):
 
-        main.add(ButtonFrameSection(padding=8))
+        with GridFrame(columns=[1], rows=[1, 1], padding=16, surface="background-1", sticky="news"):
 
-        with PackFrame(gap=8) as rb:
-            rb.add(RadioButton(text="Red", color="danger", value="red", group="colors"))
-            rb.add(RadioButton(text="Green", color="success", value="green", group="colors"))
-            rb.add(RadioButton(text="Blue", color="primary", value="primary", group="colors"))
+            with PackFrame(direction="column", sticky="new", gap=8, sticky_content="ew", expand_content=True):
+                Button(text="Button 1", color="secondary")
+                Button(text="Button 2", color="secondary")
+                Button(text="Button 3", color="secondary")
 
-        main.add_all([rb])
+            with PackFrame(direction="column-reverse", sticky="sew", expand=True, gap=8, sticky_content="ew", expand_content=True):
+                Button(text="Light Mode", icon="sun-fill", on_click=lambda: app.theme.use('light'))
+                Button(text="Dark Mode", icon="moon-fill", on_click=lambda: app.theme.use('dark'))
 
+        with GridFrame(columns=[1, 0], rows=[1], gap=16, padding=16, margin=16, expand=True, surface="background-1", sticky="nsew"):
+            Button(text="Content Area", sticky="new")
+            Button(text="Side Area", sticky="new")
 
-    app.run()
+app.run()

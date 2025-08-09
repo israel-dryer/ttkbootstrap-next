@@ -19,8 +19,8 @@ from ttkbootstrap.widgets.scale import Scale
 from ttkbootstrap.widgets.canvas import Canvas
 
 # form fields
-from ttkbootstrap.widgets.number_entry import NumberEntry
-from ttkbootstrap.widgets.file_entry import FileEntry
-from ttkbootstrap.widgets.date_entry import DateEntry
-from ttkbootstrap.widgets.text_entry import TextEntry
-from ttkbootstrap.widgets.password_entry import PasswordEntry
+# from ttkbootstrap.widgets.number_entry import NumberEntry
+# from ttkbootstrap.widgets.file_entry import FileEntry
+# from ttkbootstrap.widgets.date_entry import DateEntry
+# from ttkbootstrap.widgets.text_entry import TextEntry
+# from ttkbootstrap.widgets.password_entry import PasswordEntry

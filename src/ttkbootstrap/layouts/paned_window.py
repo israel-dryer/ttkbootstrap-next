@@ -1,9 +1,10 @@
 from typing import Union, Unpack
 
 from tkinter import ttk
-from ttkbootstrap.common.types import Orient, PaneOptions, PanedWindowOptions
+from ttkbootstrap.widgets.types import PanedWindowOptions, PaneOptions, Orient
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout, layout_context_stack
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout, layout_context_stack
 from ttkbootstrap.style.builders.paned_window import PanedWindowStyleBuilder
 from ttkbootstrap.style.tokens import ForegroundColor, SurfaceColor
 from ttkbootstrap.common.utils import unsnake, unsnake_kwargs

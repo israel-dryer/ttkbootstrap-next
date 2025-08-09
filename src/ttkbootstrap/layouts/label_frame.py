@@ -1,8 +1,10 @@
 from typing import Unpack, cast
 
-from ttkbootstrap.common.types import Fill, LabelFrameOptions
+from ttkbootstrap.layouts.types import Fill
+from ttkbootstrap.widgets.types import LabelFrameOptions
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout, layout_context_stack
+from ttkbootstrap.layouts.constants import layout_context_stack
 from tkinter import ttk
 
 from ttkbootstrap.style.builders.label_frame import LabelFrameStyleBuilder
@@ -36,12 +38,10 @@ class LabelFrame(BaseWidget, ContainerMixin):
             border_color: The border color or accent theme token.
             **kwargs: Additional options accepted by the base LabelFrame widget.
         """
-        parent = parent or current_layout()
-        self._style_builder = LabelFrameStyleBuilder(
-            border_color=border_color, label_color=label_color)
-        self._widget = ttk.LabelFrame(parent, text=text, **unsnake_kwargs(kwargs))
-        super().__init__(parent, surface=background)
-        self.update_style()
+        tk_options = unsnake_kwargs(kwargs)
+        tk_options.update(text=text)
+        super().__init__(ttk.LabelFrame, tk_options, surface=background)
+        self._style_builder = LabelFrameStyleBuilder(border_color=border_color, label_color=label_color)
 
     def __enter__(self):
         layout_context_stack().append(self)

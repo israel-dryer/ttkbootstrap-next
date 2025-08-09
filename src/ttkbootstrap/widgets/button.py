@@ -1,11 +1,11 @@
 from tkinter import ttk
 from typing import Callable, Literal, Unpack
 
-from ttkbootstrap.core.mixins.layout import LayoutMixin
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
-from ttkbootstrap.common.types import ButtonOptions, SemanticLayoutOptions, Justify
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
+from ttkbootstrap.widgets.types import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
 from ttkbootstrap.common.utils import unsnake_kwargs, resolve_options
@@ -20,8 +20,7 @@ class Button(BaseWidget, IconMixin):
     A styled Button widget with fluent configuration and reactive text binding.
     """
 
-    _configure_methods = {"text", "text_signal", "justify_text", "on_click", "icon", "icon_position", "color",
-                          "variant"}
+    _configure_methods = {"text", "text_signal", "on_click", "icon", "icon_position", "color", "variant"}
 
     def __init__(
             self,
@@ -47,7 +46,6 @@ class Button(BaseWidget, IconMixin):
             on_click: Callback function for click events.
             **kwargs: Additional Button options.
         """
-        parent = parent or current_layout()
         self._on_click = on_click
         self._text_signal = Signal(text)
         self._icon = resolve_options(icon, 'name') or None
@@ -55,24 +53,16 @@ class Button(BaseWidget, IconMixin):
         self._style_builder = ButtonStyleBuilder(color, variant)
 
         # remove invalid arguments
-        for key in ['compound']:
-            kwargs.pop(key, None)
+        kwargs.pop('compound', None)
 
-        # extract layout options
-        layout: dict = self.layout_from_options(kwargs)  # type:ignore
-        LayoutMixin.__init__(self, layout)
-
-        self._widget = ttk.Button(
-            parent,
+        tk_options = dict(
             command=on_click,
             compound=self._icon_position if self._icon else "text",
             textvariable=self._text_signal.var,
             **unsnake_kwargs(kwargs)
         )
-        super().__init__(parent)
+        super().__init__(ttk.Button, tk_options, parent=parent, auto_mount=True)
         IconMixin.__init__(self)
-        self.update_style()
-        self._auto_mount()
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
@@ -82,10 +72,11 @@ class Button(BaseWidget, IconMixin):
         """Get or set the button click handler."""
         if func is None:
             return self._on_click
-        if not callable(func):
+        if callable(func):
+            self._on_click = func
+            self.configure(command=func)
+        else:
             raise TypeError(f"`on_click` must be callable, got {type(func).__name__}")
-        self._on_click = func
-        self.configure(command=func)
         return self
 
     def text(self, value: str = None):
@@ -120,14 +111,6 @@ class Button(BaseWidget, IconMixin):
             self._style_builder.color(value)
             self.update_style()
             self._update_icon_assets()
-            return self
-
-    def justify_text(self, value: Justify):
-        """Specify how the text is aligned when on multiple lines"""
-        if value is None:
-            return self.widget.cget('justify')
-        else:
-            self.widget.configure(justify=value)
             return self
 
     def variant(self, value: ButtonVariant = None):

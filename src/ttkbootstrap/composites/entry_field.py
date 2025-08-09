@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, Literal, Union
 
-from ttkbootstrap.core.base_widget import current_layout
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.widgets import Button, IconButton
 from ttkbootstrap.layouts.frame import Frame
 from ttkbootstrap.widgets.label import Label

@@ -1,6 +1,6 @@
 from typing import Literal, Union
 
-from ttkbootstrap.core.base_widget import current_layout
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.badge import BadgeStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.widgets.label import Label

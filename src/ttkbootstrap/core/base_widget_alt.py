@@ -1,6 +1,7 @@
-from tkinter import Misc
-from typing import TYPE_CHECKING, Union
+from tkinter import Misc, ttk
+from typing import Callable, TYPE_CHECKING, Union, Any
 
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.core.mixins.binding import BindingMixin
 from ttkbootstrap.core.mixins.configure import ConfigureMixin
 from ttkbootstrap.core.mixins.focus import FocusMixIn
@@ -8,10 +9,6 @@ from ttkbootstrap.core.mixins.geometry import GeometryMixin
 from ttkbootstrap.core.mixins.grab import GrabMixIn
 from ttkbootstrap.core.mixins.layout import LayoutMixin
 from ttkbootstrap.core.mixins.winfo import WidgetInfoMixin
-from ttkbootstrap.layouts.constants import current_layout
-
-if TYPE_CHECKING:
-    pass
 
 
 class BaseWidget(
@@ -25,13 +22,38 @@ class BaseWidget(
 ):
     _widget: Union["BaseWidget", Misc]
 
-    def __init__(self, parent: Union["BaseWidget", Misc, "App"] = None, **kwargs):
+    def __init__(
+            self,
+            tk_widget: Callable,
+            tk_widget_options: dict = None,
+            *,
+            auto_mount: bool = True,
+            parent: Union["BaseWidget", Misc, "Any"] = None,
+            **kwargs):
+
         super().__init__()
+
+        # get parent
         self._parent = parent or current_layout()
+
+        # extract layout options & initialize layout
+        layout: dict = BaseWidget.layout_from_options(tk_widget_options)  # type:ignore
+        LayoutMixin.__init__(self, layout)
+
+        # initialize tkinter widget
+        self._widget: Misc = tk_widget(self._parent, **(tk_widget_options or dict()))
+
+        # re-apply padding if supported (e.g., ttk.Frame)
+        if "padding" in layout and isinstance(self._widget, ttk.Frame):
+            self._widget.configure(padding=layout["padding"])
 
         # get surface color
         self._surface_token = kwargs.pop('surface', None)
         self.bind('theme-changed', lambda _: self.update_style())
+
+        # mount the widget to the parent container
+        if auto_mount:
+            self._auto_mount()
 
     @property
     def parent(self):

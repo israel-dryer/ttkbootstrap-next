@@ -2,8 +2,9 @@ from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.common.types import CheckButtonOptions
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.widgets.types import CheckButtonOptions
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.switch_button import SwitchButtonStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.common.utils import unsnake_kwargs

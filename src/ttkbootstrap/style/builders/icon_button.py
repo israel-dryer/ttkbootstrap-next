@@ -4,7 +4,7 @@ from .base import StyleBuilderBase
 from ..element import Element, ElementImage
 from ..tokens import ButtonVariant, SemanticColor
 from ..utils import recolor_image
-from ttkbootstrap.common.types import ButtonSize
+from ..types import ButtonSize
 from ...icons import BootstrapIcon
 
 _images = []

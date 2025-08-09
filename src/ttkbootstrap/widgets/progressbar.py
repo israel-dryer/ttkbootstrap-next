@@ -2,8 +2,9 @@ from typing import Any, Callable, Unpack, Literal
 
 from tkinter import ttk
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.common.types import ProgressOptions, Orient
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.widgets.types import ProgressOptions, Orient
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.common.utils import unsnake_kwargs

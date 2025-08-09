@@ -7,7 +7,7 @@ app = App(theme="dark")
 theme = ColorTheme.instance()
 
 
-Button(app, 'primary', color='primary', icon="house").pack(padx=16, pady=16)
+Button(app, 'primary', color='primary', icon="house", padding=16)
 # Button(app, 'secondary', color="secondary", icon="house").pack(padx=16, pady=16)
 # Button(app, 'info', color="info").pack(padx=16, pady=16).disable()
 # Button(app, 'success', color="success", icon="house").pack(padx=16, pady=16)

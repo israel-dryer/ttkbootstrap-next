@@ -2,9 +2,10 @@ from typing import Any, Callable, Unpack
 
 from tkinter import ttk
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.common.types import EntryOptions
+from ttkbootstrap.widgets.types import EntryOptions
 from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.spinbox import SpinBoxStyleBuilder
 from ttkbootstrap.common.utils import unsnake_kwargs
 

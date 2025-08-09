@@ -1,7 +1,8 @@
 from tkinter import Tk
-from ttkbootstrap.common.types import ColorMode
+from ttkbootstrap.style.types import ColorMode
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget, layout_context_stack, set_default_root
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import set_default_root, layout_context_stack
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
 from ttkbootstrap.style.theme import ColorTheme
 from ttkbootstrap.style.tokens import SurfaceColor

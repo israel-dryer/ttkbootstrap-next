@@ -1,6 +1,6 @@
 from typing import Callable, Union
 
-from ttkbootstrap.core.base_widget import current_layout
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.widgets import Frame, Scrollbar
 from ttkbootstrap.datasource.sqlite_source import DataSource
 from ttkbootstrap.widgets.parts import ListItemPart

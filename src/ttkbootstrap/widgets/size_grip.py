@@ -1,7 +1,8 @@
 from typing import Unpack
 
-from ttkbootstrap.common.types import SizeGripOptions
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.widgets.types import SizeGripOptions
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.size_grip import SizeGripStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from tkinter import ttk

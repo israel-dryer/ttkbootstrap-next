@@ -5,13 +5,13 @@ import tkinter as tk
 from PIL import Image
 
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
 from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
-from ttkbootstrap.common.types import (
-    CanvasArcOptions, CanvasImageOptions, CanvasItemOptions, CanvasLineOptions, CanvasOptions, CanvasOvalOptions,
-    CanvasPolygonOptions, CanvasRectangleOptions, CanvasTextIndex, CanvasTextOptions, CanvasWidgetOptions
-)
+from ttkbootstrap.widgets.types import CanvasOptions, CanvasArcOptions, CanvasLineOptions, CanvasTextOptions, \
+    CanvasRectangleOptions, CanvasPolygonOptions, CanvasImageOptions, CanvasWidgetOptions, CanvasOvalOptions, \
+    CanvasTextIndex, CanvasItemOptions
 
 CanvasTagOrId = Union[int, str]
 

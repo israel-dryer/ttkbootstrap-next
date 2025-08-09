@@ -1,9 +1,10 @@
 from tkinter import ttk
 from typing import Unpack
 
-from ttkbootstrap.common.types import NotebookOptions, NotebookTabOptions
+from ttkbootstrap.widgets.types import NotebookOptions, NotebookTabOptions
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout, layout_context_stack
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout, layout_context_stack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.common.utils import unsnake_kwargs
 

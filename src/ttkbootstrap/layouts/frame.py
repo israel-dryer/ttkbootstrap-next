@@ -1,14 +1,18 @@
 from typing import Unpack
 
-from ttkbootstrap.common.types import FrameOptions
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
+from ttkbootstrap.widgets.types import FrameOptions
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.mixins.layout import LayoutMixin
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
 from ttkbootstrap.style.tokens import SurfaceColor
 from tkinter import ttk
 
 from ttkbootstrap.common.utils import unsnake_kwargs
+
+
+class _Options(FrameOptions, SemanticLayoutOptions):
+    pass
 
 
 class Frame(BaseWidget, ContainerMixin):
@@ -25,7 +29,7 @@ class Frame(BaseWidget, ContainerMixin):
             *,
             surface: SurfaceColor = None,
             variant: str = None,
-            **kwargs: Unpack[FrameOptions]):
+            **kwargs: Unpack[_Options]):
         """
         Initialize a new themed Frame widget.
 
@@ -35,18 +39,12 @@ class Frame(BaseWidget, ContainerMixin):
             variant: An optional style variant (e.g., 'bordered').
             **kwargs: Additional keyword arguments passed to ttk.Frame.
         """
-        parent = parent or current_layout()
-        build_options = kwargs.pop('builder', dict())
         self._surface_token = surface
+        style_options = kwargs.pop('builder', dict())
+        tk_options = unsnake_kwargs(kwargs)
 
-        # extract layout options
-        layout: dict = self.layout_from_options(kwargs) # type:ignore
-        LayoutMixin.__init__(self, layout)
-
-        self._widget = ttk.Frame(parent, **unsnake_kwargs(kwargs))
-        super().__init__(parent, surface=surface)
-        self._style_builder = FrameStyleBuilder(variant=variant, **build_options)
-        self.update_style()
+        super().__init__(ttk.Frame, tk_options, parent=parent, surface=surface, auto_mount=True)
+        self._style_builder = FrameStyleBuilder(variant=variant, **style_options)
 
     def surface(self, value: SurfaceColor = None):
         """Get or set the surface token for this widget."""

@@ -1,7 +1,8 @@
 from tkinter import ttk
 
-from ttkbootstrap.common.types import Orient
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.widgets.types import Orient
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
 from ttkbootstrap.style.tokens import SeparatorColor
 

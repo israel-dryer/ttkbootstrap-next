@@ -1,9 +1,10 @@
 from typing import Any, Callable, Union, Unpack
 
 from tkinter import ttk
+
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.common.types import RadioButtonOptions
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.widgets.types import RadioButtonOptions
 from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
 from ttkbootstrap.style.tokens import ForegroundColor
 from ttkbootstrap.common.utils import unsnake_kwargs
@@ -50,12 +51,11 @@ class RadioButton(BaseWidget):
             on_change: A callback triggered whenever the group value changes.
             **kwargs: Additional keyword arguments passed to ttk.Radiobutton.
         """
-        parent = parent or current_layout()
-        self._style_builder = RadioButtonStyleBuilder(color, variant=variant)
         self._on_select = on_select
         self._on_change = on_change
         self._text_signal = Signal(text)
         self._on_change_fid = None
+        self._style_builder = RadioButtonStyleBuilder(color, variant=variant)
 
         if group:
             self._value_signal = Signal(None, name=str(group))
@@ -74,11 +74,17 @@ class RadioButton(BaseWidget):
             **unsnake_kwargs(kwargs)
         )
 
+        tk_options = dict(
+            value=value,
+            textvariable=self._text_signal.var,
+            variable=self._value_signal.var,
+            command=self._on_select,
+            **unsnake_kwargs(kwargs)
+        )
+        super().__init__(ttk.Radiobutton, tk_options, parent=parent, auto_mount=True)
+
         if selected:
             self.select()
-
-        super().__init__(parent)
-        self.update_style()
 
     def text(self, value: str = None):
         """Get or set the label text."""

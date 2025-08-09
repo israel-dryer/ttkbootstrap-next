@@ -1,8 +1,9 @@
 from tkinter import ttk
 from typing import Unpack
 
-from ttkbootstrap.common.types import ScrollbarOptions, Orient
-from ttkbootstrap.core.base_widget import BaseWidget, current_layout
+from ttkbootstrap.widgets.types import ScrollbarOptions, Orient
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
 from ttkbootstrap.common.utils import unsnake_kwargs
 
