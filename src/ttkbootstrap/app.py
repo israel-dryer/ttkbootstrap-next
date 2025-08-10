@@ -17,11 +17,15 @@ class App(BaseWidget, ContainerMixin):
             theme: ColorMode = "light",
             use_default_fonts: bool = True,
             surface: SurfaceColor = "background",
+            fullscreen: bool = False,
             geometry: str = None # must be of format: 800x600 or +300+200 or 800x600+300+200
         ):
         super().__init__(Tk, dict(), surface=surface, auto_mount=False, mountable=True)
         if geometry:
             self.widget.geometry(geometry)
+
+        if fullscreen:
+            self.widget.attributes('-fullscreen', True)
 
         set_default_root(self)
         # set layout for window container
