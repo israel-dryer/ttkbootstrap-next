@@ -1,7 +1,7 @@
 from tkinter import Tk
 from ttkbootstrap.style.types import ColorMode
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import set_default_root, layout_context_stack
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
 from ttkbootstrap.style.theme import ColorTheme
@@ -16,17 +16,17 @@ class App(BaseWidget, ContainerMixin):
             title="ttkbootstrap",
             theme: ColorMode = "light",
             use_default_fonts: bool = True,
-            surface: SurfaceColor = "background"
-    ):
-        set_default_root(self)
-        self.mountable = True
-        self._widget = Tk()
+            surface: SurfaceColor = "background",
+            geometry: str = None # must be of format: 800x600 or +300+200 or 800x600+300+200
+        ):
+        super().__init__(Tk, dict(), surface=surface, auto_mount=False, mountable=True)
+        if geometry:
+            self.widget.geometry(geometry)
 
+        set_default_root(self)
         # set layout for window container
         self._widget.rowconfigure(0, weight=1)
         self._widget.columnconfigure(0, weight=1)
-
-        super().__init__(None, surface=surface)
         self._style_builder = WindowStyleBuilder(self)
 
         # hide until ready to render
