@@ -22,7 +22,7 @@ class App(BaseWidget, ContainerMixin):
         self.mountable = True
         self._widget = Tk()
 
-        # set weights on grid
+        # set layout for window container
         self._widget.rowconfigure(0, weight=1)
         self._widget.columnconfigure(0, weight=1)
 
@@ -47,6 +47,20 @@ class App(BaseWidget, ContainerMixin):
 
     def __exit__(self, *args):
         layout_context_stack().pop()
+
+    def add(self, widget, **overrides):
+        """
+        Mount a direct child into the root grid. If the child did not specify
+        sticky, default to 'nsew' so it fills the window. Allows row/col overrides.
+        """
+        opts = getattr(widget, "_layout_options", {}).copy()
+
+        row = overrides.pop("row", opts.pop("row", 0))
+        col = overrides.pop("column", opts.pop("column", opts.pop("col", 0)))
+        sticky = overrides.pop("sticky", opts.pop("sticky", "nsew"))
+
+        widget.mount(row=row, column=col, sticky=sticky, **overrides)
+        return self
 
     @property
     def theme(self):
