@@ -43,7 +43,7 @@ class Frame(BaseWidget, ContainerMixin):
         style_options = kwargs.pop('builder', dict())
         tk_options = unsnake_kwargs(kwargs)
 
-        super().__init__(ttk.Frame, tk_options, parent=parent, surface=surface, auto_mount=True)
+        super().__init__(ttk.Frame, tk_options, parent=parent, surface=surface, auto_mount=True, mountable=True)
         self._style_builder = FrameStyleBuilder(variant=variant, **style_options)
 
     def surface(self, value: SurfaceColor = None):

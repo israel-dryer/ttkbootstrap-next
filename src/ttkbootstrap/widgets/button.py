@@ -59,7 +59,7 @@ class Button(BaseWidget, IconMixin):
             command=on_click,
             compound=self._icon_position if self._icon else "text",
             textvariable=self._text_signal.var,
-            **unsnake_kwargs(kwargs)
+            **kwargs
         )
         super().__init__(ttk.Button, tk_options, parent=parent, auto_mount=True)
         IconMixin.__init__(self)

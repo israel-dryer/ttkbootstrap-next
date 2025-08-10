@@ -19,6 +19,7 @@ class App(BaseWidget, ContainerMixin):
             surface: SurfaceColor = "background"
     ):
         set_default_root(self)
+        self.mountable = True
         self._widget = Tk()
         super().__init__(None, surface=surface)
         self._style_builder = WindowStyleBuilder(self)

@@ -4,8 +4,7 @@ from typing import Unpack
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import LabelOptions
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
 from ttkbootstrap.common.utils import unsnake_kwargs, resolve_options
@@ -40,20 +39,17 @@ class Label(BaseWidget, IconMixin):
             icon: The icon to display
             **kwargs: Additional ttk.Label options.
         """
-        parent = parent or current_layout()
         self._text_signal = Signal(text)
         self._icon = resolve_options(icon, 'name') if icon else None
         build_options = kwargs.pop('builder', dict())
         self._style_builder = LabelStyleBuilder(foreground, background, variant, **build_options)
-        self._widget = ttk.Label(
-            parent,
+        tk_options = dict(
             font=font,
             textvariable=self._text_signal.var,
-            **unsnake_kwargs(kwargs)
+            **kwargs
         )
-        super().__init__(parent)
+        super().__init__(ttk.Label, tk_options, parent=parent, auto_mount=True)
         IconMixin.__init__(self)
-        self.update_style()
 
     def text(self, value: str = None):
         """Get or set the label text."""

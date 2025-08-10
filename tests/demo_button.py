@@ -2,7 +2,7 @@ from ttkbootstrap import App
 from ttkbootstrap.style.theme import ColorTheme
 from ttkbootstrap.widgets import CheckButton, IconButton, RadioButton, Button
 from ttkbootstrap.layouts.pack_frame import PackFrame
-from ttkbootstrap.layouts.grid_frame import GridFrame
+from ttkbootstrap.layouts.gridbox import GridBox
 
 
 class ButtonFrameSection(PackFrame):
@@ -30,9 +30,9 @@ class ButtonFrameSection(PackFrame):
 with App("Button Demo", theme="dark") as app:
     app.geometry('800x600')
 
-    with GridFrame(columns=["250px", 1], rows=[1], sticky="nsew", expand=True):
+    with GridBox(columns=["250px", 1], rows=[1], sticky="nsew", expand=True):
 
-        with GridFrame(columns=[1], rows=[1, 1], padding=16, surface="background-1", sticky="news"):
+        with GridBox(columns=[1], rows=[1, 1], padding=16, surface="background-1", sticky="news"):
 
             with PackFrame(direction="column", sticky="new", gap=8, sticky_content="ew", expand_content=True):
                 Button(text="Button 1", color="secondary")
@@ -43,7 +43,7 @@ with App("Button Demo", theme="dark") as app:
                 Button(text="Light Mode", icon="sun-fill", on_click=lambda: app.theme.use('light'))
                 Button(text="Dark Mode", icon="moon-fill", on_click=lambda: app.theme.use('dark'))
 
-        with GridFrame(columns=[1, 0], rows=[1], gap=16, padding=16, margin=16, expand=True, surface="background-1", sticky="nsew"):
+        with GridBox(columns=[1, 0], rows=[1], gap=16, padding=16, margin=16, expand=True, surface="background-1", sticky="nsew"):
             Button(text="Content Area", sticky="new")
             Button(text="Side Area", sticky="new")
 

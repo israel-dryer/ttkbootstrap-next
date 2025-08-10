@@ -2,8 +2,7 @@ from tkinter import ttk
 from typing import Unpack
 
 from ttkbootstrap.widgets.types import ScrollbarOptions, Orient
-from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
 from ttkbootstrap.common.utils import unsnake_kwargs
 
@@ -13,7 +12,7 @@ class Scrollbar(BaseWidget):
 
     _configure_methods = {}
 
-    def __init__(self, parent=None, orient: Orient="vertical", **kwargs: Unpack[ScrollbarOptions]):
+    def __init__(self, parent=None, orient: Orient = "vertical", **kwargs: Unpack[ScrollbarOptions]):
         """
         Initialize a new themed scrollbar.
 
@@ -21,11 +20,9 @@ class Scrollbar(BaseWidget):
             parent: The parent widget.
             **kwargs: Configuration options for the ttk.Scrollbar widget.
         """
-        parent = parent or current_layout()
         self._style_builder = ScrollbarStyleBuilder(orient=orient)
-        self._widget = ttk.Scrollbar(parent, orient=orient, **unsnake_kwargs(kwargs))
-        super().__init__(parent)
-        self.update_style()
+        tk_options = dict(orient=orient, **unsnake_kwargs(kwargs))
+        super().__init__(ttk.Scrollbar, tk_options, parent=parent)
 
     def delta(self, x: int, y: int) -> float:
         """Return the fractional change if the scrollbar were moved by (x, y) pixels."""

@@ -1,6 +1,7 @@
 from tkinter import Misc, ttk
 from typing import Callable, TYPE_CHECKING, Union, Any
 
+from ttkbootstrap.common.utils import unsnake_kwargs
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.core.mixins.binding import BindingMixin
 from ttkbootstrap.core.mixins.configure import ConfigureMixin
@@ -28,9 +29,11 @@ class BaseWidget(
             tk_widget_options: dict = None,
             *,
             auto_mount: bool = True,
+            mountable: bool = False,
             parent: Union["BaseWidget", Misc, "Any"] = None,
             **kwargs):
 
+        self._mountable = mountable
         super().__init__()
 
         # get parent
@@ -41,7 +44,7 @@ class BaseWidget(
         LayoutMixin.__init__(self, layout)
 
         # initialize tkinter widget
-        self._widget: Misc = tk_widget(self._parent, **(tk_widget_options or dict()))
+        self._widget: Misc = tk_widget(self._parent, **(unsnake_kwargs(tk_widget_options) or dict()))
 
         # re-apply padding if supported (e.g., ttk.Frame)
         if "padding" in layout and isinstance(self._widget, ttk.Frame):
@@ -52,7 +55,7 @@ class BaseWidget(
         self.bind('theme-changed', lambda _: self.update_style())
 
         # mount the widget to the parent container
-        if auto_mount:
+        if auto_mount and self.parent.mountable:
             self._auto_mount()
 
     @property
@@ -62,6 +65,10 @@ class BaseWidget(
     @property
     def widget(self):
         return self._widget
+
+    @property
+    def mountable(self):
+        return self._mountable
 
     @property
     def tk(self):

@@ -14,6 +14,7 @@ from ttkbootstrap.widgets.badge import Badge
 # data
 from ttkbootstrap.widgets.progressbar import ProgressBar
 from ttkbootstrap.widgets.scale import Scale
+from ttkbootstrap.widgets.scrollbar import Scrollbar
 
 # other
 from ttkbootstrap.widgets.canvas import Canvas

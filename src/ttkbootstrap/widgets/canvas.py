@@ -5,13 +5,15 @@ import tkinter as tk
 from PIL import Image
 
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.core.base_widget_alt import BaseWidget
+from ttkbootstrap.layouts.constants import layout_context_stack
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
 from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
-from ttkbootstrap.widgets.types import CanvasOptions, CanvasArcOptions, CanvasLineOptions, CanvasTextOptions, \
-    CanvasRectangleOptions, CanvasPolygonOptions, CanvasImageOptions, CanvasWidgetOptions, CanvasOvalOptions, \
+from ttkbootstrap.widgets.types import (
+    CanvasOptions, CanvasArcOptions, CanvasLineOptions, CanvasTextOptions,
+    CanvasRectangleOptions, CanvasPolygonOptions, CanvasImageOptions, CanvasWidgetOptions, CanvasOvalOptions,
     CanvasTextIndex, CanvasItemOptions
+)
 
 CanvasTagOrId = Union[int, str]
 
@@ -29,13 +31,19 @@ class Canvas(BaseWidget, ContainerMixin):
             parent: The parent widget.
             **kwargs: Keyword arguments for canvas configuration. These are converted from snake_case to camelCase to match Tkinter options.
         """
-        parent = parent or current_layout()
-        self._widget = tk.Canvas(parent, **unsnake_kwargs(kwargs))
-        super().__init__(parent)
+        tk_options = unsnake_kwargs(kwargs)
+        super().__init__(tk.Canvas, tk_options, parent=parent, auto_mount=True)
+
         self._style_builder = CanvasStyleBuilder(self)
         self._style_builder.register_style()
         self._theme = self._style_builder.theme
-        self.update_style()
+
+    def __enter__(self):
+        layout_context_stack().append(self)
+        return self
+
+    def __exit__(self, *args):
+        layout_context_stack().pop()
 
     def add_widget(self, x: float, y: float, widget: BaseWidget, **kwargs: CanvasWidgetOptions) -> int:
         """Embed a widget at the given (x, y) coordinates."""

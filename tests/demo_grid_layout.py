@@ -1,25 +1,52 @@
-from ttkbootstrap.core import App
-from ttkbootstrap.widgets import GridFrame, LabelFrame
-from ttkbootstrap.widgets.icon_button import IconButton
-from ttkbootstrap.layouts.pack_frame import PackFrame
+from ttkbootstrap import App
+from ttkbootstrap.widgets import Button, Label
+from ttkbootstrap.layouts.gridbox import GridBox  # alias of GridFrame
 
-with App(theme="dark") as app:
+JUSTIFIES = ["start", "center", "end", "stretch"]   # horizontal
+ALIGNS    = ["start", "center", "stretch"]          # vertical (plus 'end' below)
 
-    app.geometry("800x600")
+with App("GridBox — justify/align matrix", theme="dark") as app:
+    app.geometry("900x520")
 
-    with GridFrame(padding=(8, 8, 8, 0), gap=(4, 0)) as layout:
-        layout.add(IconButton(icon='house-fill'), colspan=3)
-        layout.add(IconButton(icon='search'), colspan=6)
-        layout.add(IconButton(icon='trash-fill', color='danger'), colspan=3)
-        layout.pack(fill='x', padx=16, pady=16)
+    # 3 rows × 4 columns, rows/cols are weighted so you can see alignment within cells
+    with GridBox(
+        columns=[1, 1, 1, 1],
+        rows=[1, 1, 1],
+        gap=16,
+        padding=16,
+        surface="background-1",
+        sticky="nsew",
+        expand=True,
+        margin=16,
+    ):
+        # Row labels (left) + column labels (top)
+        # Using auto-layout: 4 per row → 3 rows (12 buttons)
 
-    with LabelFrame(text="Button Items") as l_frame:
-        with PackFrame(padding=8, gap=(4, 0), fill='x') as layout:
-            layout.add(IconButton(icon='amd'))
-            layout.add(IconButton(icon='archive-fill'), expand=True)
-            layout.add(IconButton(icon='android', color='success'))
-            l_frame.add(layout)
+        # Row 1: align_self="start"
+        for j in JUSTIFIES:
+            Button(
+                text=f"J:{j}  A:start",
+                justify_self=j,        # horizontal behavior for this cell
+                align_self="start",    # vertical behavior for this row
+                padding=8,
+            )
 
-        l_frame.pack(fill='x', padx=16, pady=16)
+        # Row 2: align_self="center"
+        for j in JUSTIFIES:
+            Button(
+                text=f"J:{j}  A:center",
+                justify_self=j,
+                align_self="center",
+                padding=8,
+            )
 
-    app.run()
+        # Row 3: align_self="stretch"
+        for j in JUSTIFIES:
+            Button(
+                text=f"J:{j}  A:stretch",
+                justify_self=j,
+                align_self="stretch",
+                padding=8,
+            )
+
+app.run()
