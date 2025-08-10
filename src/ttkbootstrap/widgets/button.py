@@ -8,7 +8,7 @@ from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.widgets.types import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
-from ttkbootstrap.common.utils import unsnake_kwargs, resolve_options
+from ttkbootstrap.common.utils import resolve_options
 
 
 class _Options(ButtonOptions, SemanticLayoutOptions):

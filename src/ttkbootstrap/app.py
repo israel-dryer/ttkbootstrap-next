@@ -21,6 +21,11 @@ class App(BaseWidget, ContainerMixin):
         set_default_root(self)
         self.mountable = True
         self._widget = Tk()
+
+        # set weights on grid
+        self._widget.rowconfigure(0, weight=1)
+        self._widget.columnconfigure(0, weight=1)
+
         super().__init__(None, surface=surface)
         self._style_builder = WindowStyleBuilder(self)
 

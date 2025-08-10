@@ -1,34 +1,34 @@
 """
-GridBox: a grid-first layout with semantic alignment and smart gaps.
+GridBox: a grid-first container with smart gaps, simple auto-placement,
+and a unified expand API.
 
 Strategy
 --------
-`GridBox` is a thin, predictable layer over Tk's `grid` that adds:
-  * **Semantic alignment**: fixed-axes mapping like CSS Grid/Flex docs:
-      - `justify_*` → horizontal behavior (west/east/we).
-      - `align_*`   → vertical behavior (north/south/ns).
-    Per-item `justify_self` / `align_self` override container defaults
-    `justify_items` / `align_items`. These semantics are translated to a
-    `sticky` string only; no track sizing is performed here.
-  * **Smart gaps**: symmetric inter-cell spacing by splitting `gap` into
-    left/right (columns) and top/bottom (rows), trimming outer edges so the
-    grid’s perimeter is not padded unintentionally. Margins are merged on top.
-  * **Ergonomic sizing**:
-      - `columns` / `rows` accept a list of ints (weights) or fixed strings
-        like `"240px"` for minsize. A bare int configures a number of equal
-        weighted tracks.
-      - `grid_propagate(propagate)` is exposed so you can opt-in/out of geometry
-        propagation from children.
-  * **Auto layout**: when you omit `row`/`col`, items flow left→right across the
-    configured columns and wrap to the next row (simple placement; not flex-wrap).
+- **No spacer tracks.** Visual gaps are created with per-cell padding
+  (`padx/pady`) split between neighbors; the outermost edges are trimmed
+  so the last column/row has no gap on its right/bottom.
+- **Auto-placement.** Children flow left-to-right across `columns`, wrap
+  to the next row automatically, and keep their declared `row/col` if
+  provided. When the layout wraps to a new row, the old last row is
+  converted to an interior row and its bottom gap is backfilled.
+- **Unified expand.** `expand` sets uniform weights for *this container’s*
+  grid tracks (columns/rows). It does not touch the parent; the parent
+  must still give the GridBox’s cell room to grow (e.g., `parent.rowconfigure`).
+- **Sticky by default.** You can set a container-wide `sticky_items` to
+  apply to children that don’t specify their own `sticky`.
+- **Track modeling.** `columns`/`rows` accept integer weights or fixed
+  pixel tracks via `"Npx"`. Integers configure `grid_*configure(..., weight=N)`;
+  the expand override (if set) wins uniformly.
 
-This keeps the mental model simple: use `GridBox` when you want a classic grid
-with cleaner spacing and per-item alignment semantics; use `FlexBox` when you
-want flex-like main/cross distribution and item weighting on the main axis.
+Typical gotcha
+--------------
+`expand` affects *tracks*, not widgets. A child fills its cell only if
+its own `sticky` allows it (e.g., `"nsew"`), and the *parent* grid gives
+the GridBox room (non-zero row/column weights).
 """
 
 from __future__ import annotations
-from typing import Unpack, Union, TypedDict, Optional, Literal
+from typing import Unpack, Union, TypedDict, Optional
 
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.frame import Frame
@@ -38,11 +38,9 @@ from ttkbootstrap.layouts.utils import add_pad, margin_to_pad, normalize_gap, no
 from ttkbootstrap.style.tokens import SurfaceColor
 from ttkbootstrap.widgets.types import FrameOptions
 
-AxisAlign = Literal["start", "end", "center", "stretch"]
-
 
 class GridLayoutOptions(FrameOptions, total=False):
-    """Per-child layout options accepted by :class:`GridBox`."""
+    """Per-child grid options consumed by GridBox."""
     row: int
     col: int
     rowspan: int
@@ -51,31 +49,65 @@ class GridLayoutOptions(FrameOptions, total=False):
     sticky: Sticky
     padx: int | tuple[int, int]
     pady: int | tuple[int, int]
-    # semantic (per-item) – captured by LayoutMixin, used here if sticky not set
-    justify_self: AxisAlign
-    align_self: AxisAlign
 
 
 class GridRowOptions(TypedDict, total=False):
-    """Row configuration forwarded to `rowconfigure`."""
+    """Row configuration passed to `rowconfigure`."""
     weight: int
     height: int
 
 
 class GridColumnOptions(TypedDict, total=False):
-    """Column configuration forwarded to `columnconfigure`."""
+    """Column configuration passed to `columnconfigure`."""
     weight: int
     width: int
 
 
 class _Options(GridLayoutOptions, SemanticLayoutOptions, total=False):
-    """Typed options for the GridBox container itself."""
+    """Extra container styling options forwarded to Frame."""
     surface: SurfaceColor
     variant: str
 
 
 class GridBox(Frame):
-    """Grid-first layout with semantic alignment and smart gaps."""
+    """
+    Grid-first layout with smart gaps, simple auto-placement, and a unified
+    `expand` parameter for track weights.
+
+    __init__(...) doc
+    ------------------
+    Args:
+        parent: The parent widget/container.
+        gap: Gap between cells as `(col_gap, row_gap)` or a single int. Implemented
+            via per-cell `padx/pady` split between neighbors. The first column/row
+            omits its left/top share; the last column/row omits its right/bottom
+            share so there’s no trailing gap.
+        padding: Inner padding for the GridBox itself. Accepts `int`, `(x, y)`,
+            or `(left, top, right, bottom)`.
+        columns: Either an integer (count of equal-weight columns) or a list of
+            track specs (`int` weight or `"Npx"` fixed track). Default `1` so
+            stacked layouts “just work” without extra args.
+        rows: Optional list of row track specs (`int` weight or `"Npx"`). If not
+            provided, rows are created on demand by auto-placement.
+        propagate: Passed to Tk grid propagation for this container.
+        sticky_items: Default `sticky` applied to children that do not specify
+            `sticky` themselves (e.g., `"nsew"`).
+        expand: Unified expand shortcut for *this container’s* tracks:
+            - `True` / `1`        → columns and rows weight = 1
+            - `(c, r)`            → columns weight = `c`, rows weight = `r`
+                                     (bools map to 1/0)
+            - `None` (default)    → leave weights as declared by `columns` / `rows`
+            This does not configure the **parent** grid. If you grid the GridBox
+            into a parent, ensure the parent gives its cell room to grow
+            (e.g., `parent.rowconfigure(0, weight=1)` and `parent.columnconfigure(0, weight=1)`).
+        **kwargs: Forwarded to `Frame` (e.g., `surface`, `style`, etc.).
+
+    Notes:
+        - `expand` applies uniformly to **all** tracks in this container (and to
+          on-demand tracks created by auto-placement). For per-track variation,
+          keep `expand=None` and specify explicit `columns=[...]` and/or `rows=[...]`.
+        - Children still need an appropriate `sticky` to fill their own cells.
+    """
 
     def __init__(
             self,
@@ -83,71 +115,13 @@ class GridBox(Frame):
             *,
             gap: int | tuple[int, int] = 0,
             padding: Union[int, tuple[int, int], tuple[int, int, int, int]] = 0,
-            columns: int | list[str | int] = 12,
-            rows: int | list[str | int] = None,
+            columns: int | list[str | int] = 1,
+            rows: int | list[str | int] | None = None,
             propagate: bool = True,
-            sticky_content: Sticky = None,
-            expand_content: bool = None,
-            justify_items: Optional[AxisAlign] = None,
-            align_items: Optional[AxisAlign] = None,
+            sticky_items: Sticky | None = None,
+            expand: bool | int | tuple[int | bool, int | bool] | None = None,
             **kwargs: Unpack[_Options]
     ):
-        """Initialize a GridBox container.
-
-        GridBox translates fixed-axes semantics into Tk's `grid` options:
-
-        * **Alignment semantics**:
-          - `justify_items` / per-item `justify_self` control **horizontal**
-            stickiness: "start"→"w", "end"→"e", "center"→"", "stretch"→"we".
-          - `align_items` / per-item `align_self` control **vertical**
-            stickiness: "start"→"n", "end"→"s", "center"→"", "stretch"→"ns".
-          When a child does not provide `sticky`, GridBox synthesizes it from
-          these semantics. An explicit `sticky` on the child always wins.
-
-        * **Gaps & margins**:
-          - `gap=(col_gap, row_gap)` is split between neighboring cells and
-            trimmed on the outer edges. Per-item `margin` (if provided by the
-            widget’s LayoutMixin) is merged with the computed gap into `padx/pady`.
-
-        * **Track sizing**:
-          - `columns` / `rows` accept either:
-              • an integer N → creates N weighted tracks (weight=1), or
-              • a list of ints (weights) and/or fixed strings ending with "px"
-                (which set `minsize` and weight=0 for that track).
-          You can further tweak tracks with `configure_column()` and
-          `configure_row()`.
-
-        * **Auto-placement**:
-          - If a child omits `row`/`col`, GridBox places it left→right across
-            the configured columns, advancing to the next row as needed. The
-            optional `offset` adds an extra column offset before placing.
-
-        Args:
-            parent: Parent widget.
-            gap: Inter-cell spacing as `(col_gap, row_gap)` or a single int
-                applied to both; split/trimmed to avoid outer padding.
-            padding: Internal padding for the GridBox frame.
-            columns: Either an int for N equal-weight columns, or a list with
-                per-column weights (ints) and/or fixed widths as strings like
-                `"240px"`.
-            rows: Optional rows configuration using the same conventions as
-                `columns`. When omitted, rows are created on-demand by the
-                auto-placer.
-            propagate: Whether to enable `grid_propagate` on the container.
-            sticky_content: Fallback sticky applied to children that do not
-                specify sticky and for which no justify/align semantic is set.
-            expand_content: Captured on children as a semantic hint; primarily
-                relevant when those children are later packed elsewhere.
-            justify_items: Container default horizontal alignment for children
-                ("start"|"center"|"end"|"stretch") when they do not set
-                `justify_self` and have no explicit `sticky`.
-            align_items: Container default vertical alignment for children
-                ("start"|"center"|"end"|"stretch") when they do not set
-                `align_self` and have no explicit `sticky`.
-            **kwargs: Frame styling/layout options (e.g., `surface`, `variant`,
-                `margin`, `sticky`, etc.). The container’s own `sticky` is
-                passed to `grid` on the container itself via :class:`Frame`.
-        """
         self._gap = normalize_gap(gap)
         self._padding = normalize_padding(padding)
         self._columns = columns if isinstance(columns, list) else [1] * columns
@@ -156,10 +130,9 @@ class GridBox(Frame):
         self._next_row = 0
         self._next_col = 0
         self._mounted: dict[BaseWidget, dict] = {}
-        self._sticky_content = sticky_content
-        self._expand_content = expand_content
-        self._justify_items = justify_items
-        self._align_items = align_items
+
+        self._sticky_items = sticky_items
+        self._col_weight_default, self._row_weight_default = self._parse_expand(expand)
 
         super().__init__(parent, padding=self._padding, **kwargs)
         self.widget.grid_propagate(propagate)
@@ -167,22 +140,34 @@ class GridBox(Frame):
         # Configure columns
         for index, col in enumerate(self._columns):
             if isinstance(col, int):
-                self.configure_column(index, weight=col)
+                weight = col
             elif isinstance(col, str) and col.endswith("px"):
-                self.configure_column(index, weight=0)
+                weight = 0
                 self.widget.grid_columnconfigure(index, minsize=int(col.removesuffix("px")))
+            else:
+                weight = 0
+            if self._col_weight_default is not None:
+                weight = self._col_weight_default
+            self.configure_column(index, weight=weight)
 
-        # Configure rows (optional upfront)
+        # Configure rows (if declared up front)
         if self._rows:
             for index, row in enumerate(self._rows):
                 if isinstance(row, int):
-                    self.configure_row(index, weight=row)
+                    weight = row
                 elif isinstance(row, str) and row.endswith("px"):
-                    self.configure_row(index, weight=0)
+                    weight = 0
                     self.widget.grid_rowconfigure(index, minsize=int(row.removesuffix("px")))
+                else:
+                    weight = 0
+                if self._row_weight_default is not None:
+                    weight = self._row_weight_default
+                self.configure_row(index, weight=weight)
+
+    # -- context manager -------------------------------------------------
 
     def __enter__(self):
-        """Enter a layout context so child widgets auto-mount into this GridBox."""
+        """Enter a layout context where child widgets auto-mount into this container."""
         layout_context_stack().append(self)
         return self
 
@@ -190,42 +175,95 @@ class GridBox(Frame):
         """Exit the layout context."""
         layout_context_stack().pop()
 
+    # -- public API ------------------------------------------------------
+
     def add(self, widget: BaseWidget):
-        """Register and mount a child widget.
-
-        If the child does not provide `sticky`, GridBox synthesizes one from
-        `justify_self` / `align_self` or the container defaults.
-
-        Args:
-            widget: A widget that follows the LayoutMixin contract.
-        """
+        """Add and grid a child with auto-placement and smart gaps."""
         layout_options = getattr(widget, "_layout_options", {}).copy()
 
-        # Pass-through semantic expand (primarily for pack elsewhere)
-        if self._expand_content is not None and "expand" not in layout_options:
-            layout_options["expand"] = self._expand_content
-
-        # Synthesize sticky from semantics if none provided
+        # Default sticky for items, if caller didn't set one
         if not (layout_options.get("sticky") or "").strip():
-            js = layout_options.get("justify_self") or self._justify_items
-            as_ = layout_options.get("align_self") or self._align_items
-            sticky = self._compute_sticky_from_semantics(js, as_)
-            if sticky:
-                layout_options["sticky"] = sticky
-            elif self._sticky_content:
-                layout_options["sticky"] = self._sticky_content
+            if self._sticky_items:
+                layout_options["sticky"] = self._sticky_items
 
         widget._layout_options = layout_options
         self._add(widget, **layout_options)
 
-    def _add(self, widget: BaseWidget, **options: Unpack[GridLayoutOptions]):
-        """Place a child using grid, applying gap/margin padding and auto-placement.
+    def add_all(self, widgets: list[BaseWidget | tuple[BaseWidget, GridLayoutOptions]]):
+        """Add multiple children; tuples may include explicit per-child grid options."""
+        for item in widgets:
+            if isinstance(item, tuple):
+                widget, opts = item
+                self._add(widget, **opts)
+            else:
+                self.add(item)
+
+    def remove(self, widget: BaseWidget):
+        """Remove a managed child from the grid."""
+        if widget in self._mounted:
+            widget.widget.grid_forget()
+            del self._mounted[widget]
+
+    def configure_row(self, index: int, **options: Unpack[GridRowOptions]):
+        """Forward to `rowconfigure`."""
+        self.widget.rowconfigure(index, **options)
+
+    def configure_column(self, index: int, **options: Unpack[GridColumnOptions]):
+        """Forward to `columnconfigure`."""
+        self.widget.columnconfigure(index, **options)
+
+    def configure_child(
+            self,
+            widget: BaseWidget,
+            option: str = None,
+            **options: Unpack[GridLayoutOptions]
+    ):
+        """
+        Re-grid a managed child with new options, or read a stored option.
 
         Args:
-            widget: Child widget to position.
-            **options: Grid placement and sticky options; supports `row/col`,
-                `rowspan/colspan`, `offset`, `sticky`, and padding overrides.
+            widget: The child to reconfigure.
+            option: If provided, returns the stored value for this key instead of
+                reconfiguring the child.
+            **options: New grid options to apply.
         """
+        if widget not in self._mounted:
+            raise ValueError("Widget is not managed by this layout.")
+        if option:
+            return self._mounted[widget].get(option)
+        else:
+            self.remove(widget)
+            self._add(widget, **options)
+            return self
+
+    # -- internals -------------------------------------------------------
+
+    def _apply_auto_layout(self, options: GridLayoutOptions) -> GridLayoutOptions:
+        """Compute next (row, col) based on flow and handle row wraps."""
+        col_span = options.get("colspan", 1)
+        offset = options.pop("offset", 0)
+        cols = len(self._columns)
+
+        # Will this placement wrap to a NEW ROW?
+        will_wrap = (self._next_col + offset + col_span) > cols
+        if will_wrap:
+            # Old "last row" becomes interior → give it bottom gap
+            self._make_prev_last_row_interior(self._next_row)
+            self._next_row += 1
+            self._next_col = 0
+
+        options.setdefault("row", self._next_row)
+        options.setdefault("col", self._next_col + offset)
+        self._next_col += offset + col_span
+
+        # If expand specified for rows, ensure new rows inherit that weight
+        if self._row_weight_default is not None:
+            self.configure_row(options["row"], weight=self._row_weight_default)
+
+        return options
+
+    def _add(self, widget: BaseWidget, **options: Unpack[GridLayoutOptions]):
+        """Grid the child with computed gaps, margins, and expand semantics."""
         if self._auto_layout:
             options = self._apply_auto_layout(options)
 
@@ -233,7 +271,7 @@ class GridBox(Frame):
         row = options.get("row", 0)
         col_span = options.get("colspan", 1)
         row_span = options.get("rowspan", 1)
-        sticky = options.get("sticky", "ew")
+        sticky = options.get("sticky", "")
 
         gap_x, gap_y = self._gap
 
@@ -241,30 +279,45 @@ class GridBox(Frame):
         left_pad = gap_x // 2
         right_pad = gap_x - left_pad
         top_pad = gap_y // 2
-        bottom_pad = gap_y - top_pad
+        bot_pad = gap_y - top_pad
 
-        # Trim outer edges
+        # Trim outer COL edges
         if col == 0:
             left_pad = 0
-        if (col + col_span) == len(self._columns):
+        if (col + col_span) == len(self._columns):  # rightmost edge
             right_pad = 0
-        if row == 0:
-            top_pad = 0
+
+        # Trim outer ROW edges
+        if self._rows:
+            # If explicitly-declared rows exist, suppress bottom gap for the last one.
+            if (row + row_span) >= len(self._rows):
+                bot_pad = 0
+        else:
+            # In auto-layout mode, the current "last row" is `_next_row`.
+            # Any item in that row should suppress bottom gap (we backfill later on wrap).
+            if row == self._next_row:
+                bot_pad = 0
 
         pad_x = (left_pad, right_pad)
-        pad_y = (top_pad, bottom_pad)
+        pad_y = (top_pad if row != 0 else 0, bot_pad)  # first row gets no top gap
 
-        # Merge margin (from LayoutMixin / widget kwargs)
+        # Merge margin and explicit padx/pady
         margin = options.pop("margin", 0)
         m_padx, m_pady = margin_to_pad(margin)
         pad_x = add_pad(pad_x, m_padx)
         pad_y = add_pad(pad_y, m_pady)
-
-        # Merge explicit widget-level padx/pady if provided
         if "padx" in options:
             pad_x = add_pad(pad_x, options["padx"])
         if "pady" in options:
             pad_y = add_pad(pad_y, options["pady"])
+
+        # Ensure expand defaults apply to spans/new tracks
+        if self._col_weight_default is not None:
+            for c in range(col, col + col_span):
+                self.configure_column(c, weight=self._col_weight_default)
+        if self._row_weight_default is not None:
+            for r in range(row, row + row_span):
+                self.configure_row(r, weight=self._row_weight_default)
 
         widget.grid(
             row=row,
@@ -282,108 +335,37 @@ class GridBox(Frame):
             sticky=sticky, pad_x=pad_x, pad_y=pad_y,
         )
 
-    def add_all(self, widgets: list[BaseWidget | tuple[BaseWidget, GridLayoutOptions]]):
-        """Add multiple children; tuples provide per-child options."""
-        for item in widgets:
-            if isinstance(item, tuple):
-                widget, opts = item
-                self._add(widget, **opts)
-            else:
-                self.add(item)
+    def _make_prev_last_row_interior(self, prev_last_row: int):
+        """When a new row is created, the old last row becomes interior; add its bottom gap."""
+        gap_y = self._gap[1]
+        if gap_y == 0 or not self._mounted:
+            return
 
-    def remove(self, widget: BaseWidget):
-        """Forget a managed child from the grid tracking."""
-        if widget in self._mounted:
-            widget.widget.grid_forget()
-            del self._mounted[widget]
+        interior_bottom = gap_y - (gap_y // 2) if prev_last_row > 0 else gap_y
 
-    def configure_row(self, index: int, **options: Unpack[GridRowOptions]):
-        """Forward row configuration to the underlying grid."""
-        self.widget.rowconfigure(index, **options)
+        for w, info in list(self._mounted.items()):
+            if info["row"] == prev_last_row:
+                top, current_bottom = info["pad_y"]
+                new_bottom = current_bottom + interior_bottom
+                w.widget.grid_configure(pady=(top, new_bottom))
+                info["pad_y"] = (top, new_bottom)
 
-    def configure_column(self, index: int, **options: Unpack[GridColumnOptions]):
-        """Forward column configuration to the underlying grid."""
-        self.widget.columnconfigure(index, **options)
+    # -- helpers ---------------------------------------------------------
 
-    def configure_child(
-            self,
-            widget: BaseWidget,
-            option: str = None,
-            **options: Unpack[GridLayoutOptions]
-    ):
-        """Get or update a managed child’s configuration.
-
-        Args:
-            widget: A previously-added child.
-            option: If provided, returns the current stored value for this key.
-            **options: When `option` is not provided, reapply placement using
-                these options.
-
-        Returns:
-            The requested option value when `option` is given; otherwise `self`.
-        """
-        if widget not in self._mounted:
-            raise ValueError("Widget is not managed by this layout.")
-        if option:
-            return self._mounted[widget].get(option)
-        else:
-            self.remove(widget)
-            self._add(widget, **options)
-            return self
-
-    def _apply_auto_layout(self, options: GridLayoutOptions) -> GridLayoutOptions:
-        """Simple left-to-right auto-placement with wrap to next row.
-
-        Increments internal cursors `_next_col`/`_next_row`. Honors `colspan`
-        and an optional `offset` columns before placing.
-
-        Args:
-            options: Incoming placement options.
-
-        Returns:
-            A completed options dict with `row` and `col` filled in.
-        """
-        col_span = options.get("colspan", 1)
-        offset = options.pop("offset", 0)
-        cols = len(self._columns)
-
-        if self._next_col + offset + col_span > cols:
-            self._next_row += 1
-            self._next_col = 0
-
-        options.setdefault("row", self._next_row)
-        options.setdefault("col", self._next_col + offset)
-        self._next_col += offset + col_span
-
-        return options
-
-    # ------------------------- helpers -------------------------
     @staticmethod
-    def _compute_sticky_from_semantics(justify: Optional[AxisAlign], align: Optional[AxisAlign]) -> Sticky | None:
-        """Translate fixed-axes semantics into a `sticky` string.
+    def _parse_expand(value: bool | int | tuple[int | bool, int | bool] | None) -> tuple[Optional[int], Optional[int]]:
+        """Normalize `expand` to `(col_weight, row_weight)`, each `None` or `int >= 0`."""
+        if value is None:
+            return None, None
+        if isinstance(value, bool):
+            w = 1 if value else 0
+            return w, w
+        if isinstance(value, int):
+            w = max(0, value)
+            return w, w
+        if isinstance(value, tuple) and len(value) == 2:
+            def as_int(x): return 1 if x is True else (0 if x is False else max(0, int(x)))
 
-        Args:
-            justify: Horizontal semantic ("start"|"center"|"end"|"stretch").
-            align: Vertical semantic ("start"|"center"|"end"|"stretch").
-
-        Returns:
-            A Tk `sticky` string like "we", "ns", "nsew", or `None` if both are
-            center/unspecified.
-        """
-
-        def hmap(v: AxisAlign | None) -> str:
-            if v == "start": return "w"
-            if v == "end":   return "e"
-            if v == "stretch": return "we"
-            return ""  # center/None -> no horizontal fill
-
-        def vmap(v: AxisAlign | None) -> str:
-            if v == "start": return "n"
-            if v == "end":   return "s"
-            if v == "stretch": return "ns"
-            return ""  # center/None
-
-        h = hmap(justify)
-        v = vmap(align)
-        sticky = "".join(c for c in "nsew" if c in set(h + v))
-        return sticky or None
+            return as_int(value[0]), as_int(value[1])
+        # Fallback: ignore bad input
+        return None, None
