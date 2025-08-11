@@ -1,8 +1,8 @@
 from tkinter import Misc, ttk
-from typing import Callable, TYPE_CHECKING, Union, Any
+from typing import Callable, Union
 
 from ttkbootstrap.common.utils import unsnake_kwargs
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.layouts.constants import current_layout, default_root
 from ttkbootstrap.core.mixins.binding import BindingMixin
 from ttkbootstrap.core.mixins.configure import ConfigureMixin
 from ttkbootstrap.core.mixins.focus import FocusMixIn
@@ -34,10 +34,14 @@ class BaseWidget(
             **kwargs):
 
         self._mountable = mountable
+        self._position = tk_widget_options.pop('position', 'static')
         super().__init__()
 
         # get parent
-        self._parent = parent or current_layout()
+        if self._position == 'fixed':
+            self._parent = default_root()
+        else:
+            self._parent = parent or current_layout()
 
         # extract layout options & initialize layout
         layout: dict = BaseWidget.layout_from_options(tk_widget_options)  # type:ignore

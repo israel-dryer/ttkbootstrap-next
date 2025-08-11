@@ -1,5 +1,5 @@
 from tkinter.font import Font
-from typing import TypedDict, Literal, Union, Callable, Tuple
+from typing import Callable, Literal, Tuple, TypedDict, Union
 
 Anchor = Literal['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw', 'center']
 Padding = Union[int, Tuple[int, int], Tuple[int, int, int, int]]

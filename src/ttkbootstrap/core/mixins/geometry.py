@@ -42,9 +42,9 @@ class GeometryMixin:
         else:
             return self.widget.columnconfigure(index, option)
 
-    def place(self, option=None, **kwargs):
-        if option is None:
-            self.widget.place(**kwargs)
-            return self
-        else:
-            return self.widget.place(option)
+    # def place(self, option=None, **kwargs):
+    #     if option is None:
+    #         self.widget.place(**kwargs)
+    #         return self
+    #     else:
+    #         return self.widget.place(option)

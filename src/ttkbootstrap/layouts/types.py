@@ -13,7 +13,7 @@ Padding = Union[int, Tuple[int, int], Tuple[int, int, int, int]]
 Justify = Literal['left', 'center', 'right']
 JustifyLayout = Literal["left", "center", "right", "stretch"]
 AlignLayout = Literal["top", "center", "bottom", "stretch"]
-
+Position = Literal['static', 'absolute', 'fixed']
 
 class SemanticLayoutOptions(TypedDict, total=False):
     sticky: Sticky
@@ -25,5 +25,6 @@ class SemanticLayoutOptions(TypedDict, total=False):
     rowspan: int
     colspan: int
     offset: int
+    position: Position
 
 
