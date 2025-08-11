@@ -1,12 +1,12 @@
 from ttkbootstrap import App
-from ttkbootstrap.layouts.gridbox import GridBox
+from ttkbootstrap.layouts.flexgrid import FlexGrid
 from ttkbootstrap.layouts.pack_frame import PackFrame
 from ttkbootstrap.widgets import Button, Canvas, Label, Scrollbar
 
 with App(theme="dark") as app:
 
     with PackFrame(expand=True, sticky="nsew", padding=16):
-        with GridBox(columns=[1, 0], rows=[1, 0], sticky="nsew", expand=True):
+        with FlexGrid(columns=[1, 0], rows=[1, 0], sticky="nsew", expand=True):
             canvas = Canvas(sticky="nsew", expand=True)
             vsb = Scrollbar(orient="vertical", command=canvas.y_view, sticky="ns")
             hsb = Scrollbar(orient="horizontal", command=canvas.x_view, sticky="sew", colspan=2)

@@ -1,5 +1,5 @@
 from ttkbootstrap import App
-from ttkbootstrap.layouts.gridbox import GridBox
+from ttkbootstrap.layouts.flexgrid import FlexGrid
 from ttkbootstrap.widgets import Button
 
 
@@ -10,7 +10,7 @@ def bump_z(btn):
 
 with App(geometry="800x800") as app:
 
-    with GridBox(padding=16, gap=16, rows=1, columns=1):
+    with FlexGrid(padding=16, gap=16, rows=1, columns=1):
         b5 = Button(text="Button 5", row=1, column=1)
         b6 = Button(text="Button 6", on_click=lambda: bump_z(b6), zindex=10, row=1, column=1)
         b7 = Button(text="Button 7", on_click=lambda: bump_z(b7), zindex=12, row=1, column=1)
