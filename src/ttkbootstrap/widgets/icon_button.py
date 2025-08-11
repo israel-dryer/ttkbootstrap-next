@@ -2,12 +2,12 @@ from tkinter import ttk
 from typing import Callable, Optional, Unpack
 
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.widgets.types import ButtonOptions
 from ttkbootstrap.style.tokens import ButtonVariant, SemanticColor
 from ttkbootstrap.style.builders.icon_button import IconButtonStyleBuilder
-from ttkbootstrap.common.utils import unsnake_kwargs, resolve_options
+from ttkbootstrap.common.utils import resolve_options
 
 
 class IconButton(BaseWidget, IconMixin):
@@ -51,15 +51,13 @@ class IconButton(BaseWidget, IconMixin):
         for key in ['compound', 'text']:
             kwargs.pop(key, None)
 
-        self._widget = ttk.Button(
-            parent,
+        tk_options = dict(
             command=on_click,
             compound="image",
-            **unsnake_kwargs(kwargs)
+            **kwargs
         )
-        super().__init__(parent)
+        super().__init__(ttk.Button, tk_options, parent=parent, auto_mount=True)
         IconMixin.__init__(self)
-        self.update_style()
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
