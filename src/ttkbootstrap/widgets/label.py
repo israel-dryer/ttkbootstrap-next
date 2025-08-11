@@ -7,7 +7,7 @@ from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
-from ttkbootstrap.common.utils import unsnake_kwargs, resolve_options
+from ttkbootstrap.common.utils import resolve_options
 
 
 class Label(BaseWidget, IconMixin):
