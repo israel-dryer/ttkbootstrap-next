@@ -26,5 +26,6 @@ class SemanticLayoutOptions(TypedDict, total=False):
     colspan: int
     offset: int
     position: Position
+    zindex: int
 
 

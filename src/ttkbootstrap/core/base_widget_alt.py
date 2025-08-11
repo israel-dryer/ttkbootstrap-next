@@ -61,6 +61,7 @@ class BaseWidget(
         # mount the widget to the parent container
         if auto_mount and self.parent.mountable:
             self._auto_mount()
+            self._register_and_maybe_sync()
 
     @property
     def parent(self):
