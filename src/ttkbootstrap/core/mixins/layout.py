@@ -200,6 +200,8 @@ class PlacePositionOptions(TypedDict, total=False):
     height: int | str
     anchor: str
     border_mode: Literal["inside", "outside"]
+    offset_x: int
+    offset_y: int
     container: "BaseWidget"
 
 
@@ -315,12 +317,20 @@ class LayoutMixin:
         self.widget.grid(**opts)
         return self
 
+    def unmount(self):
+        """Remove this widget from the layout"""
+        if self.widget.winfo_manager() == "grid":
+            self.widget.grid_forget()
+        elif self.widget.winfo_manager() == "place":
+            self.widget.place_forget()
+
     def place(self, **kwargs: Unpack[PlacePositionOptions]):
         """
         Place this widget using Tk's `place()` with a friendlier API.
 
         Extensions:
           - Percent strings for `x`, `y`, `width`, and `height` (e.g., `"50%"`).
+          - relative offsets `offset_x` and `offset_y`.
           - `container` (BaseWidget or raw Tk) → translated to `in_`.
           - `border_mode` (`"inside"` or `"outside"`) → translated to `bordermode`.
 
@@ -332,6 +342,7 @@ class LayoutMixin:
 
         options = LayoutMixin._translate_place_options(**kwargs)
         options |= self._identify_place_container(container)
+        options |= self._place_offset(options)
         if border_mode is not None:
             options["bordermode"] = border_mode
 
@@ -486,6 +497,15 @@ class LayoutMixin:
             return {key: value}
         else:
             return {f"rel{key}": float(value.replace("%", "")) / 100}
+
+    @staticmethod
+    def _place_offset(options: dict):
+        offset_x = options.pop('offset_x', 0)
+        offset_y = options.pop('offset_y', 0)
+        x = options.pop('x', 0) + offset_x
+        y = options.get('y', 0) + offset_y
+        return dict(x=x, y=y)
+
 
     @staticmethod
     def _translate_place_options(**kwargs) -> dict[str, Any]:

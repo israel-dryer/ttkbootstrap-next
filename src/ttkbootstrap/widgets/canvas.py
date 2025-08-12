@@ -7,6 +7,7 @@ from PIL import Image
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import layout_context_stack
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
 from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
 from ttkbootstrap.widgets.types import (
@@ -17,13 +18,15 @@ from ttkbootstrap.widgets.types import (
 
 CanvasTagOrId = Union[int, str]
 
+class _Options(SemanticLayoutOptions, CanvasOptions):
+    pass
 
 class Canvas(BaseWidget, ContainerMixin):
     """A themed canvas widget with drawing, manipulation, and tagging utilities."""
 
     _configure_methods = {}
 
-    def __init__(self, parent=None, **kwargs: Unpack[CanvasOptions]):
+    def __init__(self, parent=None, **kwargs: Unpack[_Options]):
         """
         Initialize a new Canvas widget.
 
@@ -45,7 +48,7 @@ class Canvas(BaseWidget, ContainerMixin):
     def __exit__(self, *args):
         layout_context_stack().pop()
 
-    def add_widget(self, x: float, y: float, widget: BaseWidget, **kwargs: CanvasWidgetOptions) -> int:
+    def add_widget(self, x: float, y: float, widget: BaseWidget, **kwargs: Unpack[CanvasWidgetOptions]) -> int:
         """Embed a widget at the given (x, y) coordinates."""
         return self.widget.create_window(x, y, window=widget, **unsnake_kwargs(kwargs))
 
@@ -305,10 +308,26 @@ class Canvas(BaseWidget, ContainerMixin):
         result = self.widget.focus(item) if item else self.widget.focus()
         return int(result) if result and result.isdigit() else None
 
-    def y_view(self, *args):
+    def yview(self, *args):
         """Query and change the vertical position of the view"""
         return self.widget.yview(*args)
 
-    def x_view(self, *args):
+    def yview_move(self, fraction):
+        self.widget.yview_moveto(fraction)
+        return self
+
+    def yview_scroll(self, number, what):
+        self.widget.yview_scroll(number, what)
+        return self
+
+    def xview(self, *args):
         """Query and change the horizontal position of the view"""
         return self.widget.xview(*args)
+
+    def xview_move(self, fraction):
+        self.widget.xview_moveto(fraction)
+        return self
+
+    def xview_scroll(self, number, what):
+        self.widget.xview_scroll(number, what)
+        return self

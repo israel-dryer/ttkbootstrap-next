@@ -1,10 +1,15 @@
 from tkinter import ttk
 from typing import Unpack
 
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.widgets.types import ScrollbarOptions, Orient
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
 from ttkbootstrap.common.utils import unsnake_kwargs
+
+
+class _Options(SemanticLayoutOptions, ScrollbarOptions):
+    pass
 
 
 class Scrollbar(BaseWidget):
@@ -12,7 +17,7 @@ class Scrollbar(BaseWidget):
 
     _configure_methods = {}
 
-    def __init__(self, parent=None, orient: Orient = "vertical", **kwargs: Unpack[ScrollbarOptions]):
+    def __init__(self, parent=None, orient: Orient = "vertical", **kwargs: Unpack[_Options]):
         """
         Initialize a new themed scrollbar.
 
@@ -36,6 +41,6 @@ class Scrollbar(BaseWidget):
         """Return the (first, last) fractional range of the current slider position."""
         return self.widget.get()
 
-    def set(self, first: float, last: float):
+    def set(self, first: float | str, last: float | str):
         """Set the fractional range (first, last) of the slider position (0.0 to 1.0)."""
         self.widget.set(first, last)
