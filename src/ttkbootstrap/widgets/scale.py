@@ -16,7 +16,7 @@ class Scale(BaseWidget):
     def __init__(
             self,
             parent=None,
-            value: int | float = 0.0 | Signal,
+            value: int | float | Signal = 0.0,
             min_value: int | float = 0.0,
             max_value: int | float = 100.0,
             precision: int = 0,
