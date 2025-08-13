@@ -1,13 +1,11 @@
 from typing import Unpack
 
 from ttkbootstrap.widgets.types import SizeGripOptions
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.size_grip import SizeGripStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 from tkinter import ttk
-
-from ttkbootstrap.common.utils import unsnake_kwargs
 
 
 class SizeGrip(BaseWidget):
@@ -28,9 +26,8 @@ class SizeGrip(BaseWidget):
         """
         parent = parent or current_layout()
         self._style_builder = SizeGripStyleBuilder(color)
-        self._widget = ttk.Sizegrip(parent, **unsnake_kwargs(kwargs))
-        super().__init__(parent)
-        self.update_style()
+        tk_options = dict(**kwargs)
+        super().__init__(ttk.Sizegrip, tk_options, parent=parent, auto_mount=True)
 
     def color(self, value: SemanticColor = None):
         """Get or set the sizegrip color."""
