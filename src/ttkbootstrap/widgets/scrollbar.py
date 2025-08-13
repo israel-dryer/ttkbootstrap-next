@@ -15,6 +15,7 @@ class _Options(SemanticLayoutOptions, ScrollbarOptions):
 class Scrollbar(BaseWidget):
     """A themed scrollbar widget with support for fractional movement and position."""
 
+    widget: ttk.Scrollbar
     _configure_methods = {}
 
     def __init__(self, parent=None, orient: Orient = "vertical", **kwargs: Unpack[_Options]):
@@ -27,7 +28,7 @@ class Scrollbar(BaseWidget):
         """
         self._style_builder = ScrollbarStyleBuilder(orient=orient)
         tk_options = dict(orient=orient, **unsnake_kwargs(kwargs))
-        super().__init__(ttk.Scrollbar, tk_options, parent=parent)
+        super().__init__(ttk.Scrollbar, tk_options, parent=parent, auto_mount=True)
 
     def delta(self, x: int, y: int) -> float:
         """Return the fractional change if the scrollbar were moved by (x, y) pixels."""

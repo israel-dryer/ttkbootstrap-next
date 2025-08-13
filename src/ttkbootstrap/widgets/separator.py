@@ -1,7 +1,7 @@
 from tkinter import ttk
 
 from ttkbootstrap.widgets.types import Orient
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
 from ttkbootstrap.style.tokens import SeparatorColor
@@ -10,6 +10,7 @@ from ttkbootstrap.style.tokens import SeparatorColor
 class Separator(BaseWidget):
     """A themed horizontal or vertical line used to divide content areas."""
 
+    widget: ttk.Separator
     _configure_methods = {"color", "orient"}
 
     def __init__(self, parent=None, color: SeparatorColor = "border", orient: Orient = "horizontal"):
@@ -23,9 +24,8 @@ class Separator(BaseWidget):
         """
         parent = parent or current_layout()
         self._style_builder = SeparatorStyleBuilder(color, orient)
-        self._widget = ttk.Separator(parent, orient=orient)
-        super().__init__(parent)
-        self.update_style()
+        tk_options = {"orient": orient}
+        super().__init__(ttk.Separator, tk_options, parent=parent, auto_mount=True)
 
     def color(self, value: SeparatorColor = None):
         """Get or set the separator color."""
