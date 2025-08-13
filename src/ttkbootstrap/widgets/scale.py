@@ -3,20 +3,20 @@ from tkinter import ttk
 
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import SliderOptions, Orient
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.scale import ScaleStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
-from ttkbootstrap.common.utils import unsnake_kwargs
 
 
 class Scale(BaseWidget):
+    widget: ttk.Scale
     _configure_methods = {"signal", "value", "min_value", "max_value", "precision", "on_change"}
 
     def __init__(
             self,
             parent=None,
-            value: int | float = 0.0,
+            value: int | float = 0.0 | Signal,
             min_value: int | float = 0.0,
             max_value: int | float = 100.0,
             precision: int = 0,
@@ -40,31 +40,29 @@ class Scale(BaseWidget):
         """
         parent = parent or current_layout()
         self._style_builder = ScaleStyleBuilder(color=color, orient=orient)
-        self._signal = Signal(value)
+        self._signal = value if isinstance(value, Signal) else Signal(value)
         self._on_change = on_change
         self._on_change_fid = None
         self._precision = precision
         self._prev_value = round(value, precision)
 
-        self._widget = ttk.Scale(
-            parent,
-            from_=min_value,
-            to=max_value,
-            orient=orient,
-            variable=self._signal.var,
-            **unsnake_kwargs(kwargs)
-        )
-
-        super().__init__(parent)
+        tk_options = {
+            "from_": min_value,
+            "to": max_value,
+            "orient": orient,
+            "variable": self._signal.var,
+            **kwargs
+        }
+        super().__init__(ttk.Scale, tk_options, parent=parent, auto_mount=True)
         if on_change:
             self._on_change_fid = self.on_change(self._on_change)
 
-        # received focus when clicked
+        # receive focus when clicked
+        # TODO should this depend on `takes_focus` ??
         self.bind("click", self.focus)
-        self.update_style()
 
     def signal(self, value: Signal = None):
-        """Get or set the signal controlling the slider value."""
+        """Get or set the slider value signal."""
         if value is None:
             return self._signal
         else:

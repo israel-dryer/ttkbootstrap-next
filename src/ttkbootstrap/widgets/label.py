@@ -13,6 +13,7 @@ from ttkbootstrap.common.utils import resolve_options
 class Label(BaseWidget, IconMixin):
     """A themed label widget with support for signals and color tokens."""
 
+    widget: ttk.Label
     _configure_methods = {"text", "text_signal", "foreground", "background"}
 
     def __init__(
