@@ -3,11 +3,10 @@ from typing import Any, Callable, Optional, Unpack
 from tkinter import ttk
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import CheckButtonOptions
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
-from ttkbootstrap.common.utils import unsnake_kwargs
 
 
 class CheckButton(BaseWidget):
@@ -18,14 +17,15 @@ class CheckButton(BaseWidget):
     and supports binding to `Signal` objects for reactive UI behavior.
     """
 
+    widget: ttk.Checkbutton
     _configure_methods = {"color", "text_signal", "value_signal", "text", "readonly", "on_change", "on_toggle"}
 
     def __init__(
             self,
             parent=None,
-            text: str = None,
+            text: str | Signal = None,
             color: SemanticColor = None,
-            value: int | str = -1,
+            value: int | str | Signal = -1,
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
@@ -54,21 +54,20 @@ class CheckButton(BaseWidget):
         self._on_change = on_change
         self._on_change_fid = None
         self._on_toggle = on_toggle
-        self._text_signal = Signal(text)
-        self._value_signal = Signal(value)
+        self._text_signal = text if isinstance(text, Signal) else Signal(text)
+        self._value_signal = value if isinstance(value, Signal) else Signal(value)
 
         if on_change:
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
 
-        self._widget = ttk.Checkbutton(
-            parent,
+        tk_options = dict(
             textvariable=self._text_signal.var,
             onvalue=on_value,
             offvalue=off_value,
             command=self._internal_toggle,
-            **unsnake_kwargs(kwargs)
+            **kwargs
         )
-        super().__init__(parent)
+        super().__init__(ttk.Checkbutton, tk_options, parent=parent, auto_mount=True)
 
         # set initial state
         if value == on_value:
