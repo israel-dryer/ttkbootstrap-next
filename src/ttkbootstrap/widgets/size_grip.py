@@ -16,6 +16,9 @@ class SizeGrip(BaseWidget):
     via the `StyleBuilder` system.
     """
 
+    widget: ttk.Sizegrip
+    _configure_methods = {"color"}
+
     def __init__(self, parent=None, color: SemanticColor = None, **kwargs: Unpack[SizeGripOptions]):
         """Initialize a new SizeGrip widget.
 
