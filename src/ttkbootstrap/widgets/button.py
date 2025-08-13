@@ -26,10 +26,10 @@ class Button(BaseWidget, IconMixin):
     def __init__(
             self,
             parent=None,
-            text: str = "",
+            text: str | Signal = "",
             color: SemanticColor = None,
             variant: ButtonVariant = "solid",
-            icon: str = None,
+            icon: str | dict = None,
             icon_position: Literal['left', 'right'] = 'left',
             on_click: Callable = None,
             **kwargs: Unpack[_Options]
@@ -48,7 +48,7 @@ class Button(BaseWidget, IconMixin):
             **kwargs: Additional Button options.
         """
         self._on_click = on_click
-        self._text_signal = Signal(text)
+        self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._icon = resolve_options(icon, 'name') or None
         self._icon_position = icon_position
         self._style_builder = ButtonStyleBuilder(color, variant)
