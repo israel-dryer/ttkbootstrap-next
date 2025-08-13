@@ -15,6 +15,7 @@ class IconButton(BaseWidget, IconMixin):
     A styled Icon Button widget with fluent configuration
     """
 
+    widget: ttk.Button
     _configure_methods = {"on_click", "icon", "color", "variant"}
 
     def __init__(
