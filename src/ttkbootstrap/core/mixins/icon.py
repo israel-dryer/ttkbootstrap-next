@@ -1,16 +1,16 @@
-from typing import Any
+from typing import Any, Callable
 
 from ttkbootstrap.common.utils import resolve_options
 
 
 class IconMixin:
     _style_builder: Any
-    _icon: dict
-    is_disabled: Any
-    configure: Any
-    process_idle_tasks: Any
-    has_focus: Any
-    bind: Any
+    _icon: dict | str
+    is_disabled: Callable[[], bool]
+    configure: Callable
+    process_idle_tasks: Callable
+    has_focus: Callable[[], bool]
+    bind: Callable
 
     def __init__(self):
         self._selected_state_icon = False

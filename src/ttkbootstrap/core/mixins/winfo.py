@@ -1,9 +1,6 @@
-from tkinter import Misc
+from tkinter import Widget
 
-from typing import NamedTuple, TYPE_CHECKING, Union
-
-if TYPE_CHECKING:
-    from ttkbootstrap.core.base_widget import BaseWidget
+from typing import NamedTuple
 
 
 class Geometry(NamedTuple):
@@ -17,7 +14,7 @@ class Geometry(NamedTuple):
 class WidgetInfoMixin:
     """Provides geometry and visibility information about a widget."""
 
-    widget: Union["BaseWidget", Misc]
+    widget: Widget
 
     def geometry(self) -> Geometry:
         """Return widget geometry as width, height, x, and y coordinates."""
@@ -35,17 +32,17 @@ class WidgetInfoMixin:
 
     def width(self) -> int:
         """Return the widget's current width in pixels."""
-        return self.widget.winfo_width()
+        return self.widget.winfo_width() if self.is_mapped() else self.widget.winfo_reqwidth()
 
     def height(self) -> int:
         """Return the widget's current height in pixels."""
-        return self.widget.winfo_height()
+        return self.widget.winfo_height() if self.is_mapped() else self.widget.winfo_reqheight()
 
-    def x(self) -> int:
+    def x_coordinate(self) -> int:
         """Return the widget's x-coordinate relative to its parent."""
         return self.widget.winfo_x()
 
-    def y(self) -> int:
+    def y_coordinate(self) -> int:
         """Return the widget's y-coordinate relative to its parent."""
         return self.widget.winfo_y()
 
@@ -54,7 +51,7 @@ class WidgetInfoMixin:
         return self.widget.winfo_exists()
 
     def is_mapped(self) -> bool:
-        """Return True if the widget is mapped to the screen."""
+        """Return True if the widget is mapped to the screen using a geometry manager (layout)."""
         return self.widget.winfo_ismapped()
 
     def is_viewable(self) -> bool:
@@ -65,10 +62,10 @@ class WidgetInfoMixin:
         """Return the widget's class name."""
         return self.widget.winfo_class()
 
-    def pixels(self, value) -> int:
+    def pixels(self, value: int | str) -> int:
         """Convert a screen distance value to pixels (int)."""
         return self.widget.winfo_pixels(value)
 
-    def float_pixels(self, value) -> float:
+    def float_pixels(self, value: float | str) -> float:
         """Convert a screen distance value to pixels (float)."""
         return self.widget.winfo_fpixels(value)

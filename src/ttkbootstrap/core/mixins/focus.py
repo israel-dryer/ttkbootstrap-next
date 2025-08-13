@@ -1,14 +1,10 @@
-from tkinter import Misc
-from typing import TYPE_CHECKING, Union
-
-if TYPE_CHECKING:
-    from ..base_widget import BaseWidget
+from tkinter import Widget
 
 
 class FocusMixIn:
     """Mixin that provides focus management methods for widgets."""
 
-    widget: Union["BaseWidget", Misc]
+    widget: Widget
 
     def focus(self, force: bool = False):
         """Set focus to the widget.

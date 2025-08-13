@@ -1,13 +1,11 @@
-from tkinter import Misc
-from typing import TYPE_CHECKING, Union, Any
+from tkinter import Widget, ttk
+from typing import Union
 
-if TYPE_CHECKING:
-    from ttkbootstrap.core.base_widget import BaseWidget
 
 class ContainerMixin:
     """Mixin that exposes container-related access from widget"""
 
-    widget: Union["BaseWidget", Misc]
+    widget: ttk.Widget
 
     @property
     def master(self):
@@ -18,17 +16,20 @@ class ContainerMixin:
         return self.widget.tk
 
     @property
-    def _w(self):
+    def _w(self) -> str:
+        """The tcl window id"""
         return self.widget._w
 
     @property
-    def _last_child_ids(self):
+    def _last_child_ids(self) -> list[str]:
+        """A list of child ids"""
         return self.widget._last_child_ids
 
     @_last_child_ids.setter
-    def _last_child_ids(self, value):
+    def _last_child_ids(self, value: list[str]):
         self.widget._last_child_ids = value
 
     @property
-    def children(self):
+    def children(self) -> dict[str, Union[ttk.Widget, Widget]]:
+        """A list of child widgets"""
         return self.widget.children

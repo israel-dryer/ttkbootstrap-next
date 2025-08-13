@@ -1,5 +1,5 @@
-from tkinter import Misc, ttk
-from typing import Callable, Union
+from tkinter import ttk
+from typing import Callable, Literal, cast
 
 from ttkbootstrap.common.utils import unsnake_kwargs
 from ttkbootstrap.layouts.constants import current_layout, default_root
@@ -11,6 +11,8 @@ from ttkbootstrap.core.mixins.grab import GrabMixIn
 from ttkbootstrap.core.mixins.layout import LayoutMixin
 from ttkbootstrap.core.mixins.winfo import WidgetInfoMixin
 
+PositionType = Literal['static', 'absolute', 'fixed']
+
 
 class BaseWidget(
     BindingMixin,
@@ -21,7 +23,7 @@ class BaseWidget(
     ConfigureMixin,
     LayoutMixin
 ):
-    _widget: Union["BaseWidget", Misc]
+    _widget: ttk.Widget
 
     def __init__(
             self,
@@ -30,11 +32,11 @@ class BaseWidget(
             *,
             auto_mount: bool = True,
             mountable: bool = False,
-            parent: Union["BaseWidget", Misc, "Any"] = None,
+            parent: "BaseWidget" = None,
             **kwargs):
 
         self._mountable = mountable
-        self._position = tk_widget_options.pop('position', 'static')
+        self._position = tk_widget_options.pop('position', cast(PositionType, 'static'))
         super().__init__()
 
         # get parent
@@ -48,7 +50,7 @@ class BaseWidget(
         LayoutMixin.__init__(self, layout)
 
         # initialize tkinter widget
-        self._widget: Misc = tk_widget(self._parent, **(unsnake_kwargs(tk_widget_options) or dict()))
+        self._widget: ttk.Widget = tk_widget(self._parent, **(unsnake_kwargs(tk_widget_options) or dict()))
 
         # re-apply padding if supported (e.g., ttk.Frame)
         if "padding" in layout and isinstance(self._widget, ttk.Frame):
@@ -68,7 +70,7 @@ class BaseWidget(
         return self._parent
 
     @property
-    def widget(self):
+    def widget(self) -> ttk.Widget:
         return self._widget
 
     @property
@@ -86,14 +88,14 @@ class BaseWidget(
         else:
             return self._parent.surface_token
 
-    def schedule(self, ms, func, *args):
+    def schedule(self, ms: int, func: Callable, *args):
         return self.widget.after(ms, func, *args)
 
-    def schedule_after_idle(self, func, *args):
+    def schedule_after_idle(self, func: Callable, *args):
         return self.widget.after_idle(func, *args)
 
-    def schedule_cancel(self, id):
-        return self.widget.after_cancel(id)
+    def schedule_cancel(self, func_id: str):
+        return self.widget.after_cancel(func_id)
 
     def is_ttk(self) -> bool:
         """Check if the underlying widget is a ttk widget.

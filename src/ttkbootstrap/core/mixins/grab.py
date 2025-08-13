@@ -1,14 +1,10 @@
-from tkinter import Misc
-from typing import TYPE_CHECKING, Union
-
-if TYPE_CHECKING:
-    from ..base_widget import BaseWidget
+from tkinter import Widget
 
 
 class GrabMixIn:
     """Mixin that provides grab control for modal behavior."""
 
-    widget: Union["BaseWidget", Misc]
+    widget: Widget
 
     def acquire_grab(self):
         """Acquire a local grab, directing all events to this widget."""

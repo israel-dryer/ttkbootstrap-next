@@ -1,16 +1,13 @@
-from tkinter import Misc
-from typing import TYPE_CHECKING, Union, Any
+from tkinter import Widget, ttk
+from typing import Any, Union
 
 from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
-
-if TYPE_CHECKING:
-    pass
 
 
 class ConfigureMixin:
     """Mixin that provides unified configuration access for widgets."""
 
-    widget: Union["BaseWidget", Misc]
+    widget: Union[Widget, ttk.Widget]
     _configure_methods: set
 
     def configure(self, option: str = None, **kwargs) -> Any:

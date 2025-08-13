@@ -1,14 +1,10 @@
 # geometry managers
-from tkinter import Misc
 from tkinter import Widget
-from typing import TYPE_CHECKING, Union
 
-if TYPE_CHECKING:
-    from ttkbootstrap.core.base_widget import BaseWidget
-
+# TODO remove this module when layout is fully implemented
 
 class GeometryMixin:
-    widget: Union["BaseWidget", Widget]
+    widget: Widget
 
     def pack(self, option=None, **kwargs):
         if option is None:

@@ -20,6 +20,7 @@ class Button(BaseWidget, IconMixin):
     A styled Button widget with fluent configuration and reactive text binding.
     """
 
+    widget: ttk.Button
     _configure_methods = {"text", "text_signal", "on_click", "icon", "icon_position", "color", "variant"}
 
     def __init__(
@@ -91,7 +92,7 @@ class Button(BaseWidget, IconMixin):
         if value is None:
             return self._text_signal
         self._text_signal = value
-        self.configure(textvariable=self._text_signal.var)
+        self.widget.configure(textvariable=self._text_signal.var)
         return self
 
     def icon_position(self, value: Literal['left', 'right'] = None):

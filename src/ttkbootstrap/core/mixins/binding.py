@@ -1,15 +1,12 @@
 import json
 import weakref
 from collections import defaultdict
-from tkinter import Misc
-from typing import Any, TYPE_CHECKING, Callable, Union
+from tkinter import ttk
+from typing import Any, Callable
 
 from ttkbootstrap.interop.aliases import EVENT_ALIASES
 from ttkbootstrap.interop.substitutions import get_event_substring
 from ttkbootstrap.interop.commands import event_callback_wrapper
-
-if TYPE_CHECKING:
-    pass
 
 
 class BindingMixin:
@@ -19,7 +16,7 @@ class BindingMixin:
     Automatically wraps event handlers with converters and tracks bindings via weakrefs.
     """
 
-    widget: Union["BaseWidget", Misc]
+    widget: ttk.Widget
     _bound_events: dict[str, list[str]]
     _callbacks: weakref.WeakValueDictionary[str, Callable]
 
@@ -153,14 +150,6 @@ class BindingMixin:
 
         if not current_ids:
             self._bound_events.pop(sequence, None)
-
-    def unbind_all(self, event: str):
-        """Remove all callbacks bound to the given event sequence."""
-        sequence = self._normalize(event)
-        for fid in self._bound_events.get(sequence, []):
-            self._callbacks.pop(fid, None)
-        self._bound_events.pop(sequence, None)
-        self.widget.tk.call("bind", str(self.widget), sequence, "")
 
     def list_bindings(self) -> dict[str, list[str]]:
         """Return a mapping of bound events and their function IDs."""
