@@ -4,19 +4,19 @@ from typing import Any, Callable, Unpack
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import EntryOptions
 from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.entry import EntryStyleBuilder
-from ttkbootstrap.common.utils import unsnake_kwargs
 
 
 class EntryPart(BaseWidget, ValidatableMixin):
+    widget: ttk.Entry
     _configure_methods = {"value", "on_enter", "on_changed", "on_change", "signal", "readonly"}
 
     def __init__(
             self,
             parent=None,
-            value: str = "",
+            value: str | Signal = "",
             on_change: Callable[[str], Any] = None,
             on_enter: Callable[[str], Any] = None,
             on_changed: Callable[[str], Any] = None,
@@ -42,10 +42,10 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self._on_changed = None
 
         self._style_builder = EntryStyleBuilder()
-        self._signal = Signal(value)
-        self._widget = ttk.Entry(parent, textvariable=self._signal.var, **unsnake_kwargs(kwargs))
+        self._signal = value if isinstance(value, Signal) else Signal(value)
+        tk_options = {"textvariable": self._signal.var, **kwargs}
+        super().__init__(ttk.Entry, tk_options, parent=parent, auto_mount=True)
         ValidatableMixin.__init__(self)
-        super().__init__(parent)
 
         self._prev_value = value
 
@@ -162,14 +162,14 @@ class EntryPart(BaseWidget, ValidatableMixin):
         """Return the character index (defaults to cursor)."""
         return self.widget.index(index)
 
-    def start_drag_scroll(self, x: int, y: int):
+    def start_drag_scroll(self, x: int):
         """Start drag-to-scroll behavior."""
-        self.widget.scan_mark(x, y)
+        self.widget.scan_mark(x)
         return self
 
-    def update_drag_scroll(self, x: int, y: int, gain: int = 10):
+    def update_drag_scroll(self, x: int):
         """Continue drag-to-scroll behavior."""
-        self.widget.scan_dragto(x, y, gain)
+        self.widget.scan_dragto(x)
         return self
 
     def adjust_selection_to_index(self, index: int):
