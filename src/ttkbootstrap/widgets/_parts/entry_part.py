@@ -1,6 +1,7 @@
 from tkinter import ttk
 from typing import Any, Callable, Unpack
 
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import EntryOptions
 from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
@@ -8,6 +9,8 @@ from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.entry import EntryStyleBuilder
 
+class _Options(EntryOptions, SemanticLayoutOptions):
+    pass
 
 class EntryPart(BaseWidget, ValidatableMixin):
     widget: ttk.Entry
@@ -21,7 +24,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
             on_enter: Callable[[str], Any] = None,
             on_changed: Callable[[str], Any] = None,
             initial_focus: bool = False,
-            **kwargs: Unpack[EntryOptions]
+            **kwargs: Unpack[_Options]
     ):
         """
         Initialize an EntryPart widget with signal binding and validation.

@@ -3,11 +3,15 @@ from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 
 from ttkbootstrap.core.base_widget_alt import BaseWidget
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import RadioButtonOptions
 from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
 from ttkbootstrap.style.tokens import ForegroundColor
-from ttkbootstrap.common.utils import unsnake_kwargs
+
+
+class _Options(RadioButtonOptions, SemanticLayoutOptions):
+    pass
 
 
 class RadioButton(BaseWidget):
@@ -35,7 +39,7 @@ class RadioButton(BaseWidget):
             on_select: Callable = None,
             on_change: Callable[[Any], Any] = None,
             variant="default",
-            **kwargs: Unpack[RadioButtonOptions]
+            **kwargs: Unpack[_Options]
     ):
         """
         Initialize a new RadioButton.
@@ -49,7 +53,7 @@ class RadioButton(BaseWidget):
             selected: Whether this button should be initially selected.
             on_select: A callback triggered when the user selects the button.
             on_change: A callback triggered whenever the group value changes.
-            **kwargs: Additional keyword arguments passed to ttk.Radiobutton.
+            **kwargs: Additional keyword arguments.
         """
         self._on_select = on_select
         self._on_change = on_change
@@ -65,21 +69,12 @@ class RadioButton(BaseWidget):
         if on_change:
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
 
-        self._widget = ttk.Radiobutton(
-            parent,
-            value=value,
-            textvariable=self._text_signal.var,
-            variable=self._value_signal.var,
-            command=self._on_select,
-            **unsnake_kwargs(kwargs)
-        )
-
         tk_options = dict(
             value=value,
             textvariable=self._text_signal.var,
             variable=self._value_signal.var,
             command=self._on_select,
-            **unsnake_kwargs(kwargs)
+            **kwargs
         )
         super().__init__(ttk.Radiobutton, tk_options, parent=parent, auto_mount=True)
 

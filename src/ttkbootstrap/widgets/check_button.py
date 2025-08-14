@@ -14,6 +14,7 @@ from ttkbootstrap.style.tokens import SemanticColor
 class _Options(CheckButtonOptions, SemanticLayoutOptions):
     pass
 
+
 class CheckButton(BaseWidget):
     """
     A themed checkbutton widget with support for signals and callbacks.
@@ -36,7 +37,7 @@ class CheckButton(BaseWidget):
             tristate_value: int | str = -1,
             on_change: Optional[Callable[[Any], Any]] = None,
             on_toggle: Optional[Callable] = None,
-            **kwargs: Unpack[SemanticLayoutOptions]
+            **kwargs: Unpack[_Options]
     ):
         """
         Initialize a new CheckButton widget.

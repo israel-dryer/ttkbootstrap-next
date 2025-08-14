@@ -1,6 +1,8 @@
 from typing import Any, Callable, Unpack, Literal
 
 from tkinter import ttk
+
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import ProgressOptions, Orient
 from ttkbootstrap.core.base_widget import BaseWidget
@@ -10,18 +12,22 @@ from ttkbootstrap.style.tokens import SemanticColor
 from ttkbootstrap.common.utils import unsnake_kwargs
 
 
+class _Options(ProgressOptions, SemanticLayoutOptions):
+    pass
+
+
 class ProgressBar(BaseWidget):
     _configure_methods = {"on_change", "signal", "value", "maximum", "orient", "color", "variant"}
 
     def __init__(
             self,
             parent=None,
-            value: int = 0,
+            value: int | Signal = 0,
             color: SemanticColor = "primary",
             orient: Orient = "horizontal",
             variant: Literal['default', 'striped'] = "default",
             on_change: Callable[[int], Any] = None,
-            **kwargs: Unpack[ProgressOptions]):
+            **kwargs: Unpack[_Options]):
         """
         Create a progress bar widget with signal-based value tracking and styling.
 
@@ -36,7 +42,7 @@ class ProgressBar(BaseWidget):
         """
         parent or current_layout()
         self._style_builder = ProgressStyleBuilder(orient=orient, color=color, variant=variant)
-        self._signal = Signal(value)
+        self._signal = value if isinstance(value, Signal) else Signal(value)
         self._status = 'active'
         self._on_change = on_change
         self._on_change_fid = None

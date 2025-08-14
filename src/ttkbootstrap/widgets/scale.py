@@ -1,12 +1,17 @@
 from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import SliderOptions, Orient
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.scale import ScaleStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
+
+
+class _Options(SliderOptions, SemanticLayoutOptions):
+    pass
 
 
 class Scale(BaseWidget):
@@ -23,7 +28,7 @@ class Scale(BaseWidget):
             color: SemanticColor = "primary",
             orient: Orient = "horizontal",
             on_change: Callable[[float], Any] = None,
-            **kwargs: Unpack[SliderOptions]
+            **kwargs: Unpack[_Options]
     ):
         """Create a new Scale widget with a signal-based value and callback.
 
@@ -36,7 +41,7 @@ class Scale(BaseWidget):
             color: The color used to theme the slider (e.g., "primary", "info").
             orient: The orientation of the slider; either "horizontal" or "vertical".
             on_change: Optional callback invoked with the rounded value when the value changes significantly.
-            **kwargs: Additional options supported by ttk.Scale, such as `length`, `command`, or `state`.
+            **kwargs: Additional options supported by Scale.
         """
         parent = parent or current_layout()
         self._style_builder = ScaleStyleBuilder(color=color, orient=orient)

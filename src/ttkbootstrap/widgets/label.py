@@ -1,6 +1,7 @@
 from tkinter import ttk
 from typing import Unpack
 
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import LabelOptions
 from ttkbootstrap.core.mixins.icon import IconMixin
@@ -9,6 +10,9 @@ from ttkbootstrap.style.builders.label import LabelStyleBuilder
 from ttkbootstrap.style.tokens import TypographyToken, ForegroundColor, SurfaceColor
 from ttkbootstrap.common.utils import resolve_options
 
+
+class _Options(LabelOptions, SemanticLayoutOptions):
+    pass
 
 class Label(BaseWidget, IconMixin):
     """A themed label widget with support for signals and color tokens."""
@@ -25,7 +29,7 @@ class Label(BaseWidget, IconMixin):
             font: TypographyToken = "body",
             variant: str = "default",
             icon: str | dict = None,
-            **kwargs: Unpack[LabelOptions]
+            **kwargs: Unpack[_Options]
     ):
         """
         Initialize a themed label.

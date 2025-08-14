@@ -5,7 +5,6 @@ from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.widgets.types import ScrollbarOptions, Orient
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
-from ttkbootstrap.common.utils import unsnake_kwargs
 
 
 class _Options(SemanticLayoutOptions, ScrollbarOptions):
@@ -27,7 +26,7 @@ class Scrollbar(BaseWidget):
             **kwargs: Configuration options for the ttk.Scrollbar widget.
         """
         self._style_builder = ScrollbarStyleBuilder(orient=orient)
-        tk_options = dict(orient=orient, **unsnake_kwargs(kwargs))
+        tk_options = dict(orient=orient, **kwargs)
         super().__init__(ttk.Scrollbar, tk_options, parent=parent, auto_mount=True)
 
     def delta(self, x: int, y: int) -> float:

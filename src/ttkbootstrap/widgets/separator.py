@@ -1,10 +1,16 @@
 from tkinter import ttk
+from typing import Unpack
 
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.widgets.types import Orient
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
 from ttkbootstrap.style.tokens import SeparatorColor
+
+
+class _Options(SemanticLayoutOptions):
+    pass
 
 
 class Separator(BaseWidget):
@@ -13,7 +19,9 @@ class Separator(BaseWidget):
     widget: ttk.Separator
     _configure_methods = {"color", "orient"}
 
-    def __init__(self, parent=None, color: SeparatorColor = "border", orient: Orient = "horizontal"):
+    def __init__(
+            self, parent=None, color: SeparatorColor = "border", orient: Orient = "horizontal",
+            **kwargs: Unpack[_Options]):
         """
         Initialize a Separator widget.
 
@@ -24,7 +32,7 @@ class Separator(BaseWidget):
         """
         parent = parent or current_layout()
         self._style_builder = SeparatorStyleBuilder(color, orient)
-        tk_options = {"orient": orient}
+        tk_options = {**kwargs, "orient": orient}
         super().__init__(ttk.Separator, tk_options, parent=parent, auto_mount=True)
 
     def color(self, value: SeparatorColor = None):

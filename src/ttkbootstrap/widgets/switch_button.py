@@ -1,12 +1,18 @@
 from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
+
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import CheckButtonOptions
 from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.switch_button import SwitchButtonStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
+
+
+class _Options(CheckButtonOptions, SemanticLayoutOptions):
+    pass
 
 
 class SwitchButton(BaseWidget):
@@ -29,7 +35,7 @@ class SwitchButton(BaseWidget):
             off_value: int | str = 0,
             on_change: Optional[Callable[[Any], Any]] = None,
             on_toggle: Optional[Callable] = None,
-            **kwargs: Unpack[CheckButtonOptions]
+            **kwargs: Unpack[_Options]
     ):
         """
         Initialize a new SwitchButton widget.
