@@ -1,13 +1,18 @@
 from typing import Any, Callable, Unpack
 
 from tkinter import ttk
+
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.types import EntryOptions
+from ttkbootstrap.widgets.types import SpinboxOptions
 from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.base_widget_alt import BaseWidget
 from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.spinbox import SpinBoxStyleBuilder
-from ttkbootstrap.common.utils import unsnake_kwargs
+
+
+class _Options(SpinboxOptions, SemanticLayoutOptions):
+    pass
 
 
 class NumberSpinboxPart(BaseWidget, ValidatableMixin):
@@ -28,15 +33,16 @@ class NumberSpinboxPart(BaseWidget, ValidatableMixin):
         formatter: Optional format string for display (e.g., "%.1f").
         wrap: Whether the value should wrap at min/max (default is False).
         initial_focus: Whether the widget receives focus initially.
-        **kwargs: Additional keyword arguments passed to `ttk.Spinbox`.
+        **kwargs: Additional keyword arguments.
     """
 
+    widget: ttk.Spinbox
     _configure_methods = {"value", "on_change", "on_enter", "on_changed", "formatter", "signal", "readonly"}
 
     def __init__(
             self,
             parent=None,
-            value: int | float = 0,
+            value: int | float | Signal = 0,
             on_change: Callable[[Any], int | float] = None,
             on_enter: Callable[[Any], int | float] = None,
             on_changed: Callable[[Any], int | float] = None,
@@ -46,7 +52,7 @@ class NumberSpinboxPart(BaseWidget, ValidatableMixin):
             formatter: str = None,
             wrap: bool = False,
             initial_focus: bool = False,
-            **kwargs: Unpack[EntryOptions],
+            **kwargs: Unpack[_Options],
     ):
         parent = parent or current_layout()
         self._on_enter = None
@@ -55,7 +61,7 @@ class NumberSpinboxPart(BaseWidget, ValidatableMixin):
         self._on_change_fid = None
 
         self._style_builder = SpinBoxStyleBuilder()
-        self._signal = Signal(value)
+        self._signal = value if isinstance(value, Signal) else Signal(value)
         self._prev_value = value
 
         kwargs.setdefault("from", min_value)
@@ -69,12 +75,11 @@ class NumberSpinboxPart(BaseWidget, ValidatableMixin):
                 raise ValueError(f"Invalid format: {formatter!r}")
             kwargs["format"] = formatter
 
-        self._widget = ttk.Spinbox(
-            parent,
+        tk_options = dict(
             textvariable=self._signal.var,
-            **unsnake_kwargs(kwargs)
+            **kwargs
         )
-        super().__init__(parent)
+        super().__init__(ttk.Spinbox, tk_options, parent=parent, auto_mount=True)
         ValidatableMixin.__init__(self)
 
         if on_change:

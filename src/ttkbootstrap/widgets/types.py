@@ -290,6 +290,10 @@ class EntryOptions(TypedDict, total=False):
     width: int
 
 
+class SpinboxOptions(EntryOptions):
+    format: str
+
+
 class CanvasOptions(TypedDict, total=False):
     """
     Configuration options for a Canvas widget, including both standard Tk options and canvas-specific settings.
