@@ -1,6 +1,8 @@
 from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
+
+from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.types import CheckButtonOptions
 from ttkbootstrap.core.base_widget_alt import BaseWidget
@@ -8,6 +10,9 @@ from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
 from ttkbootstrap.style.tokens import SemanticColor
 
+
+class _Options(CheckButtonOptions, SemanticLayoutOptions):
+    pass
 
 class CheckButton(BaseWidget):
     """
@@ -31,7 +36,7 @@ class CheckButton(BaseWidget):
             tristate_value: int | str = -1,
             on_change: Optional[Callable[[Any], Any]] = None,
             on_toggle: Optional[Callable] = None,
-            **kwargs: Unpack[CheckButtonOptions]
+            **kwargs: Unpack[SemanticLayoutOptions]
     ):
         """
         Initialize a new CheckButton widget.
@@ -46,7 +51,7 @@ class CheckButton(BaseWidget):
             tristate_value: The value when in the indeterminate state.
             on_change: Callback fired when the value signal changes.
             on_toggle: Command callback invoked on toggle.
-            **kwargs: Additional keyword arguments passed to `ttk.Checkbutton`.
+            **kwargs: Additional keyword arguments.
         """
         parent = parent or current_layout()
         self._tristate_value = tristate_value
