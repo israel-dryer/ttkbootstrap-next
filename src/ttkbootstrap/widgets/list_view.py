@@ -1,11 +1,11 @@
 from typing import Literal
 
 from ttkbootstrap.datasource.sqlite_source import DataSource
-from ttkbootstrap.widgets import Frame
+from ttkbootstrap.layouts import Pack
 
 SelectBy = Literal['index', 'key']
 
-class ListBox(Frame):
+class ListBox(Pack):
 
     def __init__(
             self,
@@ -31,7 +31,7 @@ class ListBox(Frame):
         self._datasource.set_data(items)
 
         self._selected_items = []
-        super().__init__(parent)
+        super().__init__()
 
     # event handlers
 

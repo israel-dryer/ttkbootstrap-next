@@ -1,19 +1,19 @@
-from typing import Callable, Union
+from typing import Any, Callable, Union
 
-from ttkbootstrap.layouts.constants import current_layout
-from ttkbootstrap.widgets import Frame, Scrollbar
+from ttkbootstrap.common.types import Primitive
+from ttkbootstrap.widgets import Scrollbar
+from ttkbootstrap.layouts import Pack
 from ttkbootstrap.datasource.sqlite_source import DataSource
-from ttkbootstrap.widgets.parts import ListItemPart
+from ttkbootstrap.widgets.composites.list_item import ListItem
 
 VISIBLE_ROWS = 20
 ROW_HEIGHT = 32
 
 
-class VirtualList(Frame):
+class VirtualList(Pack):
     def __init__(
             self,
-            parent=None,
-            items: Union[list[dict], DataSource] = None,
+            items: Union[DataSource, list[Primitive], list[ListItem], list[dict[str, Any]]] = None,
             row_factory: Callable=None,
             dragging_enabled = False,
             deleting_enabled = False,
@@ -21,13 +21,11 @@ class VirtualList(Frame):
             scrollbar_visible = True,
             selection_background = 'primary',
             selection_mode = 'none',
-            selection_controls_visible = False
+            selection_controls_visible = False,
+            **kwargs
     ):
-        parent = parent or current_layout()
-        super().__init__(parent)
+        super().__init__(parent=kwargs.pop("parent", None), direction="horizontal")
         self._scrollbar_visible = scrollbar_visible
-        self.grid_column_configure(0, weight=1)
-        self.grid_row_configure(0, weight=1)
 
         self._options = dict(
             dragging_enabled = dragging_enabled,
@@ -39,16 +37,17 @@ class VirtualList(Frame):
         )
         self._datasource = items if isinstance(items, DataSource) else DataSource().set_data(items or [])
         self._row_factory = row_factory or self._default_row_factory
-        self._rows: list[ListItemPart] = []
+        self._rows: list[ListItem] = []
         self._start_index = 0
-        self._total_rows = items.total_count()
+        self._total_rows = self._datasource.total_count()
 
 
         # Layout
-        self._canvas_frame = Frame(self).grid(row=0, column=0, sticky='nsew')
-        self._scrollbar = Scrollbar(self, orient="vertical")
-        if self._scrollbar_visible:
-            self._scrollbar.grid(row=0, column=1, sticky="ns")
+        self._canvas_frame = Pack(parent=self).attach(fill="both", expand=True)
+        self._scrollbar = Scrollbar(parent=self, orient="vertical").attach(side="right", fill="y")
+        if not self._scrollbar_visible:
+            self._scrollbar.hide()
+
         self._canvas_frame.bind('select', lambda x: self._on_select(x.data['id']))
         self._canvas_frame.bind('unselect', lambda x: self._on_deselected(x.data['id']))
 
@@ -65,37 +64,54 @@ class VirtualList(Frame):
 
     @classmethod
     def _default_row_factory(cls, parent, **kwargs):
-        return ListItemPart(parent, **kwargs)
+        return ListItem(parent=parent, **kwargs)
 
-    def _on_resize(self, event):
-        width = event.width
-        for row in self._rows:
-            row.configure(width=width)
+    def _clamp_indices(self):
+        # Always refresh counts before computing indices
+        self._total_rows = self._datasource.total_count()
+        # Max start index that still yields a full page (or 0 if dataset is small)
+        max_start = max(0, self._total_rows - VISIBLE_ROWS)
+        # Clamp to [0, max_start]
+        if self._start_index < 0:
+            self._start_index = 0
+        elif self._start_index > max_start:
+            self._start_index = max_start
 
     def _on_scroll(self, *args):
+        # Keep counts fresh
+        self._clamp_indices()
         if args[0] == "moveto":
             fraction = float(args[1])
-            self._start_index = int(fraction * (self._total_rows - VISIBLE_ROWS))
+            max_start = max(0, self._total_rows - VISIBLE_ROWS)
+            self._start_index = int(round(fraction * max_start))
         elif args[0] == "scroll":
-            direction = int(args[1])
-            self._start_index = max(0, min(self._start_index + direction, self._total_rows - VISIBLE_ROWS))
+            steps = int(args[1])  # positive or negative
+            self._start_index += steps
+        # Final clamp, then paint
+        self._clamp_indices()
         self._update_rows()
 
     def _on_mousewheel(self, event):
-        delta = -1 if event.delta > 0 else 1
-        self._start_index = max(0, min(self._start_index + delta, self._total_rows - VISIBLE_ROWS))
+        # Windows: event.delta is ±120 multiples; macOS may be small increments
+        step = -1 if event.delta > 0 else 1
+        self._start_index += step
+        self._clamp_indices()
         self._update_rows()
 
     def _update_rows(self):
-        page_data = self._datasource.get_page_from_index(self._start_index, VISIBLE_ROWS)
-        for i, row in enumerate(self._rows):
-            if i < len(page_data):
-                row.update_data(page_data[i])
-            else:
-                row.update_data(None)
+        # Recompute counts and re-clamp every paint
+        self._clamp_indices()
 
-        first = self._start_index / self._total_rows
-        last = min((self._start_index + VISIBLE_ROWS) / self._total_rows, 1.0)
+        page_data = self._datasource.get_page_from_index(self._start_index, VISIBLE_ROWS)
+
+        for i, row in enumerate(self._rows):
+            row.update_data(page_data[i] if i < len(page_data) else None)
+
+        # Scrollbar thumb (guard small/empty datasets)
+        denom = max(1, self._total_rows)  # avoid div/0
+        first = (self._start_index / denom) if self._total_rows > 0 else 0.0
+        last = ((self._start_index + VISIBLE_ROWS) / denom) if self._total_rows > 0 else 1.0
+        last = min(last, 1.0)
         self._scrollbar.set(first, last)
 
     def _on_deselected(self, record_id):

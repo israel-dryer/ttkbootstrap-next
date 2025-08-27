@@ -1,6 +1,8 @@
 import csv
 import sqlite3
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
+
+from ttkbootstrap.common.types import Primitive
 
 
 class DataSource:
@@ -29,9 +31,13 @@ class DataSource:
             return "BLOB"
         return "TEXT"
 
-    def set_data(self, records: List[Dict[str, Any]]):
+    def set_data(self, records: Union[list[Primitive], list[dict[str, Any]]]):
         if not records:
             return self
+
+        # Coerce into a dictionary if not already
+        if not isinstance(records[0], dict):
+            records = [dict(text=str(x)) for x in records]
 
         # Ensure each record has an 'id'
         for i, record in enumerate(records):

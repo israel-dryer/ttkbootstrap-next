@@ -1,5 +1,8 @@
-from ttkbootstrap.composites.entry_field import EntryField
-from ttkbootstrap.widgets.icon_button import IconButton
+from typing import Unpack
+
+from ttkbootstrap.widgets.composites.entry_field import EntryField
+from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets.parts.entry_part import EntryOptions
 
 
 class NumberEntry(EntryField):
@@ -11,7 +14,6 @@ class NumberEntry(EntryField):
     and emits "increment" and "decrement" events when the buttons are clicked.
 
     Parameters:
-        parent: The parent widget.
         value: The initial numeric value as a string.
         label: Optional label text displayed above the input.
         message: Optional helper or validation message shown below the input.
@@ -19,12 +21,11 @@ class NumberEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the underlying spinbox part.
     """
 
-    def __init__(self, parent=None, value="", label="", message="", show_spin_buttons=True, **kwargs):
+    def __init__(self, value="", label="", message="", show_spin_buttons=True, **kwargs: Unpack[EntryOptions]):
         self._show_spin_buttons = show_spin_buttons
-        self._show_spin_buttons_pack = {}
-        super().__init__(parent, value, label, message, kind="spinbox", **kwargs)
-        self.insert_addon(IconButton, icon="plus", name="increment", on_click=self.increment)
-        self.insert_addon(IconButton, icon="dash", name="decrement", on_click=self.decrement)
+        super().__init__(value, label, message, kind="spinbox", **kwargs)
+        self.insert_addon(Button, icon="plus", name="increment", on_click=self.increment)
+        self.insert_addon(Button, icon="dash", name="decrement", on_click=self.decrement)
         self.show_spin_buttons(show_spin_buttons)
 
     @property
@@ -38,18 +39,19 @@ class NumberEntry(EntryField):
     def increment(self):
         """Emit an 'increment' event to the spinbox part."""
         self._entry.emit("increment")
+        return self
 
     def decrement(self):
         """Emit a 'decrement' event to the spinbox part."""
         self._entry.emit("decrement")
+        return self
 
     def show_spin_buttons(self, value: bool):
         """Show or hide the increment/decrement buttons."""
         if value:
-            self.increment_widget.pack(**self._show_spin_buttons_pack.get('increment', {}))
-            self.decrement_widget.pack(**self._show_spin_buttons_pack.get('decrement', {}))
+            self.increment_widget.attach()
+            self.decrement_widget.attach()
         else:
-            self._show_spin_buttons_pack['increment'] = self.increment_widget.pack()
-            self._show_spin_buttons_pack['decrement'] = self.decrement_widget.pack()
-            self.increment_widget.pack_forget()
-            self.decrement_widget.pack_forget()
+            self.increment_widget.hide()
+            self.decrement_widget.hide()
+        return self

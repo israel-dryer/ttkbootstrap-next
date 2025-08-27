@@ -1,4 +1,8 @@
-from ttkbootstrap.composites.entry_field import EntryField
+from typing import Unpack
+
+from ttkbootstrap.widgets.composites.entry_field import EntryField
+from ttkbootstrap.widgets.parts.entry_part import EntryOptions
+
 
 class TextEntry(EntryField):
     """
@@ -8,12 +12,11 @@ class TextEntry(EntryField):
     It is suitable for generic form fields such as name, email, or titles.
 
     Parameters:
-        parent: The parent widget.
-        value (str, optional): The initial text value.
-        label (str, optional): Optional label text displayed above the input.
-        message (str, optional): Optional helper or validation message below the input.
+        value: The initial text value.
+        label: Optional label text displayed above the input.
+        message: Optional helper or validation message below the input.
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
-    def __init__(self, parent=None, value="", label="", message="", **kwargs):
-        super().__init__(parent, value, label, message, **kwargs)
+    def __init__(self, value: str = "", label: str = "", message: str = "", **kwargs: Unpack[EntryOptions]):
+        super().__init__(value, label, message, **kwargs)

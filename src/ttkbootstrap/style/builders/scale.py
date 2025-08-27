@@ -1,4 +1,4 @@
-from ttkbootstrap.widgets.types import Orient
+from ttkbootstrap.common.types import Orientation
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 from ttkbootstrap.style.element import ElementImage, Element
 from ttkbootstrap.style.utils import recolor_image
@@ -6,7 +6,7 @@ from ttkbootstrap.style.utils import recolor_image
 
 class ScaleStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color: str = "primary", orient: Orient = "horizontal"):
+    def __init__(self, color: str = "primary", orient: Orientation = "horizontal"):
         super().__init__("TScale", color=color, orient=orient)
 
     def color(self, value: str = None):
@@ -16,7 +16,7 @@ class ScaleStyleBuilder(StyleBuilderBase):
             self.options.update(color=value)
             return self
 
-    def orient(self, value: Orient = None):
+    def orient(self, value: Orientation = None):
         if value is None:
             return self.options.get('orient') or 'horizontal'
         else:

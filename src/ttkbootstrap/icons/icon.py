@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 from importlib.resources import files
 
 from ttkbootstrap.images.photo import Photo
-from ttkbootstrap.common.logger import logger
+from ttkbootstrap.logging import logger
 
 _transparent_image_cache = {}
 

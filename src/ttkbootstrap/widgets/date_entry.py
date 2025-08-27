@@ -1,10 +1,14 @@
-from ttkbootstrap.composites.entry_field import EntryField
-from ttkbootstrap.widgets.icon_button import IconButton
+from typing import Unpack
+
+from ttkbootstrap.widgets.composites.entry_field import EntryField
+from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets.parts.entry_part import EntryOptions
 
 
 # TODO Date picker dialog
 # TODO Date format
 # TODO Date validation
+# TODO Value should be able to be a datetime object or a string
 
 class DateEntry(EntryField):
     """
@@ -23,22 +27,24 @@ class DateEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
-    def __init__(self, parent=None, value="", label="", message="", show_date_picker_button=True, **kwargs):
+    def __init__(self, value="", label="", message="", show_date_picker_button=True, **kwargs: Unpack[EntryOptions]):
         self._date_picker_button_visible = show_date_picker_button
-        self._date_picker_button_pack = {}
-        super().__init__(parent, value, label, message, **kwargs)
+        super().__init__(value, label, message, **kwargs)
 
-        self.insert_addon(IconButton, name='date-picker', icon="calendar-week", take_focus=False)
+        self.insert_addon(Button, name='date-picker', icon="calendar-week", take_focus=False)
         self.show_date_picker_button(show_date_picker_button)
+
+    @property
+    def _date_picker_button(self):
+        return self.addons.get('date-picker')
 
     def show_date_picker_button(self, value: bool):
         """Show or hide the calendar picker icon button."""
         addon = self.addons.get('date-picker')
         if value:
-            addon.pack(**self._date_picker_button_pack)
+            addon.attach()
         else:
-            self._date_picker_button_pack = addon.pack()
-            addon.pack_forget()
+            addon.hide()
 
     def _show_date_picker(self):
         # TODO implement date picker dialog

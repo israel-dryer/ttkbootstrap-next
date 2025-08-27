@@ -1,5 +1,6 @@
-from typing import Any, Literal, Callable, Union
-from ttkbootstrap.composites.entry_field import EntryField
+from typing import Any, Literal, Callable, Self, Union, Unpack
+from ttkbootstrap.widgets.composites.entry_field import EntryField
+from ttkbootstrap.widgets.parts.entry_part import EntryOptions
 from ttkbootstrap.widgets.button import Button
 from tkinter import filedialog
 
@@ -29,19 +30,18 @@ class FileEntry(EntryField):
 
     def __init__(
             self,
-            parent=None,
             value: str = "No file chosen",
             label: str = "Choose File",
             dialog_type: DialogType = "openfilename",
             dialog_options: dict[str, Any] = None,
             on_change: Callable[[str], Any] = None,
-            **kwargs
+            **kwargs: Unpack[EntryOptions]
     ):
         self._dialog_type = dialog_type
         self._dialog_options = dialog_options or {}
         self._dialog_result = None
 
-        super().__init__(parent, value=value, **kwargs)
+        super().__init__(value=value, **kwargs)
 
         self.insert_addon(
             Button,
@@ -64,7 +64,7 @@ class FileEntry(EntryField):
         """Return the raw result returned by the file dialog."""
         return self._dialog_result
 
-    def dialog_type(self, value: DialogType = None) -> Union[DialogType, 'FileEntry']:
+    def dialog_type(self, value: DialogType = None) -> Union[DialogType, Self]:
         """
         Get or set the type of file dialog.
 
@@ -79,7 +79,7 @@ class FileEntry(EntryField):
         self._dialog_type = value
         return self
 
-    def dialog_options(self, value: dict[str, Any] = None) -> Union[dict[str, Any], 'FileEntry']:
+    def dialog_options(self, value: dict[str, Any] = None) -> Union[dict[str, Any], Self]:
         """
         Get or set the options dictionary passed to the file dialog.
 

@@ -1,14 +1,14 @@
-from tkinter import Widget, ttk
-from typing import Any, Union
+from typing import Any
 
+from ttkbootstrap.common.types import Widget
 from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
 
 
 class ConfigureMixin:
     """Mixin that provides unified configuration access for widgets."""
 
-    widget: Union[Widget, ttk.Widget]
-    _configure_methods: set
+    widget: Widget
+    _configure_methods: dict
 
     def configure(self, option: str = None, **kwargs) -> Any:
         """Get or set widget configuration.
@@ -35,8 +35,8 @@ class ConfigureMixin:
         """
         if hasattr(self, "_configure_methods"):
             for key in list(kwargs):
-                if key in self._configure_methods:
-                    method = getattr(self, key, None)
+                if key in list(self._configure_methods.keys()):
+                    method = getattr(self, self._configure_methods[key])
                     if callable(method):
                         method(kwargs.pop(key))  # dispatch and remove
         self.widget.configure(**unsnake_kwargs(kwargs))
@@ -50,8 +50,8 @@ class ConfigureMixin:
         Returns:
             The current value of the requested option.
         """
-        if hasattr(self, "_configure_methods") and option in self._configure_methods:
-            method = getattr(self, option, None)
+        if hasattr(self, "_configure_methods") and option in self._configure_methods.keys():
+            method = getattr(self, self._configure_methods[option])
             if callable(method):
                 return method()
         return self.widget.cget(unsnake(option))

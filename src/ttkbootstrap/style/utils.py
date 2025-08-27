@@ -1,16 +1,13 @@
 from pathlib import Path
-
-from PIL import Image, ImageOps
+from typing import Tuple, cast
+from colorsys import rgb_to_hls, hls_to_rgb
+from PIL import Image, ImageOps, ImageColor
 
 from ttkbootstrap.images.photo import Photo
 from ttkbootstrap.style.types import ColorModel
 from ttkbootstrap.common.utils import clamp
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets" / "widgets"
-
-from typing import Tuple, cast
-from colorsys import rgb_to_hls, hls_to_rgb
-from PIL import ImageColor
 
 HUE = 360
 SAT = 100

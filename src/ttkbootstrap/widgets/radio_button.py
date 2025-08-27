@@ -2,16 +2,27 @@ from typing import Any, Callable, Union, Unpack
 
 from tkinter import ttk
 
-from ttkbootstrap.core.base_widget_alt import BaseWidget
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
+from ttkbootstrap.common.types import CoreOptions
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.types import RadioButtonOptions
 from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
-from ttkbootstrap.style.tokens import ForegroundColor
+from ttkbootstrap.style.types import ForegroundColor
 
 
-class _Options(RadioButtonOptions, SemanticLayoutOptions):
-    pass
+class RadioButtonOptions(CoreOptions, total=False):
+    """Optional keyword arguments accepted by the `RadioButton` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the widget.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+        underline: The integer index (0-based) of a character to underline in the text.
+        width: The width of the widget in pixels.
+        parent: The parent of this widget.
+    """
+    cursor: str
+    take_focus: bool
+    underline: int
+    width: int
 
 
 class RadioButton(BaseWidget):
@@ -23,14 +34,20 @@ class RadioButton(BaseWidget):
     dynamic value changes and grouped control across multiple buttons.
     """
 
+    widget: ttk.Radiobutton
     _configure_methods = {
-        "text", "text_signal", "value", "value_signal",
-        "group", "on_select", "on_change", "readonly"
+        "text": "text",
+        "text_signal": "text_signal",
+        "value": "value",
+        "value_signal": "value_signal",
+        "group": "group",
+        "on_select": "on_select",
+        "on_change": "on_change",
+        "readonly": "readonly"
     }
 
     def __init__(
             self,
-            parent=None,
             text: str = None,
             value: str | int = 0,
             group: Union[str, Signal] = None,
@@ -39,13 +56,12 @@ class RadioButton(BaseWidget):
             on_select: Callable = None,
             on_change: Callable[[Any], Any] = None,
             variant="default",
-            **kwargs: Unpack[_Options]
+            **kwargs: Unpack[RadioButtonOptions]
     ):
         """
         Initialize a new RadioButton.
 
         Args:
-            parent: The parent widget.
             text: The display text for the radiobutton label.
             value: The value this radiobutton represents when selected.
             group: A signal name or Signal instance to group multiple buttons.
@@ -69,6 +85,8 @@ class RadioButton(BaseWidget):
         if on_change:
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
 
+        parent = kwargs.pop("parent", None)
+
         tk_options = dict(
             value=value,
             textvariable=self._text_signal.var,
@@ -76,7 +94,7 @@ class RadioButton(BaseWidget):
             command=self._on_select,
             **kwargs
         )
-        super().__init__(ttk.Radiobutton, tk_options, parent=parent, auto_mount=True)
+        super().__init__(ttk.Radiobutton, tk_options, parent=parent)
 
         if selected:
             self.select()

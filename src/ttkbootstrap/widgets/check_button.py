@@ -2,17 +2,26 @@ from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
 
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
+from ttkbootstrap.common.types import Widget, CoreOptions
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.types import CheckButtonOptions
-from ttkbootstrap.core.base_widget_alt import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
-from ttkbootstrap.style.tokens import SemanticColor
+from ttkbootstrap.style.types import SemanticColor
 
 
-class _Options(CheckButtonOptions, SemanticLayoutOptions):
-    pass
+class CheckButtonOptions(CoreOptions, total=False):
+    """Optional keyword arguments accepted by the `CheckButton` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the widget.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+        underline: The integer index (0-based) of a character to underline in the text.
+        width: The width of the widget in pixels.
+    """
+    cursor: str
+    take_focus: bool
+    underline: int
+    width: int
 
 
 class CheckButton(BaseWidget):
@@ -24,20 +33,27 @@ class CheckButton(BaseWidget):
     """
 
     widget: ttk.Checkbutton
-    _configure_methods = {"color", "text_signal", "value_signal", "text", "readonly", "on_change", "on_toggle"}
+    _configure_methods = {
+        "color": "color",
+        "text_signal": "text_signal",
+        "value_signal": "value_signal",
+        "text": "text",
+        "readonly": "readonly",
+        "on_change": "on_change",
+        "on_toggle": "on_toggle",
+    }
 
     def __init__(
             self,
-            parent=None,
             text: str | Signal = None,
-            color: SemanticColor = None,
             value: int | str | Signal = -1,
+            color: SemanticColor = None,
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
             on_change: Optional[Callable[[Any], Any]] = None,
             on_toggle: Optional[Callable] = None,
-            **kwargs: Unpack[_Options]
+            **kwargs: Unpack[CheckButtonOptions]
     ):
         """
         Initialize a new CheckButton widget.
@@ -54,7 +70,6 @@ class CheckButton(BaseWidget):
             on_toggle: Command callback invoked on toggle.
             **kwargs: Additional keyword arguments.
         """
-        parent = parent or current_layout()
         self._tristate_value = tristate_value
         self._style_builder = CheckButtonStyleBuilder(color)
         self._on_change = on_change
@@ -66,6 +81,8 @@ class CheckButton(BaseWidget):
         if on_change:
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
 
+        parent = kwargs.pop('parent', None)
+
         tk_options = dict(
             textvariable=self._text_signal.var,
             onvalue=on_value,
@@ -73,7 +90,7 @@ class CheckButton(BaseWidget):
             command=self._internal_toggle,
             **kwargs
         )
-        super().__init__(ttk.Checkbutton, tk_options, parent=parent, auto_mount=True)
+        super().__init__(ttk.Checkbutton, tk_options, parent=parent)
 
         # set initial state
         if value == on_value:
@@ -81,8 +98,6 @@ class CheckButton(BaseWidget):
         if value == off_value:
             self.widget.invoke()
             self.widget.invoke()
-
-        self.update_style()
 
     def on_change(self, value: Callable[[Any], Any] = None):
         """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""

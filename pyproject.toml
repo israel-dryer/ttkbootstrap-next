@@ -1,32 +1,21 @@
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+requires = ["setuptools>=68", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ttkbootstrap"
-version = "2.0.0"
+dynamic = ["version"]
 description = "A supercharged theme extension for tkinter that enables on-demand modern flat style themes inspired by Bootstrap."
-readme = "README.md"
-requires-python = ">=3.13"
-license = { text = "MIT" }
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
 authors = [
-    { name="Israel Dryer", email="israel.dryer@gmail.com" }
+    { name = "Israel Dryer", email = "israel.dryer@gmail.com" }
 ]
 keywords = [
-    "tkinter",
-    "theme",
-    "ttk",
-    "bootstrap",
-    "gui",
-    "desktop",
-    "python3",
-    "ui",
-    "widgets",
-    "theming",
-    "cross-platform",
-    "modern",
-    "responsive",
-    "python-gui"
+    "tkinter", "theme", "ttk", "bootstrap", "gui", "desktop", "python3",
+    "ui", "widgets", "theming", "cross-platform", "modern",
+    "responsive", "python-gui"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -35,26 +24,35 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: User Interfaces",
-    "Operating System :: OS Independent",
+    "Operating System :: OS Independent"
 ]
-
 dependencies = [
-    "pillow>=10,<11",
+    "pillow>=10,<11"
 ]
 
 [project.urls]
 Homepage = "https://github.com/israel-dryer/ttkbootstrap"
 Documentation = "https://ttkbootstrap.readthedocs.io/en/latest/"
 
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+license-files = ["LICENSE", "LICENSE.*"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["tests*", "docs*"]
 
 [tool.setuptools.package-data]
-"ttkbootstrap" = ["localization/msgs/*.msg", "themes/*.json", "assets/*"]
+ttkbootstrap = [
+    "localization/msgs/*.msg",
+    "themes/*.json",
+    "assets/**/*"
+]
+
+[tool.setuptools_scm]
+version_file = "src/ttkbootstrap/_version.py"
+fallback_version = "2.0.0"

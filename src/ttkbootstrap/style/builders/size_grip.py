@@ -1,5 +1,5 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.tokens import ForegroundColor
+from ttkbootstrap.style.types import ForegroundColor
 
 
 class SizeGripStyleBuilder(StyleBuilderBase):

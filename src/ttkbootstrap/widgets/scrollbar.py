@@ -1,33 +1,58 @@
 from tkinter import ttk
-from typing import Unpack
+from typing import Callable, Unpack
 
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
-from ttkbootstrap.widgets.types import ScrollbarOptions, Orient
-from ttkbootstrap.core.base_widget_alt import BaseWidget
+from ttkbootstrap.common.types import Orientation, CoreOptions
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
 
 
-class _Options(SemanticLayoutOptions, ScrollbarOptions):
-    pass
+class ScrollbarOptions(CoreOptions, total=False):
+    """
+    Options for configuring a scrollbar widget.
+
+    Attributes:
+        cursor: The cursor that appears when the mouse is over the widget.
+        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+    """
+    cursor: str
+    take_focus: bool
+    on_scroll: Callable
 
 
 class Scrollbar(BaseWidget):
     """A themed scrollbar widget with support for fractional movement and position."""
 
     widget: ttk.Scrollbar
-    _configure_methods = {}
+    _configure_methods = {"on_scroll": "on_scroll"}
 
-    def __init__(self, parent=None, orient: Orient = "vertical", **kwargs: Unpack[_Options]):
+    def __init__(
+            self,
+            orient: Orientation = "vertical",
+            on_scroll: Callable = None,
+            **kwargs: Unpack[ScrollbarOptions]):
         """
         Initialize a new themed scrollbar.
 
         Args:
-            parent: The parent widget.
-            **kwargs: Configuration options for the ttk.Scrollbar widget.
+            orient: The widget orientation.
+            on_scroll: The `xview` or `yview` method of a scrollable widget
+            **kwargs: Additional configuration options.
         """
+        self._on_scroll = on_scroll
         self._style_builder = ScrollbarStyleBuilder(orient=orient)
-        tk_options = dict(orient=orient, **kwargs)
-        super().__init__(ttk.Scrollbar, tk_options, parent=parent, auto_mount=True)
+
+        parent = kwargs.pop("parent", None)
+        tk_options = dict(orient=orient, command=on_scroll, **kwargs)
+        super().__init__(ttk.Scrollbar, tk_options, parent=parent)
+
+    def on_scroll(self, func: Callable = None):
+        """Get or set the on_scroll callback bound to a scrollable widgets (yview, xview)"""
+        if func is None:
+            return self._on_scroll
+        else:
+            self._on_scroll = func
+            self.widget.configure(command=func)
+            return self
 
     def delta(self, x: int, y: int) -> float:
         """Return the fractional change if the scrollbar were moved by (x, y) pixels."""

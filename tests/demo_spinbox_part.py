@@ -1,9 +1,10 @@
-from ttkbootstrap.core import App
-from ttkbootstrap.widgets.parts.number_spinbox_part import NumberSpinboxPart
+from ttkbootstrap.app import App
+from ttkbootstrap.layouts import Pack
+from ttkbootstrap.widgets.parts.number_spinner_part import NumberSpinnerPart
 
-app = App()
-
-NumberSpinboxPart(app, value=0.0, increment=0.1).pack(padx=16, pady=16, fill='x').on_change(lambda x: print(x)).on_enter(lambda x:print(x))
-NumberSpinboxPart(app, value=0.0, increment=0.1).pack(padx=16, pady=16, fill='x').on_change(lambda x: print(x)).on_enter(lambda x:print(x))
+with App() as app:
+    with Pack():
+        NumberSpinnerPart()
+        NumberSpinnerPart()
 
 app.run()

@@ -1,5 +1,9 @@
-from ttkbootstrap.composites.entry_field import EntryField
-from ttkbootstrap.widgets.icon_button import IconButton
+from typing import Unpack
+
+from ttkbootstrap.widgets.composites.entry_field import EntryField
+from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets.parts.entry_part import EntryOptions
+
 
 class PasswordEntry(EntryField):
     """
@@ -10,7 +14,6 @@ class PasswordEntry(EntryField):
     reveals the password; releasing it hides the input again.
 
     Parameters:
-        parent: The parent widget.
         value: The initial password value.
         label: Label text displayed above the input.
         message: Optional helper or validation message below the field.
@@ -18,13 +21,13 @@ class PasswordEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
-    def __init__(self, parent=None, value="", label="", message="", show_visible_toggle=False, **kwargs):
+    def __init__(self, value="", label="", message="", show_visible_toggle=False, **kwargs: Unpack[EntryOptions]):
         self._show_visible_toggle = show_visible_toggle
         self._show_visible_pack = {}
 
-        super().__init__(parent, value, label, message, show="•", **kwargs)
+        super().__init__(value, label, message, show="•", **kwargs)
 
-        self.insert_addon(IconButton, name="visibility", icon="eye")
+        self.insert_addon(Button, name="visibility", icon="eye", compound="image")
         self.show_visible_toggle(show_visible_toggle)
 
         addon = self.addons.get('visibility')
@@ -47,13 +50,13 @@ class PasswordEntry(EntryField):
         """Hide the password when the eye icon is released."""
         if 'disabled' in self.entry_widget.state():
             return
-        self._visibility_addon.configure(icon='eye')
+        self._visibility_addon.configure(icon='eye', compound="image")
         self.entry_widget.configure(show="•")
 
     def show_visible_toggle(self, value: bool):
         """Show or hide the visibility toggle addon."""
         if value:
-            self._visibility_addon.pack(**self._show_visible_pack)
+            self._visibility_addon.attach()
         else:
-            self._show_visible_pack = self._visibility_addon.pack()
-            self._visibility_addon.pack_forget()
+            self._visibility_addon.hide()
+        return self

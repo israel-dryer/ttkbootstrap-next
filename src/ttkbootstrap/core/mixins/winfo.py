@@ -1,6 +1,6 @@
-from tkinter import Widget
+from typing import Literal, NamedTuple
 
-from typing import NamedTuple
+from ttkbootstrap.common.types import Widget
 
 
 class Geometry(NamedTuple):
@@ -69,3 +69,7 @@ class WidgetInfoMixin:
     def float_pixels(self, value: float | str) -> float:
         """Convert a screen distance value to pixels (float)."""
         return self.widget.winfo_fpixels(value)
+
+    def windowing_system(self) -> Literal['x11', 'win32', 'aqua']:
+        """Returns the windowing system used by the application"""
+        return self.widget.tk.call("tk", "windowingsystem")

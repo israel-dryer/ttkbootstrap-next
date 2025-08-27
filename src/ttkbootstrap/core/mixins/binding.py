@@ -1,13 +1,14 @@
 import json
 import weakref
 from collections import defaultdict
-from tkinter import ttk
-from typing import Any, Callable
+from typing import Any, Callable, Union
 
-from ttkbootstrap.interop.aliases import EVENT_ALIASES
+from ttkbootstrap.common.types import Widget
+from ttkbootstrap.interop.aliases import EVENT_ALIASES, EventAlias
 from ttkbootstrap.interop.substitutions import get_event_substring
 from ttkbootstrap.interop.commands import event_callback_wrapper
 
+Event = Union[EventAlias, str]
 
 class BindingMixin:
     """Mixin that provides alias-aware event binding with substitution-based parsing.
@@ -16,7 +17,7 @@ class BindingMixin:
     Automatically wraps event handlers with converters and tracks bindings via weakrefs.
     """
 
-    widget: ttk.Widget
+    widget: Widget
     _bound_events: dict[str, list[str]]
     _callbacks: weakref.WeakValueDictionary[str, Callable]
 
@@ -30,7 +31,7 @@ class BindingMixin:
         """Convert alias to a full Tk event sequence."""
         return event if ("<<" in event or "<" in event) else EVENT_ALIASES.get(event, f"<<{event}>>")
 
-    def bind(self, event: str, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
+    def bind(self, event: Event, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
         """Bind a callback to an event using Tcl substitution (e.g., %d for data).
 
         Args:
@@ -51,7 +52,7 @@ class BindingMixin:
         self._callbacks[func_id] = func
         return func_id
 
-    def bind_class(self, class_name: str, event: str, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
+    def bind_class(self, class_name: str, event: Event, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
         """Bind a callback to a widget class using alias-aware wrapping."""
         sequence = self._normalize(event)
         func_id = event_callback_wrapper(self.widget, func, sequence, dedup=dedup)
@@ -61,7 +62,7 @@ class BindingMixin:
         self._callbacks[func_id] = func
         return func_id
 
-    def unbind_class(self, class_name: str, event: str, func_id: str | None = None):
+    def unbind_class(self, class_name: str, event: Event, func_id: str | None = None):
         """Unbind one or all handlers for a class-level binding."""
         sequence = self._normalize(event)
         key = f"class::{class_name}::{sequence}"
@@ -84,7 +85,7 @@ class BindingMixin:
         if not current_ids:
             self._bound_events.pop(key, None)
 
-    def bind_all(self, event: str, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
+    def bind_all(self, event: Event, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
         """Bind a global event handler using alias-aware wrapping."""
         sequence = self._normalize(event)
         func_id = event_callback_wrapper(self.widget, func, sequence, dedup=dedup)
@@ -94,7 +95,7 @@ class BindingMixin:
         self._callbacks[func_id] = func
         return func_id
 
-    def unbind_all(self, event: str, func_id: str | None = None):
+    def unbind_all(self, event: Event, func_id: str | None = None):
         """Remove all callbacks bound globally for a specific event."""
         sequence = self._normalize(event)
         key = f"all::{sequence}"
@@ -124,7 +125,7 @@ class BindingMixin:
         self.widget.bindtags(tags)
         return self
 
-    def unbind(self, event: str, func_id: str | None = None):
+    def unbind(self, event: Event, func_id: str | None = None):
         """Unbind a specific function or all functions from an event.
 
         Args:
@@ -155,7 +156,7 @@ class BindingMixin:
         """Return a mapping of bound events and their function IDs."""
         return dict(self._bound_events)
 
-    def emit(self, event: str, data: dict[Any, Any] = None):
+    def emit(self, event: Event, data: dict[Any, Any] = None):
         """Programmatically trigger a virtual event.
 
         Args:

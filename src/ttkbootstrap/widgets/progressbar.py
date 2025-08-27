@@ -2,37 +2,58 @@ from typing import Any, Callable, Unpack, Literal
 
 from tkinter import ttk
 
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
+from ttkbootstrap.common.types import Orientation, CoreOptions
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.types import ProgressOptions, Orient
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
 from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
-from ttkbootstrap.style.tokens import SemanticColor
-from ttkbootstrap.common.utils import unsnake_kwargs
+from ttkbootstrap.style.types import SemanticColor
 
 
-class _Options(ProgressOptions, SemanticLayoutOptions):
-    pass
+class ProgressOptions(CoreOptions, total=False):
+    """
+    Options for configuring a progress bar widget.
+
+    Attributes:
+        cursor: The cursor that appears when the mouse is over the widget.
+        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+        length: The length of the progress bar in pixels.
+        maximum: The maximum value for the progress bar range.
+        orient: Indicates whether the widget should be laid or horizontally or vertically
+        mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
+        parent: The parent widget for this widget.
+    """
+    cursor: str
+    take_focus: bool
+    length: int
+    maximum: int
+    orient: Orientation
+    mode: Literal['determinate', 'indeterminate']
 
 
-class ProgressBar(BaseWidget):
-    _configure_methods = {"on_change", "signal", "value", "maximum", "orient", "color", "variant"}
+class Progressbar(BaseWidget):
+    widget: ttk.Progressbar
+    _configure_methods = {
+        "on_change": "on_change",
+        "signal": "signal",
+        "value": "value",
+        "maximum": "maximum",
+        "orient": "orient",
+        "color": "color",
+        "variant": "variant",
+    }
 
     def __init__(
             self,
-            parent=None,
             value: int | Signal = 0,
             color: SemanticColor = "primary",
-            orient: Orient = "horizontal",
+            orient: Orientation = "horizontal",
             variant: Literal['default', 'striped'] = "default",
             on_change: Callable[[int], Any] = None,
-            **kwargs: Unpack[_Options]):
+            **kwargs: Unpack[ProgressOptions]):
         """
         Create a progress bar widget with signal-based value tracking and styling.
 
         Args:
-            parent: The parent widget.
             value: The initial value of the progress bar.
             color: The semantic color for the progress bar (e.g., "primary", "success", "danger").
             orient: The orientation of the progress bar; either "horizontal" or "vertical".
@@ -40,22 +61,24 @@ class ProgressBar(BaseWidget):
             on_change: Optional callback function invoked with the new value when it changes.
             **kwargs: Additional keyword arguments
         """
-        parent or current_layout()
         self._style_builder = ProgressStyleBuilder(orient=orient, color=color, variant=variant)
         self._signal = value if isinstance(value, Signal) else Signal(value)
         self._status = 'active'
         self._on_change = on_change
         self._on_change_fid = None
 
-        self._widget = ttk.Progressbar(parent, orient=orient, variable=self._signal.var, **unsnake_kwargs(kwargs))
+        parent = kwargs.pop("parent", None)
+        tk_options = dict(
+            orient=orient,
+            variable=self._signal.var,
+            **kwargs
+        )
+        super().__init__(ttk.Progressbar, tk_options, parent=parent)
 
         if self._on_change:
             self.on_change(self._on_change)
 
-        super().__init__(parent)
-        self.update_style()
-
-    def orient(self, value: Orient = None):
+    def orient(self, value: Orientation = None):
         """Get or set the widget orientation"""
         if value is None:
             return self.configure('orient')
@@ -94,7 +117,7 @@ class ProgressBar(BaseWidget):
         return self
 
     def signal(self, value: Signal = None):
-        """Get or set the signal controlling the slider value."""
+        """Get or set the signal controlling the progress value."""
         if value is None:
             return self._signal
         else:
@@ -107,7 +130,7 @@ class ProgressBar(BaseWidget):
             return self
 
     def value(self, value: int | float = None):
-        """Get or set the current slider value."""
+        """Get or set the current progress value."""
         if value is None:
             return self._signal()
         else:

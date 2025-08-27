@@ -2,17 +2,11 @@ from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
 
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.types import CheckButtonOptions
-from ttkbootstrap.core.base_widget_alt import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.switch_button import SwitchButtonStyleBuilder
-from ttkbootstrap.style.tokens import SemanticColor
-
-
-class _Options(CheckButtonOptions, SemanticLayoutOptions):
-    pass
+from ttkbootstrap.style.types import SemanticColor
+from ttkbootstrap.widgets.check_button import CheckButtonOptions
 
 
 class SwitchButton(BaseWidget):
@@ -23,25 +17,31 @@ class SwitchButton(BaseWidget):
     and supports binding to `Signal` objects for reactive UI behavior.
     """
     widget: ttk.Separator
-    _configure_methods = {"color", "text_signal", "value_signal", "text", "readonly", "on_change", "on_toggle"}
+    _configure_methods = {
+        "color": "color",
+        "text_signal": "text_signal",
+        "value_signal": "value_signal",
+        "text": "text",
+        "readonly": "readonly",
+        "on_change": "on_change",
+        "on_toggle": "on_toggle",
+    }
 
     def __init__(
             self,
-            parent=None,
             text: str | Signal = None,
-            color: SemanticColor = None,
             value: int | str | Signal = -1,
+            color: SemanticColor = None,
             on_value: int | str = 1,
             off_value: int | str = 0,
             on_change: Optional[Callable[[Any], Any]] = None,
             on_toggle: Optional[Callable] = None,
-            **kwargs: Unpack[_Options]
+            **kwargs: Unpack[CheckButtonOptions]
     ):
         """
         Initialize a new SwitchButton widget.
 
         Args:
-            parent: The parent widget.
             text: The label text for the checkbutton.
             color: The semantic foreground color role.
             value: The initial value of the checkbutton.
@@ -49,9 +49,8 @@ class SwitchButton(BaseWidget):
             off_value: The value when unchecked.
             on_change: Callback fired when the value signal changes.
             on_toggle: Command callback invoked on toggle.
-            **kwargs: Additional keyword arguments passed to `ttk.Checkbutton`.
+            **kwargs: Additional keyword arguments.
         """
-        parent = parent or current_layout()
         self._style_builder = SwitchButtonStyleBuilder(color)
         self._on_change = on_change
         self._on_change_fid = None
@@ -62,6 +61,8 @@ class SwitchButton(BaseWidget):
         if on_change:
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
 
+        parent = kwargs.pop("parent", None)
+
         tk_options = dict(
             textvariable=self._text_signal.var,
             variable=self._value_signal.var,
@@ -70,7 +71,7 @@ class SwitchButton(BaseWidget):
             command=self._on_toggle,
             **kwargs
         )
-        super().__init__(ttk.Checkbutton, tk_options, parent=parent, auto_mount=True)
+        super().__init__(ttk.Checkbutton, tk_options, parent=parent)
 
     def on_change(self, value: Callable[[Any], Any] = None):
         """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""

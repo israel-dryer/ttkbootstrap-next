@@ -2,11 +2,11 @@ import json
 import importlib.resources as resources
 from typing import Optional, Union, Literal
 
-from .utils import (
+from ttkbootstrap.style.utils import (
     darken_color, tint_color, shade_color, relative_luminance, best_foreground,
     lighten_color, mix_colors
 )
-from ..exceptions import InvalidThemeError
+from ttkbootstrap.exceptions import InvalidThemeError
 
 _registered_themes: dict[str, dict] = {}
 
@@ -76,201 +76,6 @@ def load_user_defined_theme(path: str) -> dict:
     """
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-# class Color:
-#     """Represents a color token and provides derived color states."""
-#
-#     def __init__(self, value: str, theme: "ColorTheme"):
-#         """Initialize a Color with a theme context.
-#
-#         Args:
-#             value (str): The base color value (hex).
-#             theme (ColorTheme): The theme used for contrast and blending.
-#         """
-#         self._theme = theme
-#         self._value = value
-#         self._background = theme.background()
-#         self._foreground = theme.foreground()
-#         self._mode = theme.mode
-#
-#     def __str__(self):
-#         """Return the base color value as a string."""
-#         return self._value
-#
-#     def get(self):
-#         """Return the base color value."""
-#         return self._value
-#
-#     def normal(self):
-#         """Return the normal state color based on the current color"""
-#         return self._value
-#
-#     def hover(self):
-#         """Return a hover state color based on the current color."""
-#         return self._state_color("hover")
-#
-#     def active(self):
-#         """Return an active state color based on the current color."""
-#         return self._state_color("active")
-#
-#     def focus(self):
-#         """Return a focus state color based on the current color."""
-#         return self._state_color("focus")
-#
-#     def disabled(self, role: str = "background") -> str:
-#         """Return a muted, theme-aware disabled state color.
-#
-#         Args:
-#             role: Either "background" or "text" to distinguish the usage.
-#
-#         Returns:
-#             str: A visually appropriate disabled color.
-#         """
-#         surface = self._background.get()
-#
-#         if role == "text":
-#             if self._mode == "light":
-#                 gray = "#6c757d"  # Bootstrap secondary gray
-#                 mix_ratio = 0.35  # Simulate ~65% opacity
-#             else:
-#                 gray = "#adb5bd"  # Bootstrap muted text on dark
-#                 mix_ratio = 0.25
-#         elif role == "background":
-#             if self._mode == "light":
-#                 gray = "#dee2e6"  # Bootstrap border or card background
-#                 mix_ratio = 0.15
-#             else:
-#                 gray = "#495057"  # Darker gray surface
-#                 mix_ratio = 0.20
-#         else:
-#             raise ValueError(f"Invalid role: {role}. Expected 'text' or 'background'.")
-#
-#         return mix_colors(gray, surface, mix_ratio)
-#
-#     def border(self):
-#         """Return a border color that contrasts against the background.
-#
-#         Returns:
-#             str: A slightly darkened or lightened border color.
-#         """
-#         if self._mode == "dark":
-#             return lighten_color(self._value, 0.20)
-#         else:
-#             return darken_color(self._value, 0.20)
-#
-#     def focus_border(self):
-#         """Return a color suitable for a focus border.
-#
-#         Returns:
-#             str: Adjusted focus border color based on luminance and theme mode.
-#         """
-#         lum = relative_luminance(self._value)
-#         if self._mode == "dark":
-#             return lighten_color(self._value, 0.1)
-#         else:
-#             return darken_color(self._value, 0.2 if lum > 0.5 else 0.1)
-#
-#     def focus_ring(self, surface=None) -> str:
-#         """Return a focus ring color blended with the surface.
-#
-#         Args:
-#             surface (str, optional): The background surface color to blend with. Defaults to theme background.
-#
-#         Returns:
-#             str: The resulting ring color for focus indicators.
-#         """
-#         base = self.focus()
-#         surface = surface or self._background.get()
-#         lum = relative_luminance(base)
-#         if self._mode == "dark":
-#             if lum < 0.3:
-#                 brightened = lighten_color(base, 0.2)
-#                 mixed = mix_colors(brightened, surface, 0.2)
-#             else:
-#                 mixed = mix_colors(base, surface, 0.3)
-#         else:
-#             if lum > 0.5:
-#                 blended = mix_colors(base, surface, 0.2)
-#                 mixed = darken_color(blended, 0.15)
-#             else:
-#                 brightened = lighten_color(base, 0.25)
-#                 mixed = mix_colors(brightened, surface, 0.25)
-#         return mixed
-#
-#     def subtle(self, role="background", surface=None) -> "Color":
-#         """Return a subtle instance of this color for background or text.
-#
-#         Args:
-#             role: Either "background" or "text".
-#             surface: Surface to blend with. Defaults to theme background.
-#
-#         Returns:
-#             Color: A softened or blended color based on role.
-#         """
-#         base_color = self._value
-#         surface_color = surface or self._background.get()
-#
-#         if role == "text":
-#             # Less blending to keep text legible, just reduce intensity
-#             if self._mode == "light":
-#                 return Color(darken_color(base_color, 0.25), self._theme)
-#             else:
-#                 return Color(lighten_color(base_color, 0.25), self._theme)
-#         else:  # background
-#             if self._mode == "light":
-#                 return Color(mix_colors(base_color, surface_color, 0.08), self._theme)
-#             else:
-#                 return Color(mix_colors(base_color, surface_color, 0.10), self._theme)
-#
-#     def on_color(self):
-#         """Return the most readable foreground color on top of this color.
-#
-#         Returns:
-#             Color: A contrasting foreground color.
-#         """
-#         return Color(
-#             best_foreground(
-#                 self._value,
-#                 [self._value, self._background.get(), self._foreground.get()]),
-#             self._theme)
-#
-#     def elevate(self, elevation: int = 0, *, max_elevation: int = 5) -> "Color":
-#         """Return a raised or layered color to simulate elevation.
-#
-#         Args:
-#             elevation (int): Elevation level from 0 to max_elevation.
-#             max_elevation (int): The maximum elevation level. Defaults to 5.
-#
-#         Returns:
-#             Color: A blended elevated color.
-#         """
-#         if elevation <= 0:
-#             return Color(self._value, self._theme)
-#         blend_target = "#000000" if self._mode == "light" else "#ffffff"
-#         weight = min(elevation / max_elevation, 1.0) * 0.3
-#         return Color(mix_colors(blend_target, self._value, weight), self._theme)
-#
-#     def _state_color(self, state: Literal["hover", "active", "focus"]) -> str:
-#         """Return a color variant for a given interaction state.
-#
-#         Args:
-#             state (Literal): One of 'hover', 'active', or 'focus'.
-#
-#         Returns:
-#             str: A shade-adjusted color based on luminance and state.
-#         """
-#         if state == "focus":
-#             return self._value
-#         delta = {
-#             "hover": 0.08,
-#             "active": 0.12,
-#             "focus": 0.08
-#         }[state]
-#         lum = relative_luminance(self._value)
-#         if lum < 0.5:
-#             return lighten_color(self._value, delta)
-#         return darken_color(self._value, delta)
 
 
 class ColorTheme:
@@ -353,7 +158,7 @@ class ColorTheme:
         if '-' in token:
             color, level = token.split('-')
             if len(level) == 1:
-                if 'subtle' in token: # color-subtle
+                if 'subtle' in token:  # color-subtle
                     return self.subtle(color, surface, role)
                 else:
                     # color-1 (elevated color)

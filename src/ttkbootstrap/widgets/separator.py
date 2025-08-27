@@ -1,39 +1,40 @@
 from tkinter import ttk
-from typing import Unpack
+from typing import Unpack, Literal, Union
 
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
-from ttkbootstrap.widgets.types import Orient
-from ttkbootstrap.core.base_widget_alt import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.common.types import Orientation, CoreOptions
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
-from ttkbootstrap.style.tokens import SeparatorColor
+from ttkbootstrap.style.types import SemanticColor
+
+SeparatorColor = Union[Literal['border'], SemanticColor]
 
 
-class _Options(SemanticLayoutOptions):
-    pass
+class SeparatorOptions(CoreOptions, total=False): ...
 
 
 class Separator(BaseWidget):
     """A themed horizontal or vertical line used to divide content areas."""
 
     widget: ttk.Separator
-    _configure_methods = {"color", "orient"}
+    _configure_methods = {"color": "color", "orient": "orient"}
 
     def __init__(
-            self, parent=None, color: SeparatorColor = "border", orient: Orient = "horizontal",
-            **kwargs: Unpack[_Options]):
+            self,
+            color: SeparatorColor = "border",
+            orient: Orientation = "horizontal",
+            **kwargs: Unpack[SeparatorOptions]):
         """
         Initialize a Separator widget.
 
         Args:
-            parent: The parent widget.
             color: The separator color token (e.g., "border", "primary").
             orient: Orientation of the separator ("horizontal" or "vertical").
+            kwargs: Other widget options.
         """
-        parent = parent or current_layout()
         self._style_builder = SeparatorStyleBuilder(color, orient)
+        parent = kwargs.pop('parent', None)
         tk_options = {**kwargs, "orient": orient}
-        super().__init__(ttk.Separator, tk_options, parent=parent, auto_mount=True)
+        super().__init__(ttk.Separator, tk_options, parent=parent)
 
     def color(self, value: SeparatorColor = None):
         """Get or set the separator color."""
@@ -44,7 +45,7 @@ class Separator(BaseWidget):
             self.update_style()
             return self
 
-    def orient(self, value: Orient = None):
+    def orient(self, value: Orientation = None):
         """Get or set the separator orientation."""
         if value is None:
             return self.configure('orient')

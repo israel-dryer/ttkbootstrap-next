@@ -1,16 +1,22 @@
 from typing import Unpack
 
-from ttkbootstrap.layouts.types import SemanticLayoutOptions
-from ttkbootstrap.widgets.types import SizeGripOptions
-from ttkbootstrap.core.base_widget_alt import BaseWidget
-from ttkbootstrap.layouts.constants import current_layout
+from ttkbootstrap.common.types import CoreOptions
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.size_grip import SizeGripStyleBuilder
-from ttkbootstrap.style.tokens import SemanticColor
 from tkinter import ttk
 
+from ttkbootstrap.style.types import SemanticColor
 
-class _Options(SizeGripOptions, SemanticLayoutOptions):
-    pass
+
+class SizeGripOptions(CoreOptions, total=False):
+    """Optional keyword arguments accepted by the `SizeGrip` widget.
+
+    Attributes:
+        cursor: Mouse cursor to display when hovering over the widget.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+    """
+    cursor: str
+    take_focus: bool
 
 
 class SizeGrip(BaseWidget):
@@ -22,20 +28,19 @@ class SizeGrip(BaseWidget):
     """
 
     widget: ttk.Sizegrip
-    _configure_methods = {"color"}
+    _configure_methods = {"color": "color"}
 
-    def __init__(self, parent=None, color: SemanticColor = None, **kwargs: Unpack[_Options]):
+    def __init__(self, color: SemanticColor = None, **kwargs: Unpack[SizeGripOptions]):
         """Initialize a new SizeGrip widget.
 
         Args:
-            parent: The parent widget.
             color: The color token to apply to the sizegrip element.
             **kwargs: Additional ttk.Sizegrip configuration options.
         """
-        parent = parent or current_layout()
         self._style_builder = SizeGripStyleBuilder(color)
+        parent = kwargs.pop('parent', None)
         tk_options = dict(**kwargs)
-        super().__init__(ttk.Sizegrip, tk_options, parent=parent, auto_mount=True)
+        super().__init__(ttk.Sizegrip, tk_options, parent=parent)
 
     def color(self, value: SemanticColor = None):
         """Get or set the sizegrip color."""

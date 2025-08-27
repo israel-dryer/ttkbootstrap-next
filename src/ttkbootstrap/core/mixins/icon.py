@@ -1,11 +1,13 @@
 from typing import Any, Callable
-
 from ttkbootstrap.common.utils import resolve_options
 
 
 class IconMixin:
     _style_builder: Any
     _icon: dict | str
+    _has_icon: bool
+    exists: Callable[[], bool]
+    icon_position: Callable[[str], str]
     is_disabled: Callable[[], bool]
     configure: Callable
     process_idle_tasks: Callable
@@ -16,7 +18,9 @@ class IconMixin:
         self._selected_state_icon = False
         self._stateful_icons_bound = False
         self._current_icon_image = None
+        self._has_icon = False
         self._update_icon_assets()
+        self.bind("theme-changed", self._on_theme_changed)
 
     def _set_image_if_needed(self, image):
         """Set the image only if it differs from the current."""
@@ -28,26 +32,32 @@ class IconMixin:
         """Get or set the widget icon"""
         if value is None:
             return self._icon
+
         key_value = resolve_options(value, 'name')
-        if self._icon['name'] != key_value['name']:
-            self._icon = key_value
-            self._current_icon_image = None  # force image reset
-            self._update_icon_assets()
+        self._has_icon = True
+        self.icon_position("auto")
 
-        # Re-apply current state image
-        icons = self._style_builder.stateful_icons
-        if self._selected_state_icon and 'selected' in icons:
-            self._set_image_if_needed(icons['selected'])
-        elif self._is_icon_disabled():
-            self._set_image_if_needed(icons['disabled'])
-        elif self.has_focus():
-            self._set_image_if_needed(icons['focus'])
-        else:
-            self._set_image_if_needed(icons['normal'])
+        def apply():
+            if not self.exists():
+                return
 
-        if hasattr(self, 'icon_position') and hasattr(self, '_icon_position'):
-            self.icon_position(self._icon_position)
-        self.process_idle_tasks()
+            if self._icon is None or self._icon.get('name', None) != key_value['name']:
+                self._icon = key_value
+                self._current_icon_image = None  # force image reset
+                self._update_icon_assets()
+
+            # Re-apply current state image
+            icons = self._style_builder.stateful_icons
+            if self._selected_state_icon and 'selected' in icons:
+                self._set_image_if_needed(icons['selected'])
+            elif self._is_icon_disabled():
+                self._set_image_if_needed(icons['disabled'])
+            elif self.has_focus():
+                self._set_image_if_needed(icons['focus'])
+            else:
+                self._set_image_if_needed(icons['normal'])
+
+        self.schedule_after_idle(apply)
         return self
 
     def _update_icon_assets(self):
@@ -121,3 +131,26 @@ class IconMixin:
         if hasattr(self, 'is_disabled'):
             return self.is_disabled()
         return False
+
+    def _on_theme_changed(self, _=None):
+        # If no icon set, nothing to do
+        if not getattr(self, "_icon", None):
+            return
+
+        # Force a rebuild of assets for the new theme
+        self._current_icon_image = None
+        self._update_icon_assets()
+
+        # Re-apply the correct state image immediately
+        icons = self._style_builder.stateful_icons
+        if self._selected_state_icon and 'selected' in icons:
+            image = icons.get('selected', icons['normal'])
+        elif self._is_icon_disabled():
+            image = icons.get('disabled', icons['normal'])
+        elif self.has_focus():
+            image = icons.get('focus', icons['normal'])
+        else:
+            image = icons['normal']
+
+        # Set unconditionally after cache-bust to ensure redraw
+        self._set_image_if_needed(image)

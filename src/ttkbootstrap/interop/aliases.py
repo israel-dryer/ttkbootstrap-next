@@ -8,6 +8,8 @@ EVENT_ALIASES = {
     "dbl-click": "<Double-Button-1>",
     "drag": "<B1-Motion>",
     "mouse-wheel": "<MouseWheel>",
+    "wheel-up": "<Button-4>",  # linux
+    "wheel-down": "<Button-5>",  # linux
     "hover": "<Enter>",
     "enter": "<Enter>",
     "leave": "<Leave>",
@@ -71,6 +73,8 @@ EventAlias = Literal[
     "dbl-click",
     "drag",
     "mouse-wheel",
+    "mouse-up",
+    "mouse-down",
     "hover",
     "enter",
     "leave",

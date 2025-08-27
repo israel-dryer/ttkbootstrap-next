@@ -1,11 +1,12 @@
-from ttkbootstrap.core import App
-from ttkbootstrap.widgets import CheckButton, RadioButton
+from ttkbootstrap.app import App
+from ttkbootstrap.layouts import Pack
+from ttkbootstrap.widgets import Label
+from ttkbootstrap.widgets.radio_button import RadioButton
 
-app = App()
-
-RadioButton(app, "One", 1, 'Numbers', selected=True).pack()
-RadioButton(app, "Two", 2, "Numbers").pack()
-RadioButton(app, "Three", 3, "Numbers").pack().disable()
-CheckButton(app, "Something").pack()
-
+with App() as app:
+    with Pack(fill_items="x", gap=8, padding=16):
+        Label("Radio Button Demo", font="heading-md")
+        RadioButton("One", 1, "Numbers", selected=True)
+        RadioButton("Two", 2, "Numbers")
+        RadioButton("Three", 3, "Numbers")
 app.run()

@@ -1,11 +1,21 @@
-from tkinter import Widget, ttk
-from typing import Union
+import weakref
+
+from ttkbootstrap.common.types import Widget
+from ttkbootstrap.core.layout_context import push_container, pop_container
 
 
 class ContainerMixin:
     """Mixin that exposes container-related access from widget"""
 
-    widget: ttk.Widget
+    widget: Widget
+    parent: Widget
+
+    def __enter__(self):
+        push_container(self)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pop_container()
 
     @property
     def master(self):
@@ -30,6 +40,6 @@ class ContainerMixin:
         self.widget._last_child_ids = value
 
     @property
-    def children(self) -> dict[str, Union[ttk.Widget, Widget]]:
+    def children(self) -> dict[str, Widget]:
         """A list of child widgets"""
         return self.widget.children

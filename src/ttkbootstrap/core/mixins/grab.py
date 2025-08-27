@@ -1,4 +1,4 @@
-from tkinter import Widget
+from ttkbootstrap.common.types import Widget
 
 
 class GrabMixIn:
