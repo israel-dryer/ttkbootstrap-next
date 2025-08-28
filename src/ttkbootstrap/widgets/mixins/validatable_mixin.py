@@ -1,5 +1,5 @@
 from typing import Any, Callable, Optional, Unpack
-
+from ttkbootstrap.common.types import Event
 from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 from ttkbootstrap.validation.rules import ValidationRule
 
@@ -31,8 +31,8 @@ class ValidatableMixin:
 
     def _setup_validation_events(self):
         """Bind 'keyup' and 'blur' events to automatic validation checks."""
-        self.bind("keyup", lambda _: self.validate(self.value(), "key"))
-        self.bind("blur", lambda _: self.validate(self.value(), "blur"))
+        self.bind(Event.KEYUP, lambda _: self.validate(self.value(), "key"))
+        self.bind(Event.BLUR, lambda _: self.validate(self.value(), "blur"))
 
     def add_validation_rule(self, rule_type: RuleType, **kwargs: Unpack[ValidationOptions]):
         """
@@ -106,7 +106,7 @@ class ValidatableMixin:
         if handler is None:
             return self._on_validated
         self._on_validated = handler
-        self.bind("validated", self._on_validated)
+        self.bind(Event.VALIDATED, self._on_validated)
         return self
 
     def validate(self, value: str, trigger: RuleTriggerType = "manual") -> bool:
@@ -132,12 +132,12 @@ class ValidatableMixin:
             data.update(message=result.message, is_valid=result.is_valid)
 
             if not result.is_valid:
-                self.emit("invalid", data=data)
-                self.emit("validated", data=data)
+                self.emit(Event.INVALID, data=data)
+                self.emit(Event.VALIDATED, data=data)
                 return False
 
         if ran_rule:
-            self.emit("valid", data=data)
-            self.emit("validated", data=data)
+            self.emit(Event.VALID, data=data)
+            self.emit(Event.VALIDATED, data=data)
 
         return ran_rule

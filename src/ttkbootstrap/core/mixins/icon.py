@@ -1,6 +1,6 @@
 from typing import Any, Callable
 from ttkbootstrap.common.utils import resolve_options
-
+from ttkbootstrap.common.types import Event
 
 class IconMixin:
     _style_builder: Any
@@ -20,7 +20,7 @@ class IconMixin:
         self._current_icon_image = None
         self._has_icon = False
         self._update_icon_assets()
-        self.bind("theme-changed", self._on_theme_changed)
+        self.bind(Event.THEME_CHANGED, self._on_theme_changed)
 
     def _set_image_if_needed(self, image):
         """Set the image only if it differs from the current."""
@@ -108,13 +108,13 @@ class IconMixin:
             self._selected_state_icon = False
             self._set_image_if_needed(icons['normal'])
 
-        self.bind('enter', on_enter)
-        self.bind('leave', on_leave)
-        self.bind('focus', on_focus_in)
-        self.bind('blur', on_focus_out)
-        self.bind('mouse-down', on_press)
-        self.bind('select', on_selected)
-        self.bind('unselect', on_deselected)
+        self.bind(Event.ENTER, on_enter)
+        self.bind(Event.LEAVE, on_leave)
+        self.bind(Event.FOCUS, on_focus_in)
+        self.bind(Event.BLUR, on_focus_out)
+        self.bind(Event.MOUSE_DOWN, on_press)
+        self.bind(Event.SELECTED, on_selected)
+        self.bind(Event.DESELECTED, on_deselected)
 
         self._stateful_icons_bound = True
 

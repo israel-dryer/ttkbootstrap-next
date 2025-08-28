@@ -1,137 +1,79 @@
-from typing import Literal, Union
+from enum import StrEnum
+from typing import Union
 
-EVENT_ALIASES = {
-    # --- Mouse Events ---
-    "click": "<Button-1>",
-    "right-click": "<Button-3>",
-    "middle-click": "<Button-2>",
-    "dbl-click": "<Double-Button-1>",
-    "drag": "<B1-Motion>",
-    "mouse-wheel": "<MouseWheel>",
-    "wheel-up": "<Button-4>",  # linux
-    "wheel-down": "<Button-5>",  # linux
-    "hover": "<Enter>",
-    "enter": "<Enter>",
-    "leave": "<Leave>",
-    "mouse-down": "<ButtonPress>",
-    "mouse-up": "<ButtonRelease>",
 
-    # --- Keyboard Events ---
-    "keydown": "<KeyPress>",
-    "keyup": "<KeyRelease>",
-    "keydown.enter": "<KeyPress-Return>",
-    "keyup.enter": "<KeyRelease-Return>",
-    "keydown.esc": "<KeyPress-Escape>",
-    "keyup.esc": "<KeyRelease-Escape>",
-    "keydown.tab": "<KeyPress-Tab>",
-    "keyup.tab": "<KeyRelease-Tab>",
+class Event(StrEnum):
+    # mouse events
+    CLICK = "<Button-1>"
+    RIGHT_CLICK = "<Button-3>"
+    MIDDLE_CLICK = "<Button-2>"
+    DBL_CLICK = "<Double-Button-1>"
+    DRAG = "<B1-Motion>"
+    MOUSE_WHEEL = "<MouseWheel>"
+    WHEEL_UP = "<Button-4>"  # linux
+    WHEEL_DOWN = "<Button-5>"  # linux
+    HOVER = "<Enter>"
+    ENTER = "<Enter>"
+    LEAVE = "<Leave>"
+    MOUSE_DOWN = "<ButtonPress>"
+    MOUSE_UP = "<ButtonRelease>"
 
-    # --- Focus and Visibility ---
-    "focus": "<FocusIn>",
-    "blur": "<FocusOut>",
-    "map": "<Map>",
-    "unmap": "<Unmap>",
-    "visibility": "<Visibility>",
-    "expose": "<Expose>",
-    "destroy": "<Destroy>",
+    # keyboard events
+    KEYDOWN = "<KeyPress>"
+    KEYUP = "<KeyRelease>"
+    KEYDOWN_ENTER = "<KeyPress-Return>"
+    KEYUP_ENTER = "<KeyRelease-Return>"
+    KEYDOWN_ESC = "<KeyRelease-Escape>"
+    KEYUP_ESC = "<KeyRelease-Escape>"
+    KEYDOWN_TAB = "<KeyPress-Tab>"
+    KEYUP_TAB = "<KeyRelease-Tab>"
 
-    # --- General Input Aliases ---
-    "return": "<Return>",
-    "tab": "<Tab>",
-    "escape": "<Escape>",
+    # Focus and Visibility
+    FOCUS = "<FocusIn>"
+    BLUR = "<FocusOut>"
+    MOUNT = "<Map>"
+    UNMOUNT = "<Unmap>"
+    VISIBILITY = "<Visibility>"
+    REDRAW = "<Expose>"
+    DESTROY = "<Destroy>"
 
-    # --- Motion & Resize ---
-    "motion": "<Motion>",
-    "configure": "<Configure>",  # widget resized or moved
+    # General Input aliases
+    RETURN = "<Return>"
+    TAB = "<Tab>"
+    ESCAPE = "<Escape>"
 
-    # --- Virtual Events (<<...>>) ---
-    "changed": "<<Changed>>",
-    "modified": "<<Modified>>",  # used with Text widgets
-    "combobox-selected": "<<ComboboxSelected>>",
-    "menu-selected": "<<MenuSelect>>",  # used in Menus
-    "activate": "<<Activate>>",  # used in Notebooks
-    "increment": "<<Increment>>",  # used in Spinbox
-    "decrement": "<<Decrement>>",
-    "deactivate": "<<Deactivate>>",
-    "selected": "<<Selected>>",
-    "deselected": "<<Deselected>>",
-    "selection": "<<Selection>>",  # listbox, text selection
-    "theme-changed": "<<ThemeChanged>>",  # ttk theme changed
-    "input-method-changed": "<<IMChanged>>",
-    "invalid": "<<Invalid>>",  # input validation
-    "valid": "<<Valid>>",  # input validation
-    "validated": "<<Validated>>",  # input validation
-    "treeview-select": "<<TreeviewSelect>>"
-}
+    # Motion and resize
+    MOTION = "<Motion>"
+    CONFIGURE = "<Configure>"
 
-# Type-safe alias
-EventAlias = Literal[
-    # Mouse Events
-    "click",
-    "right-click",
-    "middle-click",
-    "dbl-click",
-    "drag",
-    "mouse-wheel",
-    "mouse-up",
-    "mouse-down",
-    "hover",
-    "enter",
-    "leave",
-    "mouse-down",
-    "mouse-up",
+    # Virtual Events (<<...>>)
+    CHANGED = "<<Changed>>"
+    MODIFIED = "<<Modified>>"
+    THEME_CHANGED = "<<ThemeChanged>>"
 
-        # Keyboard Events
-    "keydown",
-    "keyup",
-    "keydown.enter",
-    "keyup.enter",
-    "keydown.esc",
-    "keyup.esc",
-    "keydown.tab",
-    "keyup.tab",
+    MENU_SELECTED = "<<MenuSelected>>"
+    SELECTION = "<<Selection>>"
+    SELECTED = "<<Selected>>"
+    DESELECTED = "<<Deselected>>"
+    COMBOBOX_SELECTED = "<<ComboboxSelected>>"
+    INCREMENT = "<<Increment>>"
+    DECREMENT = "<<Decrement>>"
+    NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
+    NOTEBOOK_TAB_ACTIVATE = "<<Activate>>"
+    NOTEBOOK_TAB_DEACTIVATE = "<<Deactivate>>"
+    INPUT_METHOD_CHANGED = '<<IMChanged>>'
+    TREEVIEW_SELECT = '<<TreeviewSelect>>'
 
-        # Focus and Visibility
-    "focus",
-    "blur",
-    "map",
-    "unmap",
-    "visibility",
-    "expose",
-    "destroy",
+    # validation
+    INVALID = '<<Invalid>>'
+    VALID = "<<Valid>>"
+    VALIDATED = "<<Validated>>"
 
-        # General Key Aliases
-    "return",
-    "tab",
-    "escape",
+    # Routing
+    ROUTE_DID_MOUNT = "<<RouteDidMount>>"
+    ROUTE_WILL_MOUNT = "<<RouteWillMount>>"
+    ROUTE_DID_UNMOUNT = "<<RouteDidUnmount>>"
+    ROUTE_WILL_UNMOUNT = "<<RouteWillUnmount>>"
 
-        # Motion & Resize
-    "motion",
-    "configure",
 
-        # Virtual Events
-    "changed",
-    "modified",
-    "combobox-selected",
-    "menu-selected",
-    "activate",
-    "deactivate",
-    "selected",
-    "deselected",
-    "selection",
-    "theme-changed",
-    "input-method-changed",
-    "increment",
-    "decrement",
-
-        # validation events
-    "valid",
-    "invalid",
-    "validated",
-
-        # Treeview events
-    "treeview-select"
-]
-
-# Optional: allow raw sequences too
-EventType = Union[EventAlias, str]
+EventType = Union[Event, str]

@@ -3,7 +3,7 @@ from typing import Callable, Literal, Optional, Self, Tuple, TypedDict, Union, U
 
 import tkinter as tk
 
-from ttkbootstrap.common.types import Anchor, Justify, ScrollCommand, Widget, Image, CoreOptions
+from ttkbootstrap.common.types import Anchor, Justify, ScrollCommand, Widget, Image, CoreOptions, Event
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
@@ -285,7 +285,7 @@ class Canvas(BaseWidget, ContainerMixin):
         item = self.widget.create_text(x, y, text=text, **unsnake_kwargs(kwargs))
         if bind_fill_to_theme:
             self.bind(
-                'theme-changed', lambda _: self.configure_item(
+                Event.THEME_CHANGED, lambda _: self.configure_item(
                     item, fill=self._theme.on_color(self._theme.color(self._style_builder.surface()))), add=True)
         return item
 

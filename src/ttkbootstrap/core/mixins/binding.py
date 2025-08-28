@@ -1,14 +1,11 @@
 import json
 import weakref
 from collections import defaultdict
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
-from ttkbootstrap.common.types import Widget
-from ttkbootstrap.interop.aliases import EVENT_ALIASES, EventAlias
+from ttkbootstrap.common.types import Widget, EventType, Event
 from ttkbootstrap.interop.substitutions import get_event_substring
 from ttkbootstrap.interop.commands import event_callback_wrapper
-
-Event = Union[EventAlias, str]
 
 class BindingMixin:
     """Mixin that provides alias-aware event binding with substitution-based parsing.
@@ -27,9 +24,20 @@ class BindingMixin:
         self._callbacks = weakref.WeakValueDictionary()
 
     @staticmethod
-    def _normalize(event: str) -> str:
+    def _normalize(event: EventType) -> str:
         """Convert alias to a full Tk event sequence."""
-        return event if ("<<" in event or "<" in event) else EVENT_ALIASES.get(event, f"<<{event}>>")
+        if isinstance(event, Event):
+            return str(event)
+        elif isinstance(event, str):
+            try:
+                # check if this is a valid enum
+                return Event(event)
+            except ValueError:
+                pass
+            if event.startswith("<<"):
+                return event  # we'll just assume this is a custom virtual event
+            else:
+                raise ValueError(f"Invalid event type: {event}")
 
     def bind(self, event: Event, func: Callable, *, add: bool = True, dedup: bool = False) -> str:
         """Bind a callback to an event using Tcl substitution (e.g., %d for data).
@@ -156,7 +164,7 @@ class BindingMixin:
         """Return a mapping of bound events and their function IDs."""
         return dict(self._bound_events)
 
-    def emit(self, event: Event, data: dict[Any, Any] = None):
+    def emit(self, event: Event, data: dict[Any, Any] = None, **kwargs):
         """Programmatically trigger a virtual event.
 
         Args:
@@ -165,9 +173,9 @@ class BindingMixin:
         """
         sequence = self._normalize(event)
         if data:
-            self.widget.event_generate(sequence, data=json.dumps(data))
+            self.widget.event_generate(sequence, data=json.dumps(data), **kwargs)
         else:
-            self.widget.event_generate(sequence)
+            self.widget.event_generate(sequence, **kwargs)
 
     def process_all_events(self):
         """Enter event loop until all pending events have been processed by Tcl."""

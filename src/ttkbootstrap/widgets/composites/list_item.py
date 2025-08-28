@@ -3,6 +3,7 @@ from typing import Optional, TYPE_CHECKING
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets.badge import Badge
 from ttkbootstrap.widgets.label import Label
+from ttkbootstrap.common.types import Event
 
 if TYPE_CHECKING:
     from ttkbootstrap.widgets.button import Button
@@ -145,10 +146,10 @@ class ListItem(Pack):
         if mode == 'none': return None
 
         if self.data['selected']:
-            self.parent.emit('unselect', data=self.data)
+            self.parent.emit(Event.DESELECTED, data=self.data)
             return False
         else:
-            self.parent.emit('select', data=self.data)
+            self.parent.emit(Event.SELECTED, data=self.data)
             return True
 
     def delete(self):
@@ -182,7 +183,7 @@ class ListItem(Pack):
             if self._selection_widget:
                 self._selection_widget.destroy()
         for widget in self._composite_widgets:
-            widget.emit('select' if selected else 'unselect')
+            widget.emit(Event.SELECTED if selected else Event.DESELECTED)
 
     def _update_icon(self, icon=None):
         if icon is not None:
@@ -335,7 +336,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', marginx=6)
-                self._delete_widget.bind('mouse-down', lambda _: self.delete())
+                self._delete_widget.bind(Event.MOUSE_DOWN, lambda _: self.delete())
                 self._add_composite_widget(self._delete_widget)
         else:
             # remove the widget
@@ -411,7 +412,7 @@ class ListItem(Pack):
     def _add_composite_widget(self, widget):
         widget.update_style()  # for some reason, update_style will not be invoked by theme_change on composite.
         self._composite_widgets.add(widget)
-        widget.bind('enter', self._on_enter)
-        widget.bind('leave', self._on_leave)
-        widget.bind('mouse-down', self._on_mouse_down)
-        widget.bind('mouse-up', self._on_mouse_up)
+        widget.bind(Event.ENTER, self._on_enter)
+        widget.bind(Event.LEAVE, self._on_leave)
+        widget.bind(Event.MOUSE_DOWN, self._on_mouse_down)
+        widget.bind(Event.MOUSE_UP, self._on_mouse_up)

@@ -1,9 +1,8 @@
-from abc import ABC
 from tkinter import ttk
 from tkinter.font import Font
 from typing import Any, Callable, TypedDict, Unpack
 
-from ttkbootstrap.common.types import Justify, Padding, Widget
+from ttkbootstrap.common.types import Justify, Padding, Widget, Event
 from ttkbootstrap.common.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
@@ -94,8 +93,8 @@ class EntryPart(BaseWidget, ValidatableMixin):
         if on_changed:
             self.on_changed(on_changed)
 
-        self.bind("focus", self._store_prev_value)
-        self.bind("blur", self._check_if_changed)
+        self.bind(Event.FOCUS, self._store_prev_value)
+        self.bind(Event.BLUR, self._check_if_changed)
         self._setup_validation_events()
 
         if initial_focus:
@@ -108,7 +107,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
     def _check_if_changed(self, _: Any) -> None:
         """Compare current value with previous and fire 'changed' event if different."""
         if self._signal() != self._prev_value:
-            self.emit("changed")
+            self.emit(Event.CHANGED)
 
     def value(self, value: str = None):
         """Get or set the entry value."""
@@ -140,7 +139,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         if value is None:
             return self._on_enter
         self._on_enter = value
-        self.bind("return", lambda _: self._on_enter(self._signal()))
+        self.bind(Event.RETURN, lambda _: self._on_enter(self._signal()))
         return self
 
     def on_changed(self, value: Callable[[str], Any] = None):
@@ -148,7 +147,7 @@ class EntryPart(BaseWidget, ValidatableMixin):
         if value is None:
             return self._on_changed
         self._on_changed = value
-        self.bind("changed", lambda e: self._on_changed(self._signal()))
+        self.bind(Event.CHANGED, lambda e: self._on_changed(self._signal()))
         return self
 
     def readonly(self, value: bool = None):

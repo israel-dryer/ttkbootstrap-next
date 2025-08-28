@@ -1,7 +1,7 @@
 from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 
-from ttkbootstrap.common.types import Orientation, CoreOptions
+from ttkbootstrap.common.types import Orientation, CoreOptions, Event
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.scale import ScaleStyleBuilder
@@ -84,7 +84,7 @@ class Scale(BaseWidget):
             self._on_change_fid = self.on_change(self._on_change)
 
         # receive focus when clicked
-        self.bind("click", self.focus)
+        self.bind(Event.CLICK, self.focus)
 
         # add mouse wheel scaling
         self._bind_mouse_wheel()
@@ -106,10 +106,10 @@ class Scale(BaseWidget):
 
         # Windows/macOS use <MouseWheel>, Linux/X11 uses Button-4/5 for scroll
         if self.windowing_system() in ("win32", "aqua"):
-            self.bind("mouse-wheel", self._on_mousewheel_windows_mac, add=True)
+            self.bind(Event.MOUSE_WHEEL, self._on_mousewheel_windows_mac, add=True)
         else:  # x11
-            self.bind("wheel-up", self._on_mousewheel_x11, add=True)
-            self.bind("wheel-down", self._on_mousewheel_x11, add=True)
+            self.bind(Event.WHEEL_UP, self._on_mousewheel_x11, add=True)
+            self.bind(Event.WHEEL_DOWN, self._on_mousewheel_x11, add=True)
 
     def _wheel_step(self, event=None) -> float:
         """Base step derived from precision; hold Shift for 10x."""

@@ -6,7 +6,7 @@ from typing import Any, List, Tuple, Unpack
 from ttkbootstrap.core.layout_context import set_default_root, push_container, pop_container
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.common.types import PackItemOptions, GridItemOptions
+from ttkbootstrap.common.types import PackItemOptions, GridItemOptions, Event
 from ttkbootstrap.common.utils import assert_valid_keys
 
 # exceptions
@@ -42,6 +42,8 @@ class App(BaseWidget, ContainerMixin):
         )
         self._in_context = True  # only mount children in context
 
+        self.bind_all(Event.ROUTE_DID_MOUNT, lambda _: self._ensure_style_after_routing())
+
         if geometry:
             self.widget.geometry(geometry)
 
@@ -76,6 +78,13 @@ class App(BaseWidget, ContainerMixin):
     def preferred_layout_method() -> str:
         # Root favors pack by convention
         return "pack"
+
+    def _ensure_style_after_routing(self):
+        """Ensures that the widget.update_style method is call by setting the theme, which fires the update_style
+        on all themed widgets.
+        """
+        theme = self._theme.name
+        self._theme.use(theme)
 
     def register_layout_child(self, child, method: str, opts: dict):
         """Upsert a child to be mounted when the App context exits or before run()."""

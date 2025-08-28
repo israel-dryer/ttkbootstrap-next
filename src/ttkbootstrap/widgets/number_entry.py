@@ -1,5 +1,6 @@
 from typing import Unpack
 
+from ttkbootstrap.common.types import Event
 from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.button import Button
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
@@ -38,12 +39,12 @@ class NumberEntry(EntryField):
 
     def increment(self):
         """Emit an 'increment' event to the spinbox part."""
-        self._entry.emit("increment")
+        self._entry.emit(Event.INCREMENT)
         return self
 
     def decrement(self):
         """Emit a 'decrement' event to the spinbox part."""
-        self._entry.emit("decrement")
+        self._entry.emit(Event.DECREMENT)
         return self
 
     def show_spin_buttons(self, value: bool):

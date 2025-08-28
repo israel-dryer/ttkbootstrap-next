@@ -1,5 +1,6 @@
 from typing import Unpack
 
+from ttkbootstrap.common.types import Event
 from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.button import Button
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
@@ -31,8 +32,8 @@ class PasswordEntry(EntryField):
         self.show_visible_toggle(show_visible_toggle)
 
         addon = self.addons.get('visibility')
-        addon.bind('mouse-down', self._show_password)
-        addon.bind('mouse-up', self._hide_password)
+        addon.bind(Event.MOUSE_DOWN, self._show_password)
+        addon.bind(Event.MOUSE_UP, self._hide_password)
 
     @property
     def _visibility_addon(self):

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Literal, Type
 
-from ttkbootstrap.common.types import Widget
+from ttkbootstrap.common.types import Widget, Event
 from ttkbootstrap.common.utils import unsnake_kwargs, resolve_parent
 from ttkbootstrap.core.layout_context import current_container
 from ttkbootstrap.core.mixins.binding import BindingMixin
@@ -93,7 +93,7 @@ class BaseWidget(
 
         # Theme surface & binding
         self._surface_token = surface
-        self.bind("theme-changed", lambda _: self.update_style())
+        self.bind(Event.THEME_CHANGED, lambda _: self.update_style())
 
         # Auto-register with the *logical* container (if any)
         container = self._parent

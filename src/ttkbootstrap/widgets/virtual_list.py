@@ -5,6 +5,7 @@ from ttkbootstrap.widgets import Scrollbar
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.datasource.sqlite_source import DataSource
 from ttkbootstrap.widgets.composites.list_item import ListItem
+from ttkbootstrap.common.types import Event
 
 VISIBLE_ROWS = 20
 ROW_HEIGHT = 32
@@ -48,8 +49,8 @@ class VirtualList(Pack):
         if not self._scrollbar_visible:
             self._scrollbar.hide()
 
-        self._canvas_frame.bind('select', lambda x: self._on_select(x.data['id']))
-        self._canvas_frame.bind('unselect', lambda x: self._on_deselected(x.data['id']))
+        self._canvas_frame.bind(Event.SELECTED, lambda x: self._on_select(x.data['id']))
+        self._canvas_frame.bind(Event.DESELECTED, lambda x: self._on_deselected(x.data['id']))
 
         # Fixed row pool
         for _ in range(VISIBLE_ROWS):
@@ -59,7 +60,7 @@ class VirtualList(Pack):
 
         # Scrollbar binding
         self._scrollbar.widget.config(command=self._on_scroll)
-        self.bind_all("mouse-wheel", self._on_mousewheel)
+        self.bind_all(Event.MOUSE_WHEEL, self._on_mousewheel)
         self._update_rows()
 
     @classmethod

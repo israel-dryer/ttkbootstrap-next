@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Literal, Optional, TypedDict, Union, Tuple
 import tkinter as tk
+from typing import Callable, Literal, Optional, TypedDict, Union, Tuple
+from ttkbootstrap.interop.aliases import Event, EventType
 
 from PIL.ImageTk import PhotoImage
+
 
 BindScope = Literal['all', 'class', 'widget']
 TraceOperation = Literal["array", "read", "write", "unset"]

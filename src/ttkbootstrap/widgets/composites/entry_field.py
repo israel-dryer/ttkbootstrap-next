@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, Literal, Union
 
-from ttkbootstrap.common.types import Widget
+from ttkbootstrap.common.types import Widget, Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets import Button
 from ttkbootstrap.widgets.parts.entry_part import EntryPart
@@ -65,12 +65,12 @@ class EntryField(Pack, EntryMixin, ABC):
         (self._enable_validation or self._message_text) and self._message.attach()
 
         if self._enable_validation:
-            self._entry.bind("invalid", self._show_error)
-            self._entry.bind("valid", self._clear_error)
+            self._entry.bind(Event.INVALID, self._show_error)
+            self._entry.bind(Event.VALID, self._clear_error)
 
         # Bind focus styling to the field frame
-        self._entry.bind("focus", lambda e: self._field.state(["focus"]))
-        self._entry.bind("blur", lambda e: self._field.state(["!focus"]))
+        self._entry.bind(Event.FOCUS, lambda e: self._field.state(["focus"]))
+        self._entry.bind(Event.BLUR, lambda e: self._field.state(["!focus"]))
 
     @property
     def addons(self):
@@ -171,8 +171,8 @@ class EntryField(Pack, EntryMixin, ABC):
                 instance.disable()
 
         # bind focus events to field frame
-        instance.bind("focus", lambda e: self._field.state(['focus']))
-        instance.bind('blur', lambda e: self._field.state(['!focus']))
+        instance.bind(Event.FOCUS, lambda e: self._field.state(['focus']))
+        instance.bind(Event.BLUR, lambda e: self._field.state(['!focus']))
         return self
 
     def _show_error(self, event: Any):
