@@ -5,8 +5,9 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Literal, Type
 
-from ttkbootstrap.common.types import Widget, Event
-from ttkbootstrap.common.utils import unsnake_kwargs, resolve_parent
+from ttkbootstrap.types import Widget
+from ttkbootstrap.events import Event
+from ttkbootstrap.utils import unsnake_kwargs, resolve_parent
 from ttkbootstrap.core.layout_context import current_container
 from ttkbootstrap.core.mixins.binding import BindingMixin
 from ttkbootstrap.core.mixins.configure import ConfigureMixin

@@ -1,4 +1,4 @@
-from ttkbootstrap.common.types import Widget
+from ttkbootstrap.types import Widget
 
 
 class FocusMixIn:

@@ -1,7 +1,7 @@
 from tkinter import ttk
 from typing import Callable, Unpack
 
-from ttkbootstrap.common.types import Orientation, CoreOptions
+from ttkbootstrap.types import Orientation, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
 

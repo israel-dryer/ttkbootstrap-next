@@ -1,7 +1,8 @@
 from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
 
-from ttkbootstrap.common.types import Orientation, CoreOptions, Event
+from ttkbootstrap.types import Orientation, CoreOptions
+from ttkbootstrap.events import Event
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.scale import ScaleStyleBuilder

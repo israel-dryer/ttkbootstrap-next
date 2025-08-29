@@ -2,7 +2,7 @@ import csv
 import sqlite3
 from typing import Any, Dict, List, Optional, Union
 
-from ttkbootstrap.common.types import Primitive
+from ttkbootstrap.types import Primitive
 
 
 class DataSource:

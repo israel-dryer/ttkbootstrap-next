@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Callable, Generic, Type, TypeVar, Any, Tuple
 from itertools import count
-from ttkbootstrap.common.types import TraceOperation
+from ttkbootstrap.types import TraceOperation
 
 T = TypeVar("T")
 U = TypeVar("U")

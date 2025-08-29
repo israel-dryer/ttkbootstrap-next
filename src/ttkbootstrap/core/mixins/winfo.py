@@ -1,6 +1,6 @@
 from typing import Literal, NamedTuple
 
-from ttkbootstrap.common.types import Widget
+from ttkbootstrap.types import Widget
 
 
 class Geometry(NamedTuple):

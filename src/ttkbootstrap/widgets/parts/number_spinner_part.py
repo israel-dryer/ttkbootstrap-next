@@ -3,8 +3,9 @@ from typing import Any, Callable, TypedDict, Unpack
 
 from tkinter import ttk
 
-from ttkbootstrap.common.types import Justify, Padding, Widget, Event
-from ttkbootstrap.common.utils import assert_valid_keys
+from ttkbootstrap.types import Justify, Padding, Widget
+from ttkbootstrap.events import Event
+from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
 from ttkbootstrap.core.base_widget import BaseWidget

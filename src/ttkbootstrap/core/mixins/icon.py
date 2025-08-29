@@ -1,6 +1,7 @@
 from typing import Any, Callable
-from ttkbootstrap.common.utils import resolve_options
-from ttkbootstrap.common.types import Event
+from ttkbootstrap.utils import resolve_options
+from ttkbootstrap.events import Event
+
 
 class IconMixin:
     _style_builder: Any

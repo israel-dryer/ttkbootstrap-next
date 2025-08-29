@@ -5,7 +5,7 @@ from PIL import Image, ImageOps, ImageColor
 
 from ttkbootstrap.images.photo import Photo
 from ttkbootstrap.style.types import ColorModel
-from ttkbootstrap.common.utils import clamp
+from ttkbootstrap.utils import clamp
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets" / "widgets"
 

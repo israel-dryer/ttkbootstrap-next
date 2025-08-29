@@ -3,7 +3,7 @@ from typing import Optional, TYPE_CHECKING
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets.badge import Badge
 from ttkbootstrap.widgets.label import Label
-from ttkbootstrap.common.types import Event
+from ttkbootstrap.events import Event
 
 if TYPE_CHECKING:
     from ttkbootstrap.widgets.button import Button

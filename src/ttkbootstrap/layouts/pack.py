@@ -1,5 +1,5 @@
-from ttkbootstrap.common.types import PackItemOptions, Side, Padding, Fill, Anchor, PlaceItemOptions
-from ttkbootstrap.common.utils import assert_valid_keys
+from ttkbootstrap.types import PackItemOptions, Side, Padding, Fill, Anchor, PlaceItemOptions
+from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.core.layout_context import push_container, pop_container
 from ttkbootstrap.layouts.base_layout import BaseLayout, FrameOptions
 from ttkbootstrap.layouts.utils import add_pad

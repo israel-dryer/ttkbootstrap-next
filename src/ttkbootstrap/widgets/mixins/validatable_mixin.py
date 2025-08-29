@@ -1,5 +1,5 @@
 from typing import Any, Callable, Optional, Unpack
-from ttkbootstrap.common.types import Event
+from ttkbootstrap.events import Event
 from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 from ttkbootstrap.validation.rules import ValidationRule
 

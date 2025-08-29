@@ -1,7 +1,8 @@
 from abc import ABC
 from typing import Any, Literal, Union
 
-from ttkbootstrap.common.types import Widget, Event
+from ttkbootstrap.types import Widget
+from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets import Button
 from ttkbootstrap.widgets.parts.entry_part import EntryPart

@@ -1,4 +1,4 @@
-from ttkbootstrap.common.types import Orientation
+from ttkbootstrap.types import Orientation
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 from ttkbootstrap.style.element import ElementImage, Element
 from ttkbootstrap.style.utils import recolor_image

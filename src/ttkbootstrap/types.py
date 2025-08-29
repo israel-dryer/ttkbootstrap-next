@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import tkinter as tk
 from typing import Callable, Literal, Optional, TypedDict, Union, Tuple
-from ttkbootstrap.interop.aliases import Event, EventType
-
 from PIL.ImageTk import PhotoImage
 
 

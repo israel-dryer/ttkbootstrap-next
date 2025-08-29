@@ -2,12 +2,12 @@ from __future__ import annotations
 from tkinter import ttk
 from typing import Unpack
 
-from ttkbootstrap.common.types import Anchor, Compound, IconPosition, Image, Justify, Padding, CoreOptions
+from ttkbootstrap.types import Anchor, Compound, IconPosition, Image, Justify, Padding, CoreOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
-from ttkbootstrap.common.utils import assert_valid_keys, normalize_icon_position, resolve_options
+from ttkbootstrap.utils import assert_valid_keys, normalize_icon_position, resolve_options
 from ttkbootstrap.style.types import ForegroundColor, SurfaceColor, TypographyToken
 
 

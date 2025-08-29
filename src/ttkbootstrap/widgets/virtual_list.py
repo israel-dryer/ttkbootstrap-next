@@ -1,11 +1,11 @@
 from typing import Any, Callable, Union
 
-from ttkbootstrap.common.types import Primitive
+from ttkbootstrap.types import Primitive
 from ttkbootstrap.widgets import Scrollbar
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.datasource.sqlite_source import DataSource
 from ttkbootstrap.widgets.composites.list_item import ListItem
-from ttkbootstrap.common.types import Event
+from ttkbootstrap.events import Event
 
 VISIBLE_ROWS = 20
 ROW_HEIGHT = 32

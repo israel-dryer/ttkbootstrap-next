@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, Tuple, Unpack, Self
 
 from ttkbootstrap.exceptions import LayoutError
-from ttkbootstrap.common.types import (
+from ttkbootstrap.types import (
     GridItemOptions,
     PackItemOptions,
     PlaceItemOptions,
@@ -11,7 +11,7 @@ from ttkbootstrap.common.types import (
     Position, Primitive,
 )
 from ttkbootstrap.core.layout_context import current_container, has_current_container
-from ttkbootstrap.common.utils import assert_valid_keys, parse_dim
+from ttkbootstrap.utils import assert_valid_keys, parse_dim
 
 LayoutMethod = Literal["grid", "pack", "place"]
 

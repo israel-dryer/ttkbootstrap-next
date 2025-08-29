@@ -1,6 +1,4 @@
-import weakref
-
-from ttkbootstrap.common.types import Widget
+from ttkbootstrap.types import Widget
 from ttkbootstrap.core.layout_context import push_container, pop_container
 
 

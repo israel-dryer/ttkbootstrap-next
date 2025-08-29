@@ -3,11 +3,12 @@ from typing import Callable, Literal, Optional, Self, Tuple, TypedDict, Union, U
 
 import tkinter as tk
 
-from ttkbootstrap.common.types import Anchor, Justify, ScrollCommand, Widget, Image, CoreOptions, Event
+from ttkbootstrap.types import Anchor, Justify, ScrollCommand, Widget, Image, CoreOptions
+from ttkbootstrap.events import Event
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.canvas import CanvasStyleBuilder
-from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
+from ttkbootstrap.utils import unsnake, unsnake_kwargs
 
 CanvasTagOrId = Union[int, str]
 

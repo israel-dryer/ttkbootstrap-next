@@ -6,8 +6,9 @@ from typing import Any, List, Tuple, Unpack
 from ttkbootstrap.core.layout_context import set_default_root, push_container, pop_container
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.common.types import PackItemOptions, GridItemOptions, Event
-from ttkbootstrap.common.utils import assert_valid_keys
+from ttkbootstrap.types import PackItemOptions, GridItemOptions
+from ttkbootstrap.events import Event
+from ttkbootstrap.utils import assert_valid_keys
 
 # exceptions
 from ttkbootstrap.exceptions.base import wrap_with_cause

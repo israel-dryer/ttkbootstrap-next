@@ -1,6 +1,6 @@
 from typing import Unpack
 
-from ttkbootstrap.common.types import CoreOptions
+from ttkbootstrap.types import CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.size_grip import SizeGripStyleBuilder
 from tkinter import ttk

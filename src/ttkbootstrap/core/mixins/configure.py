@@ -1,7 +1,7 @@
 from typing import Any
 
-from ttkbootstrap.common.types import Widget
-from ttkbootstrap.common.utils import unsnake, unsnake_kwargs
+from ttkbootstrap.types import Widget
+from ttkbootstrap.utils import unsnake, unsnake_kwargs
 
 
 class ConfigureMixin:

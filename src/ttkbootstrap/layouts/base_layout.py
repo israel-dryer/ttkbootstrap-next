@@ -1,10 +1,10 @@
 from tkinter import ttk
 from typing import TypedDict, Unpack
 
-from ttkbootstrap.common.types import Padding, Widget, Position
+from ttkbootstrap.types import Padding, Widget, Position
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.common.utils import unsnake_kwargs
+from ttkbootstrap.utils import unsnake_kwargs
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
 
 

@@ -2,7 +2,7 @@ from typing import Any, Callable, Optional, Unpack
 
 from tkinter import ttk
 
-from ttkbootstrap.common.types import Widget, CoreOptions
+from ttkbootstrap.types import CoreOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder

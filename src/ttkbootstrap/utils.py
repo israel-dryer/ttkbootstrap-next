@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, Mapping, Optional, Type, Union, Any
 
-from ttkbootstrap.common.types import IconPosition
+from ttkbootstrap.types import IconPosition
 from ttkbootstrap.exceptions import LayoutError, UIError
 
 

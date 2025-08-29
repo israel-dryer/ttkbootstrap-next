@@ -1,11 +1,11 @@
 from tkinter import ttk
 from typing import Callable, Literal, Optional, Union, Unpack, cast
 
-from ttkbootstrap.common.types import Compound, IconPosition, Padding, CoreOptions
+from ttkbootstrap.types import Compound, IconPosition, Padding, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.common.utils import assert_valid_keys, normalize_icon_position, resolve_options
+from ttkbootstrap.utils import assert_valid_keys, normalize_icon_position, resolve_options
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
 from ttkbootstrap.style.types import ButtonVariant, SemanticColor
 

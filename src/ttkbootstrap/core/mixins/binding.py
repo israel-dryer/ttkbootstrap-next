@@ -3,7 +3,8 @@ import weakref
 from collections import defaultdict
 from typing import Any, Callable
 
-from ttkbootstrap.common.types import Widget, EventType, Event
+from ttkbootstrap.types import Widget
+from ttkbootstrap.events import Event, EventType
 from ttkbootstrap.interop.substitutions import get_event_substring
 from ttkbootstrap.interop.commands import event_callback_wrapper
 

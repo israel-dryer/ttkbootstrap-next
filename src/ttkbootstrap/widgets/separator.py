@@ -1,7 +1,7 @@
 from tkinter import ttk
 from typing import Unpack, Literal, Union
 
-from ttkbootstrap.common.types import Orientation, CoreOptions
+from ttkbootstrap.types import Orientation, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
