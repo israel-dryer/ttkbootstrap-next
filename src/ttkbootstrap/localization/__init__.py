@@ -10,9 +10,3 @@
 
     https://www.tcl.tk/man/tcl/TclCmd/msgcat.html    
 """
-from ttkbootstrap.localization.msgs import initialize_localities
-from ttkbootstrap.localization.msgcat import MessageCatalog
-
-
-
-
