@@ -6,7 +6,6 @@ from ttkbootstrap.widgets.badge import Badge
 from ttkbootstrap.widgets.scale import Scale
 from ttkbootstrap.widgets.scrollbar import Scrollbar
 from ttkbootstrap.widgets.separator import Separator
-from ttkbootstrap.widgets.notebook import Notebook
 from ttkbootstrap.widgets.size_grip import SizeGrip
 from ttkbootstrap.widgets.progressbar import Progressbar
 from ttkbootstrap.widgets.canvas import Canvas
@@ -20,6 +19,6 @@ from ttkbootstrap.widgets.number_entry import NumberEntry
 __all__ = [
     "Button", "CheckButton", "SwitchButton",
     "Label", "Badge", "Scale", "Progressbar", "Canvas",
-    "Scrollbar", "SizeGrip", "Separator", "Notebook",
+    "Scrollbar", "SizeGrip", "Separator",
     "TextEntry", "FileEntry", "PasswordEntry", "NumberEntry"
 ]

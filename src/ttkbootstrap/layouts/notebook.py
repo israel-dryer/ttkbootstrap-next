@@ -34,17 +34,12 @@ class Notebook(BaseWidget):
     """
 
     widget: ttk.Notebook
-    _configure_methods = {"surface": "surface", "variant": "variant"}
-    _name_registry: dict[str, Widget] = {}  # map name to ttk tab id
+    _configure_methods = {}
 
-    def __init__(self, *, variant=None, surface=None, **kwargs: Unpack[NotebookOptions]):
+    def __init__(self, **kwargs: Unpack[NotebookOptions]):
         """
         Initialize a Notebook widget.
 
-        Parameters
-        ----------
-        variant : str, optional
-            Style variant name applied via the :class:`NotebookStyleBuilder`.
         **kwargs : NotebookOptions
             Standard notebook options such as ``take_focus``, ``width``,
             ``height``, and ``padding``. Also accepts ``parent`` to specify
@@ -56,7 +51,8 @@ class Notebook(BaseWidget):
         style builder and registers it as a managed widget within
         ttkbootstrap.
         """
-        self._style_builder = NotebookStyleBuilder(variant=variant, surface=surface)
+        self._name_registry: dict[str, Widget] = {}  # map name to ttk tab id
+        self._style_builder = NotebookStyleBuilder()
         parent = kwargs.pop('parent', None)
         tk_options = dict(**kwargs)
         super().__init__(ttk.Notebook, tk_options, parent=parent)
@@ -70,25 +66,8 @@ class Notebook(BaseWidget):
         """Pop this container from the context."""
         pop_container()
 
-    def variant(self, value: str = None):
-        if value is None:
-            return self._style_builder.variant()
-        else:
-            self._style_builder.variant(value)
-            self.update_style()
-            return self
-
-    def surface(self, value: str = None):
-        if value is None:
-            return self._style_builder.surface()
-        else:
-            self._style_builder.surface(value)
-            self.update_style()
-            return self
-
     def add(self, widget: Widget, *, name: str = None, **options: Unpack[NotebookTabOptions]):
         """Add a tab containing the given widget."""
-        print("adding", widget)
         self.widget.add(widget, **options)
         if name is not None:
             self._name_registry[name] = widget
