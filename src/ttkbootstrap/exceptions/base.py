@@ -1,11 +1,10 @@
-# ttkbootstrap/exceptions/base.py  (absolute module path)
 from __future__ import annotations
 from typing import Any, Optional
 
 __all__ = [
     "UIError", "LayoutError", "ThemeError", "ConfigError", "StateError",
     "InvalidThemeError", "InvalidTokenError",
-    "with_note", "wrap_with_cause",
+    "with_note", "wrap_with_cause", "NavigationError"
 ]
 
 
@@ -42,6 +41,9 @@ class ConfigError(UIError): ...
 
 
 class StateError(UIError): ...
+
+
+class NavigationError(UIError): ...
 
 
 # ---------------------------
