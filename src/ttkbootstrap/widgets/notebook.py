@@ -4,6 +4,7 @@ from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.types import Compound, CoreOptions, Padding, Sticky, Widget, Image
+from ttkbootstrap.utils import assert_valid_keys
 
 Tab = Union[str, int, Widget]
 
@@ -16,6 +17,7 @@ class NotebookOptions(CoreOptions, total=False):
 
 
 class NotebookTabOptions(TypedDict, total=False):
+    name: str
     state: Literal['normal', 'disabled', 'hidden']
     sticky: Sticky
     padding: Padding
@@ -84,8 +86,9 @@ class Notebook(BaseWidget):
             self.update_style()
             return self
 
-    def add(self, widget: Widget, *, name: str=None, **options: Unpack[NotebookTabOptions]):
+    def add(self, widget: Widget, *, name: str = None, **options: Unpack[NotebookTabOptions]):
         """Add a tab containing the given widget."""
+        print("adding", widget)
         self.widget.add(widget, **options)
         if name is not None:
             self._name_registry[name] = widget
@@ -157,3 +160,12 @@ class Notebook(BaseWidget):
     def enable_keyboard_traversal(self):
         """Enable keyboard navigation between tabs (Ctrl+Tab, etc.)."""
         self.widget.enable_traversal()
+
+    @staticmethod
+    def _validate_options(options: dict):
+        """Validate layout options for child widgets"""
+        assert_valid_keys(
+            options,
+            NotebookTabOptions,
+            where="notebook"
+        )

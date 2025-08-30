@@ -13,7 +13,7 @@ from ttkbootstrap.types import (
 from ttkbootstrap.core.layout_context import current_container, has_current_container
 from ttkbootstrap.utils import assert_valid_keys, parse_dim
 
-LayoutMethod = Literal["grid", "pack", "place"]
+LayoutMethod = Literal["grid", "pack", "place", "widget"]
 
 
 class LayoutMixin:
@@ -94,7 +94,6 @@ class LayoutMixin:
         m_eff, opts_eff = self._resolve_effective_layout(
             container, explicit_method=method, merge=merge, new_opts=options
         )
-
         # Validate & dispatch
         if m_eff == "place":
             assert_valid_keys(opts_eff, PlaceItemOptions, where="place")
@@ -102,6 +101,8 @@ class LayoutMixin:
         if m_eff == "pack":
             assert_valid_keys(opts_eff, PackItemOptions, where="pack")
             return self._attach_pack_like(container, opts_eff)
+        if m_eff == "widget":
+            return self._attach_widget_like(container, opts_eff)
 
         # grid
         assert_valid_keys(opts_eff, GridItemOptions, where="grid")
@@ -172,7 +173,7 @@ class LayoutMixin:
         if c is not None and hasattr(c, "preferred_layout_method"):
             try:
                 pm = c.preferred_layout_method()
-                if pm in ("grid", "pack", "place"):
+                if pm in ("grid", "pack", "place", "widget"):
                     return pm  # type: ignore[return-value]
             except (LayoutError, RuntimeError, TypeError):
                 # layout not ready, container mis-configured, or wrong signature
@@ -186,9 +187,16 @@ class LayoutMixin:
             return "grid"
         if c is not None and (hasattr(c, "_mount_child_pack") or "pack" in name):
             return "pack"
+        if name in ("notebook", "panedwindow"):
+            return "widget"
         return "grid"
 
     # ─────────────── Container adapters (pack/grid/place) ───────────────
+    def _attach_widget_like(self, container: Widget, opts: dict[str, Any]) -> Self:
+        if hasattr(container, '_validate_options'):
+            getattr(container, '_validate_options')(opts)
+        container.add(self, **opts)
+
     def _attach_pack_like(self, container: Widget, opts: dict[str, Any]) -> Self:
         # Preferred container hook
         if hasattr(container, "_mount_child_pack"):
@@ -306,8 +314,7 @@ class LayoutMixin:
         assert_valid_keys(
             options,
             PackItemOptions,
-            where="pack",
-            hint="The root container uses the Pack layout options",
+            where="pack"
         )
         # widget is likely a wrapper exposing .widget
         widget.widget.pack(**options)
