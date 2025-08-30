@@ -4,7 +4,6 @@ import tkinter as tk
 from typing import Callable, Literal, Optional, TypedDict, Union, Tuple
 from PIL.ImageTk import PhotoImage
 
-
 BindScope = Literal['all', 'class', 'widget']
 TraceOperation = Literal["array", "read", "write", "unset"]
 Variable = Union["Signal", "Variable", str]

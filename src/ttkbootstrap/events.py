@@ -69,11 +69,10 @@ class Event(StrEnum):
     VALID = "<<Valid>>"
     VALIDATED = "<<Validated>>"
 
-    # Routing
-    ROUTE_DID_MOUNT = "<<RouteDidMount>>"
-    ROUTE_WILL_MOUNT = "<<RouteWillMount>>"
-    ROUTE_DID_UNMOUNT = "<<RouteDidUnmount>>"
-    ROUTE_WILL_UNMOUNT = "<<RouteWillUnmount>>"
+    # navigation
+    VIEW_WILL_MOUNT = "<<ViewWillMount>>"
+    VIEW_MOUNTED = "<<ViewMounted>>"
+    VIEW_UNMOUNTED = "<<ViewUnmounted>>"
 
 
 EventType = Union[Event, str]
