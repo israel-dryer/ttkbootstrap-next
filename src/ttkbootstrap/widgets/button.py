@@ -147,7 +147,6 @@ class Button(BaseWidget, IconMixin):
             return self._style_builder.color()
         else:
             self._style_builder.color(value)
-            # self._update_icon_assets()
             self.update_style()
             return self
 
@@ -157,7 +156,6 @@ class Button(BaseWidget, IconMixin):
             return self._style_builder.variant()
         else:
             self._style_builder.variant(value)
-            # self._update_icon_assets()
             self.update_style()
             return self
 
