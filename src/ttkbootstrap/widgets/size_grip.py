@@ -37,7 +37,7 @@ class SizeGrip(BaseWidget):
             color: The color token to apply to the sizegrip element.
             **kwargs: Additional ttk.Sizegrip configuration options.
         """
-        self._style_builder = SizeGripStyleBuilder(color)
+        self._style_builder = SizeGripStyleBuilder(**{'color': color} if color else {})
         parent = kwargs.pop('parent', None)
         tk_options = dict(**kwargs)
         super().__init__(ttk.Sizegrip, tk_options, parent=parent)
@@ -45,8 +45,8 @@ class SizeGrip(BaseWidget):
     def color(self, value: SemanticColor = None):
         """Get or set the sizegrip color."""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.options.get('color')
         else:
-            self._style_builder.color(value)
+            self._style_builder.options.update(color=value)
             self.update_style()
             return self

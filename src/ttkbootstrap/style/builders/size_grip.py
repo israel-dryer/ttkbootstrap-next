@@ -1,23 +1,15 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.types import ForegroundColor
 
 
 class SizeGripStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color: ForegroundColor = None):
-        super().__init__('TSizegrip', color=color)
-
-    def color(self, value: ForegroundColor = None):
-        if value is None:
-            return self.options.get('value', None)
-        else:
-            self.options.update(color=value)
-            return self
+    def __init__(self, **kwargs):
+        super().__init__('TSizegrip', **kwargs)
 
     def register_style(self):
         ttk_style = self.resolve_name()
         background = self.theme.color(self.surface())
-        color_token = self.color()
+        color_token = self.options.get('color')
         if color_token is None:
             foreground = self.theme.on_color(background)
         else:
