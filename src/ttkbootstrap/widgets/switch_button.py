@@ -16,7 +16,7 @@ class SwitchButton(BaseWidget):
     Provides fluent methods for setting text, value, color, and readonly state,
     and supports binding to `Signal` objects for reactive UI behavior.
     """
-    widget: ttk.Separator
+    widget: ttk.Checkbutton
     _configure_methods = {
         "color": "color",
         "text_signal": "text_signal",
@@ -31,7 +31,7 @@ class SwitchButton(BaseWidget):
             self,
             text: str | Signal = None,
             value: int | str | Signal = -1,
-            color: SemanticColor = None,
+            color: SemanticColor = "primary",
             on_value: int | str = 1,
             off_value: int | str = 0,
             on_change: Optional[Callable[[Any], Any]] = None,
@@ -51,7 +51,7 @@ class SwitchButton(BaseWidget):
             on_toggle: Command callback invoked on toggle.
             **kwargs: Additional keyword arguments.
         """
-        self._style_builder = SwitchButtonStyleBuilder(color)
+        self._style_builder = SwitchButtonStyleBuilder(color=color)
         self._on_change = on_change
         self._on_change_fid = None
         self._on_toggle = on_toggle
@@ -87,9 +87,9 @@ class SwitchButton(BaseWidget):
     def color(self, value: SemanticColor = None):
         """Get or set the color role."""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.options.get('color')
         else:
-            self._style_builder.color(value)
+            self._style_builder.options.update(color=value)
             self.update_style()
             return self
 

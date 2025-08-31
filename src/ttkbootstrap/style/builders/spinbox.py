@@ -5,8 +5,8 @@ from ttkbootstrap.style.utils import recolor_image
 
 class SpinBoxStyleBuilder(StyleBuilderBase):
 
-    def __init__(self):
-        super().__init__(f"TSpinbox")
+    def __init__(self, **kwargs):
+        super().__init__(f"TSpinbox", **kwargs)
 
     def register_style(self):
         ttk_style = self.resolve_name()
