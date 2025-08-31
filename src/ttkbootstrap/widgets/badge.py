@@ -2,6 +2,7 @@ from typing import Literal, Union, Unpack
 
 from ttkbootstrap.style.builders.badge import BadgeStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
+from ttkbootstrap.utils import merge_build_options
 from ttkbootstrap.widgets.label import Label, LabelOptions
 
 
@@ -30,7 +31,11 @@ class Badge(Label):
                 - "pill": Rounded ends.
                 - "circle": Circular shape.
         """
-        build_options = kwargs.pop('builder', dict())
-        super().__init__(text, font='label', **kwargs)
+        build_options = merge_build_options(
+            kwargs.pop('builder', {}),
+            color=color,
+            variant=variant
+        )
         # override the label style builder
-        self._style_builder = BadgeStyleBuilder(color, variant, **build_options)
+        super().__init__(text, font='label', **kwargs)
+        self._style_builder = BadgeStyleBuilder(**build_options)

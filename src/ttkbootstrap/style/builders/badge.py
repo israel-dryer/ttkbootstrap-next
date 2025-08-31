@@ -5,32 +5,18 @@ from ttkbootstrap.style.utils import recolor_image
 
 class BadgeStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color="primary", variant="default", **kwargs):
-        super().__init__("Badge.TLabel", color=color, variant=variant, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__("Badge.TLabel", **kwargs)
 
-    def select_background(self, value: str = None):
-        if value is None:
-            return self.options.get('select_background') or 'primary'
-        else:
-            self.options.update(select_background=value)
-            return self
-
-    def color(self, value: str = None):
-        if value is None:
-            return self.options.get('color') or 'primary'
-        else:
-            self.options.update(color=value)
-            return self
-
-    def variant(self, value: str = None):
-        if value is None:
-            return self.options.get('variant') or 'default'
-        else:
-            self.options.update(variant=value)
-            return self
+        # set default options
+        self.options.setdefault('color', 'primary')
+        self.options.setdefault('variant', 'default')
+        self.options.setdefault('select_background', 'primary')
 
     def register_style(self):
-        if self.variant() == 'list':
+        variant = self.options.get('variant')
+
+        if variant == 'list':
             self.build_list_style()
         else:
             self.build_default_style()
@@ -39,17 +25,18 @@ class BadgeStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
+        variant = self.options.get('variant')
 
         surface = theme.color(surface_token)
-        normal = self.theme.color(self.color())
+        normal = self.theme.color(self.options.get('color'))
         foreground = theme.on_color(normal)
 
         # button element images
-        normal_img = recolor_image(f'badge-{self.variant()}', normal)
+        normal_img = recolor_image(f'badge-{variant}', normal)
 
         border = 8
         padding = (8, 0)
-        if self.variant() == 'circle':
+        if variant == 'circle':
             padding = 3
             border = 8
 
@@ -77,11 +64,11 @@ class BadgeStyleBuilder(StyleBuilderBase):
         surface_token = self.surface()
 
         surface = theme.color(surface_token)
-        normal = self.theme.color(self.color())
+        normal = self.theme.color(self.options.get('color'))
         selected = self.theme.active(normal)
         foreground = theme.on_color(normal)
         background_hover = theme.elevate(surface, 1)
-        background_selected = theme.color(self.select_background())
+        background_selected = theme.color(self.options.get('select_background'))
         background_selected_hover = theme.hover(background_selected)
 
         # button element images
