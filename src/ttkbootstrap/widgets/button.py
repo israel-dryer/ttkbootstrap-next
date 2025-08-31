@@ -51,7 +51,7 @@ class Button(BaseWidget, IconMixin):
     def __init__(
             self,
             text: str | Signal = "",
-            color: Union[SemanticColor, str] = None,
+            color: Union[SemanticColor, str] = "primary",
             variant: ButtonVariant = "solid",
             icon: str | dict = None,
             icon_position: IconPosition = "auto",
@@ -78,7 +78,7 @@ class Button(BaseWidget, IconMixin):
         build_options = kwargs.pop('builder', dict())
         build_options['icon_only'] = not self._has_text
         self._icon_position = icon_position
-        self._style_builder = ButtonStyleBuilder(color, variant, **build_options)
+        self._style_builder = ButtonStyleBuilder(color=color, variant=variant, **build_options)
 
         kwargs.pop('compound', None)
         compound = normalize_icon_position(icon_position, has_text=self._has_text, has_icon=self._has_icon)
@@ -136,26 +136,26 @@ class Button(BaseWidget, IconMixin):
             compound = normalize_icon_position(value, has_text=self._has_text, has_icon=self._has_icon)
             self.widget.configure(compound=cast(Compound, compound))
             if not self._has_text:
-                self._style_builder.icon_only(True)
+                self._style_builder.options.update(icon_only=True)
             else:
-                self._style_builder.icon_only(False)
+                self._style_builder.options.update(icon_only=False)
             return self
 
     def color(self, value: str = None):
         """Get or set the color role"""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.options.get("color")
         else:
-            self._style_builder.color(value)
+            self._style_builder.options.update(color=value)
             self.update_style()
             return self
 
     def variant(self, value: str = None):
         """Get or set the style variant."""
         if value is None:
-            return self._style_builder.variant()
+            return self._style_builder.options.get("variant")
         else:
-            self._style_builder.variant(value)
+            self._style_builder.options.update(variant=value)
             self.update_style()
             return self
 
