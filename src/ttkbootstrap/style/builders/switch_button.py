@@ -17,7 +17,7 @@ class SwitchButtonStyleBuilder(StyleBuilderBase):
         background_hover = theme.subtle(self.surface())
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled('text')
-        normal = theme.color(self.option.get('color'))
+        normal = theme.color(self.options.get('color'))
         foreground_active = theme.on_color(normal)
         pressed = theme.active(normal)
         hovered = theme.hover(normal)

@@ -58,6 +58,7 @@ class Event(StrEnum):
     COMBOBOX_SELECTED = "<<ComboboxSelected>>"
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
+    DELETE = "<<Delete>>"
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
     NOTEBOOK_TAB_ACTIVATE = "<<Activate>>"
     NOTEBOOK_TAB_DEACTIVATE = "<<Deactivate>>"

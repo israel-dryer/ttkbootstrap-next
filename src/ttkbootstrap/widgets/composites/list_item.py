@@ -154,7 +154,7 @@ class ListItem(Pack):
 
     def delete(self):
         """Unpack this widget and notify subscribers to handle delete action"""
-        self.parent.emit('delete', data=self.data)
+        self.parent.emit(Event.DELETE, data=self.data)
         self.detach()
 
     def _update_selection(self, selected=False):

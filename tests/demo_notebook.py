@@ -3,7 +3,7 @@ from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets import Button, Notebook
 
 # Context Manager Version
-with App("Notebook Demo") as app:
+with App("Notebook Demo", geometry="500x500") as app:
     with Pack(padding=16).layout(fill='both', expand=True):
         with Notebook().layout(fill='both', expand=True) as nb:
             with nb.Pack("Tab 1", name="tab1"):
