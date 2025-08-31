@@ -75,7 +75,7 @@ class RadioButton(BaseWidget):
         self._on_change = on_change
         self._text_signal = Signal(text)
         self._on_change_fid = None
-        self._style_builder = RadioButtonStyleBuilder(color, variant=variant)
+        self._style_builder = RadioButtonStyleBuilder(color=color, variant=variant)
 
         if group:
             self._value_signal = Signal(None, name=str(group))

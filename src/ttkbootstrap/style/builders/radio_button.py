@@ -6,26 +6,15 @@ from ttkbootstrap.style.utils import recolor_image
 
 class RadioButtonStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color, variant="default"):
+    def __init__(self, **kwargs):
 
-        super().__init__('TRadiobutton', color=color, variant=variant)
-
-    def color(self, value: str = None):
-        if value is None:
-            return self.options.get('color', 'primary')
-        else:
-            self.options.update(color=value)
-            return self
-
-    def variant(self, value: str = None):
-        if value is None:
-            return self.options.get('variant') or 'default'
-        else:
-            self.options.update(variant=value)
-            return self
+        super().__init__('TRadiobutton', **kwargs)
+        self.options.setdefault('color', 'primary')
+        self.options.setdefault('variant', 'default')
 
     def register_style(self):
-        if self.variant() == 'list':
+        variant = self.options.get("variant")
+        if variant == 'list':
             self.build_list_style()
         else:
             self.build_default_style()
@@ -33,11 +22,12 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
     def build_list_style(self):
         ttk_style = self.resolve_name()
         theme = self.theme
+        color_token = self.options.get("color")
         background = theme.color(self.surface())
         background_hover = theme.elevate(background, 1)
-        background_selected = theme.subtle(self.color(), background)
+        background_selected = theme.subtle(color_token, background)
         foreground = theme.on_color(background)
-        normal = theme.color(self.color())
+        normal = theme.color(color_token)
         foreground_active = theme.on_color(normal)
         hovered = theme.hover(normal)
         border = theme.border(background)
@@ -85,7 +75,7 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
         background_hover = theme.hover(background)
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled('text')
-        normal = theme.color(self.color())
+        normal = theme.color(self.options.get('color'))
         foreground_active = theme.on_color(normal)
         pressed = theme.active(normal)
         hovered = theme.hover(normal)
