@@ -70,9 +70,9 @@ class Event(StrEnum):
     VALIDATED = "<<Validated>>"
 
     # navigation
-    VIEW_WILL_MOUNT = "<<ViewWillMount>>"
-    VIEW_MOUNTED = "<<ViewMounted>>"
-    VIEW_UNMOUNTED = "<<ViewUnmounted>>"
+    PAGE_WILL_MOUNT = "<<PageWillMount>>"
+    PAGE_MOUNTED = "<<PageMounted>>"
+    PAGE_UNMOUNTED = "<<PageUnmounted>>"
 
 
 EventType = Union[Event, str]
