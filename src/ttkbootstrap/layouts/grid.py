@@ -95,6 +95,7 @@ class Grid(BaseLayout):
         """Enter layout context; attach self and push as current container."""
         self._in_context = True
         push_container(self)
+        self.attach()
         return self
 
     def __exit__(self, exc_type, exc, tb):
