@@ -4,18 +4,12 @@ from ttkbootstrap.style.element import Element
 
 class ScrollbarStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, orient="vertical"):
-        super().__init__(f"TScrollbar", orient=orient)
-
-    def orient(self, value=None):
-        if value is None:
-            return self.options.get('orient') or 'vertical'
-        else:
-            self.options.update(orient=value)
-            return self
+    def __init__(self, **kwargs):
+        super().__init__(f"TScrollbar", **kwargs)
+        self.options.setdefault('orient', 'vertical')
 
     def register_style(self):
-        if self.orient() == 'horizontal':
+        if self.options.get('orient') == 'horizontal':
             self.build_horizontal()
         else:
             self.build_vertical()
@@ -29,9 +23,11 @@ class ScrollbarStyleBuilder(StyleBuilderBase):
         thumb_hover = theme.hover(thumb_color)
         thumb_pressed = theme.active(thumb_color)
 
-        self.style_layout(ttk_style, Element(f'{ttk_style}.Scrollbar.trough', sticky="ew").children([
-            Element(f'{ttk_style}.Scrollbar.thumb', side="left", expand=True, sticky="ew")
-        ]))
+        self.style_layout(
+            ttk_style, Element(f'{ttk_style}.Scrollbar.trough', sticky="ew").children(
+                [
+                    Element(f'{ttk_style}.Scrollbar.thumb', side="left", expand=True, sticky="ew")
+                ]))
 
         self.configure(
             ttk_style,
@@ -63,9 +59,11 @@ class ScrollbarStyleBuilder(StyleBuilderBase):
         thumb_hover = theme.hover(thumb_color)
         thumb_pressed = theme.active(thumb_color)
 
-        self.style_layout(ttk_style, Element(f'{ttk_style}.Scrollbar.trough', sticky="ns").children([
-            Element(f'{ttk_style}.Scrollbar.thumb', side="top", expand=True, sticky="ns")
-        ]))
+        self.style_layout(
+            ttk_style, Element(f'{ttk_style}.Scrollbar.trough', sticky="ns").children(
+                [
+                    Element(f'{ttk_style}.Scrollbar.thumb', side="top", expand=True, sticky="ns")
+                ]))
 
         self.configure(
             ttk_style,
