@@ -9,6 +9,6 @@ with App("Demo Button") as app:
         Button("House", icon="house-fill")
         Button("House", icon="house-fill", color="warning")
         Button(icon="house", variant="outline")
-        Button(icon="house", variant="ghost", color="dark")
-        Button("House", icon="house", variant="outline")
+        Button(icon="house", variant="ghost", color="dark", on_click=lambda: app.theme.use('light'))
+        Button("House", icon="house", variant="outline", on_click=lambda: app.theme.use('dark'))
 app.run()
