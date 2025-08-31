@@ -1,29 +1,14 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.element import Element
 
 
 class NotebookStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, variant=None, **kwargs):
-        self._variant = variant
+    def __init__(self, **kwargs):
         super().__init__("TNotebook", **kwargs)
 
-    def surface(self, value: str = None):
-        if value is None:
-            return self._surface
-        else:
-            self._surface = value
-            return self
-
-    def variant(self, value: str = None):
-        if value is None:
-            return self._variant
-        else:
-            self._variant = value
-            return self
-
     def register_style(self):
-        if self.variant() == 'pages':
+        variant = self.options.get('variant')
+        if variant == 'pages':
             self.build_pages_style()
         else:
             self.build_default_style()
@@ -64,9 +49,9 @@ class NotebookStyleBuilder(StyleBuilderBase):
         background = self.theme.color(surface_token)
         self.configure(
             ttk_style,
-            bordercolor=background,     # remove border
-            lightcolor=background,      # remove border
-            darkcolor=background,       # remove border
+            bordercolor=background,  # remove border
+            lightcolor=background,  # remove border
+            darkcolor=background,  # remove border
             background=background,
         )
         # remove the tabs by creating an empty layout
