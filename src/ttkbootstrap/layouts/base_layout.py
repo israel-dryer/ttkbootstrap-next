@@ -4,7 +4,7 @@ from typing import TypedDict, Unpack
 from ttkbootstrap.types import Padding, Widget, Position
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.utils import unsnake_kwargs
+from ttkbootstrap.utils import merge_build_options, unsnake_kwargs
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
 
 
@@ -35,11 +35,16 @@ class BaseLayout(BaseWidget, ContainerMixin):
 
     def __init__(self, *, surface: str = None, variant: str = None, **kwargs: Unpack[FrameOptions]):
         self._surface_token = surface
-        style_options = kwargs.pop('builder', dict())
+
+        style_options = merge_build_options(
+            kwargs.pop('builder', {}),
+            variant=variant
+        )
+
         parent = kwargs.pop('parent', None)
         tk_options = unsnake_kwargs(kwargs)
         super().__init__(ttk.Frame, tk_options, parent=parent, surface=surface)
-        self._style_builder = FrameStyleBuilder(variant=variant, **style_options)
+        self._style_builder = FrameStyleBuilder(**style_options)
 
     # Mount a 'place' child directly on this container (no overlay)
     def _mount_child_place(self, child, opts: dict) -> None:
@@ -50,9 +55,10 @@ class BaseLayout(BaseWidget, ContainerMixin):
             child.attach_place(parent=parent, **opts)
         else:
             tk = getattr(child, "widget", child)
-            tk.place(in_=parent, **{k: v for k, v in opts.items() if k in {
-                "x", "y", "relx", "rely", "width", "height", "relwidth", "relheight", "anchor", "bordermode"
-            }})
+            tk.place(
+                in_=parent, **{k: v for k, v in opts.items() if k in {
+                    "x", "y", "relx", "rely", "width", "height", "relwidth", "relheight", "anchor", "bordermode"
+                }})
 
     def surface(self, value: str = None):
         """Get or set the surface (background) color of this widget"""
