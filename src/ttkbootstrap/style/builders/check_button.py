@@ -6,16 +6,9 @@ from ttkbootstrap.style.utils import recolor_image
 
 class CheckButtonStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color):
-
-        super().__init__('TCheckbutton', color=color)
-
-    def color(self, value: str = None):
-        if value is None:
-            return self.options.get('color') or 'primary'
-        else:
-            self.options.update(color=value)
-            return self
+    def __init__(self, **kwargs):
+        super().__init__('TCheckbutton', **kwargs)
+        self.options.setdefault('color', 'primary')
 
     def register_style(self):
         ttk_style = self.resolve_name()
@@ -24,7 +17,7 @@ class CheckButtonStyleBuilder(StyleBuilderBase):
         background_hover = theme.hover(background)
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled('text')
-        normal = theme.color(self.color())
+        normal = theme.color(self.options.get("color"))
         foreground_active = theme.on_color(normal)
         pressed = theme.active(normal)
         hovered = theme.hover(normal)

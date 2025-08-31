@@ -71,7 +71,7 @@ class CheckButton(BaseWidget):
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
-        self._style_builder = CheckButtonStyleBuilder(color)
+        self._style_builder = CheckButtonStyleBuilder(color=color)
         self._on_change = on_change
         self._on_change_fid = None
         self._on_toggle = on_toggle
@@ -113,9 +113,9 @@ class CheckButton(BaseWidget):
     def color(self, value: SemanticColor = None):
         """Get or set the color role."""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.options.get('color')
         else:
-            self._style_builder.color(value)
+            self._style_builder.options.update(color=value)
             self.update_style()
             return self
 
