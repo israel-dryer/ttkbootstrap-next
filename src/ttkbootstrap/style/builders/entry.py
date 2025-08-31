@@ -5,15 +5,8 @@ from ttkbootstrap.style.utils import recolor_image
 
 class EntryStyleBuilder(StyleBuilderBase):
 
-    def __init__(self):
-        super().__init__(f"TEntry")
-
-    def size(self, value=None):
-        if value is None:
-            return self.options.get('size') or 'md'
-        else:
-            self.options.update(size=value)
-            return self
+    def __init__(self, **kwargs):
+        super().__init__(f"TEntry", **kwargs)
 
     def register_style(self):
         ttk_style = self.resolve_name()
