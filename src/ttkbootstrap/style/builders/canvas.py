@@ -1,13 +1,11 @@
-from typing import TYPE_CHECKING
+import tkinter
 
-from .base import StyleBuilderBase
+from ttkbootstrap.style.builders.base import StyleBuilderBase
 
-if TYPE_CHECKING:
-    from ttkbootstrap.core.base_widget import BaseWidget
 
 class CanvasStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, canvas: "BaseWidget", **kwargs):
+    def __init__(self, canvas: tkinter.Canvas, **kwargs):
         super().__init__("tkinter", **kwargs)
         self._canvas = canvas
 

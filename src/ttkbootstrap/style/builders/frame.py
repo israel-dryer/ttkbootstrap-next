@@ -7,10 +7,10 @@ class FrameStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__("TFrame", **kwargs)
-        self.options.setdefault('select_background', 'primary')
+        self.options.set_defaults(select_background='primary')
 
     def register_style(self):
-        variant = self.options.get('variant')
+        variant = self.options('variant')
         if variant == 'field':
             self.build_field_style()
         elif variant == 'list':
@@ -28,7 +28,7 @@ class FrameStyleBuilder(StyleBuilderBase):
         background = self.theme.color(self.surface())
         background_hover = self.theme.elevate(background, 1)
         background_pressed = self.theme.elevate(background, 2)
-        background_selected = self.theme.color(self.options.get("select_background"), background)
+        background_selected = self.theme.color(self.options("select_background"), background)
         background_selected_hover = self.theme.hover(background_selected)
         self.configure(ttk_style, background=background)
         self.map(
@@ -45,7 +45,7 @@ class FrameStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.options.get("select_background")
+        color_token = self.options("select_background")
 
         surface = theme.color(surface_token)
         color = theme.color(color_token)

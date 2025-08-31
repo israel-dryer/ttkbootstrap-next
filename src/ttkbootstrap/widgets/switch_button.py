@@ -87,9 +87,9 @@ class SwitchButton(BaseWidget):
     def color(self, value: SemanticColor = None):
         """Get or set the color role."""
         if value is None:
-            return self._style_builder.options.get('color')
+            return self._style_builder.options('color')
         else:
-            self._style_builder.options.update(color=value)
+            self._style_builder.options(color=value)
             self.update_style()
             return self
 

@@ -9,12 +9,10 @@ class BadgeStyleBuilder(StyleBuilderBase):
         super().__init__("Badge.TLabel", **kwargs)
 
         # set default options
-        self.options.setdefault('color', 'primary')
-        self.options.setdefault('variant', 'default')
-        self.options.setdefault('select_background', 'primary')
+        self.options.set_defaults(color='primary', variant='default', select_background='primary')
 
     def register_style(self):
-        variant = self.options.get('variant')
+        variant = self.options('variant')
 
         if variant == 'list':
             self.build_list_style()
@@ -25,10 +23,10 @@ class BadgeStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        variant = self.options.get('variant')
+        variant = self.options('variant')
 
         surface = theme.color(surface_token)
-        normal = self.theme.color(self.options.get('color'))
+        normal = self.theme.color(self.options('color'))
         foreground = theme.on_color(normal)
 
         # button element images
@@ -64,11 +62,11 @@ class BadgeStyleBuilder(StyleBuilderBase):
         surface_token = self.surface()
 
         surface = theme.color(surface_token)
-        normal = self.theme.color(self.options.get('color'))
+        normal = self.theme.color(self.options('color'))
         selected = self.theme.active(normal)
         foreground = theme.on_color(normal)
         background_hover = theme.elevate(surface, 1)
-        background_selected = theme.color(self.options.get('select_background'))
+        background_selected = theme.color(self.options('select_background'))
         background_selected_hover = theme.hover(background_selected)
 
         # button element images

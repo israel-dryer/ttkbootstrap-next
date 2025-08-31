@@ -131,18 +131,18 @@ class Label(BaseWidget, IconMixin):
     def foreground(self, value: ForegroundColor = None):
         """Get or set the label text color."""
         if value is None:
-            return self._style_builder.options.get('foreground')
+            return self._style_builder.options('foreground')
         else:
-            self._style_builder.options.update(foreground=value)
+            self._style_builder.options(foreground=value)
             self.update_style()
             return self
 
     def background(self, value: SurfaceColor = None):
         """Get or set the label background color."""
         if value is None:
-            return self._style_builder.options.get('background')
+            return self._style_builder.options('background')
         else:
-            self._style_builder.background(value)
+            self._style_builder.options(background=value)
             self.update_style()
             return self
 

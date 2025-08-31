@@ -9,8 +9,8 @@ class LabelFrameStyleBuilder(StyleBuilderBase):
     def register_style(self):
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        label_token = self.options.get('label_color')
-        border_token = self.options.get('border_color')
+        label_token = self.options('label_color')
+        border_token = self.options('border_color')
 
         background = self.theme.color(surface_token)
 

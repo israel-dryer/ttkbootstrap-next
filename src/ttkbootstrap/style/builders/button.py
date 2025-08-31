@@ -14,11 +14,12 @@ class ButtonStyleBuilder(StyleBuilderBase):
         super().__init__("TButton", **kwargs)
 
         # default options
-        self.options.setdefault('color', 'primary')
-        self.options.setdefault('variant', 'solid')
-        self.options.setdefault('size', 'md')
-        self.options.setdefault('icon_only', False)
-        self.options.setdefault('select_background', 'primary')
+        self.options.set_defaults(
+            color='primary',
+            variant='solid',
+            size='md',
+            icon_only=False,
+            select_background='primary')
 
         self._stateful_icons: dict[str, BootstrapIcon] = dict()
 
@@ -29,7 +30,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
     # ----- variant style builders ------
 
     def register_style(self):
-        variant = self.options.get('variant')
+        variant = self.options('variant')
         if variant == 'outline':
             self.build_outline_style()
         elif variant == 'ghost':
@@ -47,7 +48,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.options.get('color')
+        color_token = self.options('color')
 
         surface = theme.color(surface_token)
         normal = theme.color(color_token)
@@ -99,7 +100,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.options.get('color')
+        color_token = self.options('color')
 
         surface = theme.color(surface_token)
         foreground = theme.color(color_token)
@@ -157,7 +158,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.options.get('color')
+        color_token = self.options('color')
 
         surface = theme.color(surface_token)
         foreground = theme.color(color_token)
@@ -210,7 +211,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        variant = self.options.get('variant')
+        variant = self.options('variant')
 
         surface = theme.color(surface_token)
         border = self.theme.border(surface)
@@ -263,7 +264,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         theme = self.theme
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        color_token = self.options.get('color')
+        color_token = self.options('color')
 
         surface = theme.color(surface_token)
         foreground = theme.color(color_token)
@@ -295,7 +296,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         surface = theme.color(self.surface())
         background_hover = theme.elevate(surface, 1)
         background_pressed = theme.elevate(surface, 2)
-        background_selected = theme.color(self.options.get('select_background'))
+        background_selected = theme.color(self.options('select_background'))
         background_selected_hover = theme.hover(background_selected)
 
         # button element
@@ -339,7 +340,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
                 ]))
 
     def build_icon_assets(self, icon: dict):
-        variant = self.options.get('variant')
+        variant = self.options('variant')
         if variant == 'solid':
             self.build_solid_icon_assets(icon)
         elif variant == 'outline':
@@ -362,7 +363,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_solid_icon_assets(self, icon: dict):
-        color_token = self.options.get('color')
+        color_token = self.options('color')
         background = self.theme.color(color_token)
         foreground = self.theme.on_color(background)
         foreground_disabled = self.theme.disabled("text")
@@ -373,7 +374,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_outline_icon_assets(self, icon: dict):
-        color_token = self.options.get('color')
+        color_token = self.options('color')
         accent = self.theme.color(color_token)
         foreground_active = self.theme.on_color(accent)
         foreground_disabled = self.theme.disabled("text")
@@ -384,7 +385,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
         self.create_icon_asset(icon, 'disabled', foreground_disabled)
 
     def build_ghost_icon_assets(self, icon: dict):
-        color_token = self.options.get('color')
+        color_token = self.options('color')
         foreground = self.theme.color(color_token)
         foreground_disabled = self.theme.disabled("text")
         self.create_icon_asset(icon, 'normal', foreground)
@@ -406,7 +407,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
     def build_list_icon_assets(self, icon: dict):
         icon['size'] = 14
         background = self.theme.color(self.surface())
-        background_selected = self.theme.color(self.options.get('select_background'))
+        background_selected = self.theme.color(self.options('select_background'))
         foreground = self.theme.on_color(background)
         foreground_selected = self.theme.on_color(background_selected)
         foreground_disabled = self.theme.disabled("text")
@@ -427,13 +428,13 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     def icon_font_size(self) -> int:
         """Return the icon size scaled from font size."""
-        factor = 0.9 if self.options.get('icon_only') else 0.72
+        factor = 0.9 if self.options('icon_only') else 0.72
         fnt = self.get_font()
         font_size = fnt.metrics('linespace')
         return int(font_size * factor)
 
     def get_font(self):
-        size = self.options.get("size")
+        size = self.options("size")
         if size == "sm":
             return nametofont("body")
         elif size == "lg":
@@ -442,7 +443,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
             return nametofont("body-lg")
 
     def button_img_border(self):
-        size = self.options.get("size")
+        size = self.options("size")
         if size == "sm":
             return 6
         elif size == "md":

@@ -9,11 +9,10 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
     def __init__(self, **kwargs):
 
         super().__init__('TRadiobutton', **kwargs)
-        self.options.setdefault('color', 'primary')
-        self.options.setdefault('variant', 'default')
+        self.options.set_defaults(color='primary', variant='default')
 
     def register_style(self):
-        variant = self.options.get("variant")
+        variant = self.options("variant")
         if variant == 'list':
             self.build_list_style()
         else:
@@ -22,7 +21,7 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
     def build_list_style(self):
         ttk_style = self.resolve_name()
         theme = self.theme
-        color_token = self.options.get("color")
+        color_token = self.options("color")
         background = theme.color(self.surface())
         background_hover = theme.elevate(background, 1)
         background_selected = theme.subtle(color_token, background)
@@ -75,7 +74,7 @@ class RadioButtonStyleBuilder(StyleBuilderBase):
         background_hover = theme.hover(background)
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled('text')
-        normal = theme.color(self.options.get('color'))
+        normal = theme.color(self.options('color'))
         foreground_active = theme.on_color(normal)
         pressed = theme.active(normal)
         hovered = theme.hover(normal)

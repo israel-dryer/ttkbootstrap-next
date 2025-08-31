@@ -31,7 +31,7 @@ class Separator(BaseWidget):
             orient: Orientation of the separator ("horizontal" or "vertical").
             kwargs: Other widget options.
         """
-        self._style_builder = SeparatorStyleBuilder(color, orient)
+        self._style_builder = SeparatorStyleBuilder(color=color, orient=orient)
         parent = kwargs.pop('parent', None)
         tk_options = {**kwargs, "orient": orient}
         super().__init__(ttk.Separator, tk_options, parent=parent)
@@ -39,9 +39,9 @@ class Separator(BaseWidget):
     def color(self, value: SeparatorColor = None):
         """Get or set the separator color."""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.options("color")
         else:
-            self._style_builder.color(value)
+            self._style_builder.options(color=value)
             self.update_style()
             return self
 
@@ -51,6 +51,6 @@ class Separator(BaseWidget):
             return self.configure('orient')
         else:
             self.configure(orient=value)
-            self._style_builder.orient(value)
+            self._style_builder.options(orient=value)
             self.update_style()
             return self

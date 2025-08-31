@@ -15,9 +15,7 @@ class LabelStyleBuilder(StyleBuilderBase):
         super().__init__("TLabel", **kwargs)
 
         # default style options
-        self.options.setdefault('variant', 'default')
-        self.options.setdefault('select_background', 'primary')
-
+        self.options.set_defaults(variant='default', select_background='primary')
         self._stateful_icons: dict[str, BootstrapIcon] = dict()
 
     @property
@@ -25,7 +23,7 @@ class LabelStyleBuilder(StyleBuilderBase):
         return self._stateful_icons
 
     def register_style(self):
-        variant = self.options.get('variant')
+        variant = self.options('variant')
         if variant.endswith('fix'):
             self.build_addon_style()
         elif variant == 'list':
@@ -36,8 +34,8 @@ class LabelStyleBuilder(StyleBuilderBase):
     def build_default_style(self):
         ttk_style = self.resolve_name()
         surface_token = self.surface()
-        foreground_token = self.options.get('foreground')
-        background_token = self.options.get('background')
+        foreground_token = self.options('foreground')
+        background_token = self.options('background')
 
         if background_token is None:
             background = self.theme.color(surface_token)
@@ -50,7 +48,7 @@ class LabelStyleBuilder(StyleBuilderBase):
             try:
                 foreground = self.theme.color(foreground_token, "text")
             except TclError:
-                foreground = self.options.get('foreground')
+                foreground = self.options('foreground')
         self.configure(ttk_style, background=background, foreground=foreground)
 
     def build_addon_style(self):
@@ -64,7 +62,7 @@ class LabelStyleBuilder(StyleBuilderBase):
         normal = self.theme.disabled()
 
         # button element images
-        normal_img = recolor_image(f'input-{self.options.get('variant')}', normal, border)
+        normal_img = recolor_image(f'input-{self.options('variant')}', normal, border)
         img_padding = 8
 
         # button element
@@ -97,9 +95,9 @@ class LabelStyleBuilder(StyleBuilderBase):
         background = theme.color(self.surface())
         background_hover = theme.elevate(background, 1)
         background_pressed = theme.elevate(background, 2)
-        background_selected = theme.color(self.options.get('select_background'))
+        background_selected = theme.color(self.options('select_background'))
         background_selected_hover = theme.hover(background_selected)
-        foreground_token = self.options.get('foreground')
+        foreground_token = self.options('foreground')
         if foreground_token is None:
             foreground = self.theme.on_color(background)
         else:
@@ -122,14 +120,14 @@ class LabelStyleBuilder(StyleBuilderBase):
 
     def build_icon_assets(self, icon: dict):
         if icon is None: return
-        if self.options.get('variant') == 'list':
+        if self.options('variant') == 'list':
             self.build_list_icon_assets(icon)
         else:
             self.build_default_icon_assets(icon)
 
     def build_default_icon_assets(self, icon: dict):
         background = self.theme.color(self.surface())
-        foreground_token = self.options.get('foreground')
+        foreground_token = self.options('foreground')
         if foreground_token is None:
             foreground = self.theme.on_color(background)
         else:
@@ -154,7 +152,7 @@ class LabelStyleBuilder(StyleBuilderBase):
     def build_list_icon_assets(self, icon: dict):
         icon['size'] = 14
         background = self.theme.color(self.surface())
-        foreground_token = self.options.get('foreground')
+        foreground_token = self.options('foreground')
         if foreground_token is None:
             foreground = self.theme.on_color(background)
         else:
@@ -163,7 +161,7 @@ class LabelStyleBuilder(StyleBuilderBase):
             except TclError:
                 foreground = foreground_token
 
-        background_selected = self.theme.color(self.options.get('select_background'))
+        background_selected = self.theme.color(self.options('select_background'))
         foreground_selected = self.theme.on_color(background_selected)
 
         self.create_icon_asset(icon, 'normal', foreground)

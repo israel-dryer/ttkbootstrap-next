@@ -1,6 +1,32 @@
-from ..element import Element, ElementImage
-from ..style import Style
-from ..theme import ColorTheme
+from ttkbootstrap.style.element import Element, ElementImage
+from ttkbootstrap.style.style import Style
+from ttkbootstrap.style.theme import ColorTheme
+
+
+class OptionManager:
+    """A class for managing options"""
+    def __init__(self, **kwargs):
+        self._options = dict(**kwargs)
+
+    def __call__(self, option: str = None, **kwargs):
+        if option:
+            return self._options.get(option)
+        else:
+            self._options.update(**kwargs)
+            return self
+
+    def values(self):
+        return self._options.values()
+
+    def keys(self):
+        return self._options.keys()
+
+    def items(self):
+        return self._options.items()
+
+    def set_defaults(self, **kwargs):
+        for key, value in kwargs.items():
+            self._options.setdefault(key, value)
 
 
 class StyleBuilderBase:
@@ -10,7 +36,8 @@ class StyleBuilderBase:
         self._surface = "background"
         self._theme = ColorTheme.instance()
         self._style = Style()
-        self.options = options or dict()
+        self.options = OptionManager(**options)
+        self.options.set_defaults(surface="background")
 
     @property
     def theme(self):
@@ -19,9 +46,9 @@ class StyleBuilderBase:
     def surface(self, value: str = None):
         """Get or set the surface type"""
         if value is None:
-            return self._surface
+            return self.options("surface")
         else:
-            self._surface = value
+            self.options(surface=value)
             return self
 
     def resolve_name(self):

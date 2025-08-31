@@ -8,7 +8,7 @@ class SwitchButtonStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__('Switch.TCheckbutton', **kwargs)
-        self.options.setdefault('color', 'primary')
+        self.options.set_defaults(color='primary')
 
     def register_style(self):
         ttk_style = self.resolve_name()
@@ -17,7 +17,7 @@ class SwitchButtonStyleBuilder(StyleBuilderBase):
         background_hover = theme.subtle(self.surface())
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled('text')
-        normal = theme.color(self.options.get('color'))
+        normal = theme.color(self.options('color'))
         foreground_active = theme.on_color(normal)
         pressed = theme.active(normal)
         hovered = theme.hover(normal)

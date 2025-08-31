@@ -142,26 +142,26 @@ class Button(BaseWidget, IconMixin):
             compound = normalize_icon_position(value, has_text=self._has_text, has_icon=self._has_icon)
             self.widget.configure(compound=cast(Compound, compound))
             if not self._has_text:
-                self._style_builder.options.update(icon_only=True)
+                self._style_builder.options(icon_only=True)
             else:
-                self._style_builder.options.update(icon_only=False)
+                self._style_builder.options(icon_only=False)
             return self
 
     def color(self, value: str = None):
         """Get or set the color role"""
         if value is None:
-            return self._style_builder.options.get("color")
+            return self._style_builder.options("color")
         else:
-            self._style_builder.options.update(color=value)
+            self._style_builder.options(color=value)
             self.update_style()
             return self
 
     def variant(self, value: str = None):
         """Get or set the style variant."""
         if value is None:
-            return self._style_builder.options.get("variant")
+            return self._style_builder.options("variant")
         else:
-            self._style_builder.options.update(variant=value)
+            self._style_builder.options(variant=value)
             self.update_style()
             return self
 

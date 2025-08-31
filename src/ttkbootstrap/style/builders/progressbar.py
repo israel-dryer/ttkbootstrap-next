@@ -11,16 +11,14 @@ class ProgressStyleBuilder(StyleBuilderBase):
         super().__init__(target, **kwargs)
 
         # default options
-        self.options.setdefault('variant', 'default')
-        self.options.setdefault('color', 'primary')
-        self.options.setdefault('orient', 'horizontal')
+        self.options.set_defaults(variant='default', color='primary', orient='horizontal')
 
     def orient(self, value=None):
         if value is None:
-            return self.options.get('orient') or 'horizontal'
+            return self.options('orient') or 'horizontal'
         else:
             self._target = f"{value.title()}.TProgressbar"
-            self.options.update(orient=value)
+            self.options(orient=value)
             return self
 
     def register_style(self):
@@ -29,14 +27,14 @@ class ProgressStyleBuilder(StyleBuilderBase):
     def build_default_progressbar(self):
         ttk_style = self.resolve_name()
         theme = self.theme
-        orient = self.options.get('orient')
-        variant = self.options.get('variant')
+        orient = self.options('orient')
+        variant = self.options('variant')
 
         # style colors
         background = theme.color(self.surface())
         trough_color = theme.border(background)
         trough_disabled = theme.disabled("background")
-        bar_color = theme.color(self.options.get("color"))
+        bar_color = theme.color(self.options("color"))
         bar_disabled = theme.disabled("text")
 
         sticky = "ew" if orient == "horizontal" else "ns"

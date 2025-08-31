@@ -7,7 +7,7 @@ class NotebookStyleBuilder(StyleBuilderBase):
         super().__init__("TNotebook", **kwargs)
 
     def register_style(self):
-        variant = self.options.get('variant')
+        variant = self.options('variant')
         if variant == 'pages':
             self.build_pages_style()
         else:

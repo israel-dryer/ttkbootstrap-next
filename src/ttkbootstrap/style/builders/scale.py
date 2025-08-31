@@ -7,20 +7,19 @@ class ScaleStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__("TScale", **kwargs)
-        self.options.setdefault('color', "primary")
-        self.options.setdefault("orient", "horizontal")
+        self.options.set_defaults(color='primary', orient='horizontal')
 
     def register_style(self):
         ttk_style = self.resolve_name()
         theme = self.theme
-        orient = self.options.get('orient').title()
+        orient = self.options('orient').title()
 
         # style colors
         background = theme.color(self.surface())
         foreground = theme.on_color(background)
         foreground_disabled = theme.disabled("text")
         track_color = theme.border(background)
-        handle_normal = theme.color(self.options.get('color'))
+        handle_normal = theme.color(self.options('color'))
         handle_hover = theme.hover(handle_normal)
         handle_pressed = theme.active(handle_normal)
         handle_disabled = theme.disabled("text")

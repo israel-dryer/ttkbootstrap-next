@@ -91,18 +91,18 @@ class Progressbar(BaseWidget):
     def color(self, value: SemanticColor = None):
         """Get or set the progressbar color"""
         if value is None:
-            return self._style_builder.options.get('color')
+            return self._style_builder.options('color')
         else:
-            self._style_builder.options.upate(color=value)
+            self._style_builder.options(color=value)
             self._style_builder.register_style()
             return self
 
     def variant(self, value: Literal['default', 'striped'] = None):
         """Get or set the progressbar variant: 'default' or 'striped'"""
         if value is None:
-            return self._style_builder.options.get("variant")
+            return self._style_builder.options("variant")
         else:
-            self._style_builder.options.update(variant=value)
+            self._style_builder.options(variant=value)
             self._style_builder.register_style()
             return self
 

@@ -6,10 +6,10 @@ class ScrollbarStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__(f"TScrollbar", **kwargs)
-        self.options.setdefault('orient', 'vertical')
+        self.options.set_defaults(orient='vertical')
 
     def register_style(self):
-        if self.options.get('orient') == 'horizontal':
+        if self.options('orient') == 'horizontal':
             self.build_horizontal()
         else:
             self.build_vertical()
