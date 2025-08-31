@@ -1,13 +1,12 @@
 from typing import TYPE_CHECKING
 
 from .base import StyleBuilderBase
+from ...types import Widget
 
-if TYPE_CHECKING:
-    from ttkbootstrap.core.base_widget import BaseWidget
 
 class WindowStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, window: "BaseWidget", **kwargs):
+    def __init__(self, window: Widget, **kwargs):
         super().__init__("tkinter", **kwargs)
         self._window = window
 

@@ -47,7 +47,7 @@ class CheckButton(BaseWidget):
             self,
             text: str | Signal = None,
             value: int | str | Signal = -1,
-            color: SemanticColor = None,
+            color: SemanticColor = 'primary',
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
