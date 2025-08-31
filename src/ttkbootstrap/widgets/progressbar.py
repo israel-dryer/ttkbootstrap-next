@@ -5,7 +5,7 @@ from tkinter import ttk
 from ttkbootstrap.types import Orientation, CoreOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.style.builders.progress import ProgressStyleBuilder
+from ttkbootstrap.style.builders.progressbar import ProgressStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
 
 
@@ -91,18 +91,18 @@ class Progressbar(BaseWidget):
     def color(self, value: SemanticColor = None):
         """Get or set the progressbar color"""
         if value is None:
-            return self._style_builder.color()
+            return self._style_builder.options.get('color')
         else:
-            self._style_builder.color(value)
+            self._style_builder.options.upate(color=value)
             self._style_builder.register_style()
             return self
 
     def variant(self, value: Literal['default', 'striped'] = None):
         """Get or set the progressbar variant: 'default' or 'striped'"""
         if value is None:
-            return self._style_builder.variant()
+            return self._style_builder.options.get("variant")
         else:
-            self._style_builder.orient(value)
+            self._style_builder.options.update(variant=value)
             self._style_builder.register_style()
             return self
 

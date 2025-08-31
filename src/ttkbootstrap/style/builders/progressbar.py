@@ -1,14 +1,19 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 from ttkbootstrap.style.element import ElementImage, Element
-from ttkbootstrap.style.style import Style
 from ttkbootstrap.style.utils import recolor_image
 
 
 class ProgressStyleBuilder(StyleBuilderBase):
 
-    def __init__(self, color: str = "primary", orient="horizontal", variant="default"):
-        target = f"{orient.title()}.TProgressbar"
-        super().__init__(target, orient=orient, color=color, variant=variant)
+    def __init__(self, **kwargs):
+
+        target = f"{kwargs.get('orient', 'horizontal').title()}.TProgressbar"
+        super().__init__(target, **kwargs)
+
+        # default options
+        self.options.setdefault('variant', 'default')
+        self.options.setdefault('color', 'primary')
+        self.options.setdefault('orient', 'horizontal')
 
     def orient(self, value=None):
         if value is None:
@@ -18,38 +23,20 @@ class ProgressStyleBuilder(StyleBuilderBase):
             self.options.update(orient=value)
             return self
 
-    def color(self, value=None):
-        if value is None:
-            return self.options.get('color') or 'primary'
-        else:
-            self.options.update(color=value)
-            return self
-
-    def variant(self, value=None):
-        if value is None:
-            return self.options.get('variant') or 'default'
-        else:
-            self.options.update(variant=value)
-            return self
-
     def register_style(self):
         self.build_default_progressbar()
-        # if self.variant() == "striped":
-        #     self.build_striped_progressbar()
-        # else:
-        #     self.build_default_progressbar()
 
     def build_default_progressbar(self):
         ttk_style = self.resolve_name()
         theme = self.theme
-        orient = self.orient()
-        variant = self.variant()
+        orient = self.options.get('orient')
+        variant = self.options.get('variant')
 
         # style colors
         background = theme.color(self.surface())
         trough_color = theme.border(background)
         trough_disabled = theme.disabled("background")
-        bar_color = theme.color(self.color())
+        bar_color = theme.color(self.options.get("color"))
         bar_disabled = theme.disabled("text")
 
         sticky = "ew" if orient == "horizontal" else "ns"
@@ -63,19 +50,23 @@ class ProgressStyleBuilder(StyleBuilderBase):
 
         self.create_element(
             ElementImage(
-                f"{element_prefix}.trough", trough_normal_img).state_specs([
-                ('disabled', trough_disabled_img)
-            ]))
+                f"{element_prefix}.trough", trough_normal_img).state_specs(
+                [
+                    ('disabled', trough_disabled_img)
+                ]))
 
         self.create_element(
-            ElementImage(f"{element_prefix}.pbar", bar_normal_img).state_specs([
-                ('disabled', bar_disabled_img)
-            ]))
+            ElementImage(f"{element_prefix}.pbar", bar_normal_img).state_specs(
+                [
+                    ('disabled', bar_disabled_img)
+                ]))
 
-        self.style_layout(ttk_style,
-                          Element(f'{element_prefix}.trough', sticky="nsew").children([
-                              Element(f'{element_prefix}.pbar', sticky=sticky, side=side)
-                          ]))
+        self.style_layout(
+            ttk_style,
+            Element(f'{element_prefix}.trough', sticky="nsew").children(
+                [
+                    Element(f'{element_prefix}.pbar', sticky=sticky, side=side)
+                ]))
 
         self.configure(ttk_style, background=background)
         self.map(ttk_style, background=[])
