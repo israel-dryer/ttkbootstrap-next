@@ -1,8 +1,9 @@
-from tkinter import ttk
+from tkinter import TclError, ttk
 from typing import Callable, Literal, TypedDict, Union, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
+from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.layouts import Grid, Pack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.types import (
@@ -46,6 +47,7 @@ class GridTabOptions(NotebookTabOptions, total=False):
     auto_flow: Literal['row', 'column', 'dense-row', 'dense-column', 'none']
     surface: str
     variant: str
+    parent: Widget
 
 
 class PackTabOptions(NotebookTabOptions, total=False):
@@ -59,6 +61,7 @@ class PackTabOptions(NotebookTabOptions, total=False):
     anchor_items: Anchor
     surface: str
     variant: str
+    parent: Widget
 
 
 class TabMixin:
@@ -90,14 +93,14 @@ class TabMixin:
 class TabGrid(TabMixin, Grid):
     """A Notebook tab whose content uses a Grid layout."""
 
-    def __init__(self, text=None, *, name: str = None, **kwargs: Unpack[GridTabOptions]):
+    def __init__(self, text="", *, name: str = None, **kwargs: Unpack[GridTabOptions]):
         super().__init__(text=text, name=name, **kwargs)
 
 
 class TabPack(TabMixin, Pack):
     """A Notebook tab whose content uses a Pack layout."""
 
-    def __init__(self, text=None, *, name: str = None, **kwargs: Unpack[PackTabOptions]):
+    def __init__(self, text="", *, name: str = None, **kwargs: Unpack[PackTabOptions]):
         super().__init__(text=text, name=name, **kwargs)
 
 
@@ -129,6 +132,7 @@ class Notebook(BaseWidget):
         style builder and registers it as a managed widget within
         ttkbootstrap.
         """
+        self._in_context: bool = False
         self._name_registry: dict[str, Widget] = {}  # map name to ttk tab id
         self._style_builder = NotebookStyleBuilder()
         parent = kwargs.pop('parent', None)
@@ -138,20 +142,23 @@ class Notebook(BaseWidget):
     def __enter__(self):
         """Enter layout context; attach self and push as current container."""
         push_container(self)
+        self._in_context: bool = True
         return self
 
     def __exit__(self, exc_type, exc, tb):
         """Exit layout context; pop this container."""
         pop_container()
+        self._in_context: bool = False
 
-    def add(self, widget: TabGrid | TabPack, *, name: str = None, **options: Unpack[NotebookTabOptions]):
+    def add(self, widget: Widget, *, name: str = None, **options: Unpack[NotebookTabOptions]):
         """Add a new tab containing the given widget."""
         if hasattr(widget, '_tab_options'):
             opts = getattr(widget, '_tab_options') or dict()
             if opts:
-                self.widget.add(cast(Widget, widget), **opts)
+                self.widget.add(widget, **opts)
             else:
-                self.widget.add(cast(Widget, widget), **options)
+                self.widget.add(widget, **options)
+
         if name is not None:
             self._name_registry[name] = widget
         if hasattr(widget, 'name'):
@@ -194,7 +201,13 @@ class Notebook(BaseWidget):
                 widget = self._name_registry.get(tab)
                 self.widget.select(widget)
             else:
-                self.widget.select(tab)
+                try:
+                    self.widget.select(tab)
+                except TclError as e:
+                    raise NavigationError(
+                        message=f"No such tab: {tab}",
+                        hint="Give the tab a `name`, specify a valid index, or pass in a widget reference.") from None
+
             return self
         else:
             return self.widget.select()
