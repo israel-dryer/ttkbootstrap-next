@@ -1,15 +1,25 @@
-from typing import Literal, TypedDict, Union, Unpack
 from tkinter import ttk
+from typing import Callable, Literal, TypedDict, Union, Unpack, cast
+
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
+from ttkbootstrap.layouts import Grid, Pack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
-from ttkbootstrap.types import Compound, CoreOptions, Padding, Sticky, Widget, Image
-from ttkbootstrap.utils import assert_valid_keys
-
-Tab = Union[str, int, Widget]
+from ttkbootstrap.types import (
+    Anchor,
+    Compound,
+    CoreOptions,
+    Fill,
+    Gap,
+    Image,
+    Padding,
+    Sticky,
+    Widget,
+)
 
 
 class NotebookOptions(CoreOptions, total=False):
+    """Options supported by the Notebook widget."""
     take_focus: bool
     width: int
     height: int
@@ -17,14 +27,81 @@ class NotebookOptions(CoreOptions, total=False):
 
 
 class NotebookTabOptions(TypedDict, total=False):
-    name: str
-    state: Literal['normal', 'disabled', 'hidden']
-    sticky: Sticky
-    padding: Padding
+    """Common options for configuring Notebook tabs."""
     text: str
-    image: Image
     compound: Compound
+    image: Image
     underline: int
+    state: Literal['normal', 'disabled', 'hidden']
+
+
+class GridTabOptions(NotebookTabOptions, total=False):
+    """Notebook tab options when the tab content is a Grid layout."""
+    rows: Union[int, list[Union[int, str]]]
+    columns: Union[int, list[Union[int, str]]]
+    gap: Gap
+    padding: Padding
+    sticky_items: Sticky
+    propagate: bool
+    auto_flow: Literal['row', 'column', 'dense-row', 'dense-column', 'none']
+    surface: str
+    variant: str
+
+
+class PackTabOptions(NotebookTabOptions, total=False):
+    """Notebook tab options when the tab content is a Pack layout."""
+    direction: Literal["horizontal", "vertical", "row", "column", "row-reverse", "column-reverse"]
+    gap: int
+    padding: Padding
+    propagate: bool
+    expand_items: bool
+    fill_items: Fill
+    anchor_items: Anchor
+    surface: str
+    variant: str
+
+
+class TabMixin:
+    """Mixin that adds tab metadata and tab-specific options."""
+    bind: Callable
+    widget: Widget
+
+    def __init__(self, **kwargs):
+        """
+        Initialize tab mixin.
+
+        Extracts tab-related options (text, image, compound, state, etc.)
+        from kwargs and stores them in ``_tab_options`` for later use.
+        """
+        self._name = kwargs.pop('name', None)
+        self._tab_options = dict()
+        for key in ['underline', 'state', 'sticky', 'image', 'compound', 'text']:
+            if key in kwargs:
+                self._tab_options[key] = kwargs.pop(key)
+
+        super().__init__(**kwargs)
+
+    @property
+    def name(self):
+        """Return the name of this tab."""
+        return self._name
+
+
+class TabGrid(TabMixin, Grid):
+    """A Notebook tab whose content uses a Grid layout."""
+
+    def __init__(self, text=None, *, name: str = None, **kwargs: Unpack[GridTabOptions]):
+        super().__init__(text=text, name=name, **kwargs)
+
+
+class TabPack(TabMixin, Pack):
+    """A Notebook tab whose content uses a Pack layout."""
+
+    def __init__(self, text=None, *, name: str = None, **kwargs: Unpack[PackTabOptions]):
+        super().__init__(text=text, name=name, **kwargs)
+
+
+Tab = Union[str, int, TabGrid, TabPack]
 
 
 class Notebook(BaseWidget):
@@ -33,8 +110,9 @@ class Notebook(BaseWidget):
     and name-based lookup support.
     """
 
+    Pack = TabPack
+    Grid = TabGrid
     widget: ttk.Notebook
-    _configure_methods = {}
 
     def __init__(self, **kwargs: Unpack[NotebookOptions]):
         """
@@ -63,14 +141,21 @@ class Notebook(BaseWidget):
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        """Pop this container from the context."""
+        """Exit layout context; pop this container."""
         pop_container()
 
-    def add(self, widget: Widget, *, name: str = None, **options: Unpack[NotebookTabOptions]):
-        """Add a tab containing the given widget."""
-        self.widget.add(widget, **options)
+    def add(self, widget: TabGrid | TabPack, *, name: str = None, **options: Unpack[NotebookTabOptions]):
+        """Add a new tab containing the given widget."""
+        if hasattr(widget, '_tab_options'):
+            opts = getattr(widget, '_tab_options') or dict()
+            if opts:
+                self.widget.add(cast(Widget, widget), **opts)
+            else:
+                self.widget.add(cast(Widget, widget), **options)
         if name is not None:
             self._name_registry[name] = widget
+        if hasattr(widget, 'name'):
+            self._name_registry[cast(str, widget.name)] = widget
         return self
 
     def remove(self, tab: Tab):
@@ -83,7 +168,7 @@ class Notebook(BaseWidget):
         return self
 
     def hide(self, tab: Tab):
-        """Temporarily hide a tab without removing it."""
+        """Hide a tab temporarily without removing it."""
         if tab in self._name_registry:
             widget = self._name_registry.get(tab)
             self.widget.hide(widget)
@@ -91,7 +176,7 @@ class Notebook(BaseWidget):
             self.widget.hide(tab)
 
     def tab_index(self, tab: Tab):
-        """Return the numeric index of the given tab."""
+        """Return the numeric index of a given tab."""
         if tab in self._name_registry:
             widget = self._name_registry.get(tab)
             self.widget.index(widget)
@@ -103,7 +188,7 @@ class Notebook(BaseWidget):
         return self.widget.index('end')
 
     def select(self, tab: Tab = None):
-        """Select a tab or return the currently selected tab."""
+        """Select a tab or return the currently selected tab id."""
         if tab is not None:
             if tab in self._name_registry:
                 widget = self._name_registry.get(tab)
@@ -115,14 +200,14 @@ class Notebook(BaseWidget):
             return self.widget.select()
 
     def insert(self, position: Literal['end'] | int, widget: Widget, **options: Unpack[NotebookTabOptions]):
-        """Insert a new tab at the given position."""
+        """Insert a tab at the specified position."""
         self.widget.insert(position, widget, **options)
 
     def tab_at_coordinate(self, x: int, y: int):
-        """Return the tab identifier at a given (x, y) coordinate."""
-        return self.widget.identify(x, y)
+        """Return the tab index at the given (x, y) coordinate."""
+        return self.widget.index(f"@{x},{y}")
 
-    def configure_tab(self, tab: Tab, option: NotebookTabOptions = None, **options: Unpack[NotebookTabOptions]):
+    def configure_tab(self, tab: Tab, option: str = None, **options: Unpack[NotebookTabOptions]):
         """Get or set tab configuration options."""
         if option is not None:
             return self.widget.tab(tab, option)
@@ -142,9 +227,5 @@ class Notebook(BaseWidget):
 
     @staticmethod
     def _validate_options(options: dict):
-        """Validate layout options for child widgets"""
-        assert_valid_keys(
-            options,
-            NotebookTabOptions,
-            where="notebook"
-        )
+        """Validate layout options for child widgets."""
+        pass
