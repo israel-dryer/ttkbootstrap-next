@@ -19,19 +19,16 @@ class Badge(Label):
         Initialize a Badge widget.
 
         Args:
-            parent:
-                The parent container for this widget.
-            text (str):
+            text:
                 The text displayed inside the badge.
-            color (SemanticColor, optional):
+            color:
                 The badge color, selected from the semantic theme palette.
                 Defaults to "primary".
-            variant (Literal['default', 'pill', 'circle'], optional):
+            variant:
                 The badge shape variant. Choose from:
                 - "default": Standard rectangular shape.
                 - "pill": Rounded ends.
                 - "circle": Circular shape.
-                Defaults to "default".
         """
         build_options = kwargs.pop('builder', dict())
         super().__init__(text, font='label', **kwargs)
