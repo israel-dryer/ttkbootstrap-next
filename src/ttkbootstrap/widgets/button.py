@@ -5,7 +5,7 @@ from ttkbootstrap.types import Compound, IconPosition, Padding, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.utils import assert_valid_keys, normalize_icon_position, resolve_options
+from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
 from ttkbootstrap.style.types import ButtonVariant, SemanticColor
 
@@ -75,10 +75,16 @@ class Button(BaseWidget, IconMixin):
         self._icon = resolve_options(icon, 'name') or None
         self._has_text = len(text) > 0
         self._has_icon = icon is not None
-        build_options = kwargs.pop('builder', dict())
-        build_options['icon_only'] = not self._has_text
         self._icon_position = icon_position
-        self._style_builder = ButtonStyleBuilder(color=color, variant=variant, **build_options)
+
+        # style builder options
+        build_options = merge_build_options(
+            kwargs.pop('builder', {}),
+            icon_only=not self._has_text,
+            color=color,
+            variant=variant
+        )
+        self._style_builder = ButtonStyleBuilder(**build_options)
 
         kwargs.pop('compound', None)
         compound = normalize_icon_position(icon_position, has_text=self._has_text, has_icon=self._has_icon)

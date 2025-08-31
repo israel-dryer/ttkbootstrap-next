@@ -200,3 +200,32 @@ def normalize_icon_position(icon_position: IconPosition, *, has_text: bool, has_
         return None
 
     return _ICON_POSITION_MAP[icon_position]
+
+
+def merge_build_options(
+        *dicts: dict[str, Any],
+        **overrides: Any,
+) -> dict[str, Any]:
+    """
+    Merge multiple dictionaries into one, ignoring any keys
+    with None values. Later dicts/overrides take precedence.
+
+    Example:
+        opts = merge_build_options(
+            {"a": 1, "b": None},
+            {"b": 3, "c": None},
+            d=5,
+            e=None,
+        )
+        # => {"a": 1, "b": 3, "d": 5}
+    """
+    merged: dict[str, Any] = {}
+    for d in dicts:
+        if d:
+            for k, v in d.items():
+                if v is not None:
+                    merged[k] = v
+    for k, v in overrides.items():
+        if v is not None:
+            merged[k] = v
+    return merged

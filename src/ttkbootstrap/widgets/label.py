@@ -7,7 +7,7 @@ from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
-from ttkbootstrap.utils import assert_valid_keys, normalize_icon_position, resolve_options
+from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
 from ttkbootstrap.style.types import ForegroundColor, SurfaceColor, TypographyToken
 
 
@@ -88,10 +88,17 @@ class Label(BaseWidget, IconMixin):
 
         compound = normalize_icon_position(icon_position, has_text=self._has_text, has_icon=self._has_icon)
         kwargs.pop('compound', None)
-        build_options = kwargs.pop('builder', dict())
         parent = kwargs.pop('parent', None)
         assert_valid_keys(kwargs, LabelOptions, where="Label")
-        self._style_builder = LabelStyleBuilder(foreground, background, variant, **build_options)
+
+        # style builder options
+        build_options = merge_build_options(
+            kwargs.pop('builder', {}),
+            foreground=foreground,
+            background=background,
+            variant=variant
+        )
+        self._style_builder = LabelStyleBuilder(**build_options)
 
         tk_options = dict(
             font=font,
@@ -124,16 +131,16 @@ class Label(BaseWidget, IconMixin):
     def foreground(self, value: ForegroundColor = None):
         """Get or set the label text color."""
         if value is None:
-            return self._style_builder.foreground()
+            return self._style_builder.options.get('foreground')
         else:
-            self._style_builder.foreground(value)
+            self._style_builder.options.update(foreground=value)
             self.update_style()
             return self
 
     def background(self, value: SurfaceColor = None):
         """Get or set the label background color."""
         if value is None:
-            return self._style_builder.background()
+            return self._style_builder.options.get('background')
         else:
             self._style_builder.background(value)
             self.update_style()
