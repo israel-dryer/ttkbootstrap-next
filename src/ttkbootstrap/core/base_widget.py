@@ -11,7 +11,7 @@ from ttkbootstrap.utils import unsnake_kwargs, resolve_parent
 from ttkbootstrap.core.layout_context import current_container
 from ttkbootstrap.core.mixins.binding import BindingMixin
 from ttkbootstrap.core.mixins.configure import ConfigureMixin
-from ttkbootstrap.core.mixins.focus import FocusMixIn
+from ttkbootstrap.core.mixins.focus import FocusMixin
 from ttkbootstrap.core.mixins.grab import GrabMixIn
 from ttkbootstrap.core.mixins.layout import LayoutMixin
 from ttkbootstrap.core.mixins.winfo import WidgetInfoMixin
@@ -21,7 +21,7 @@ PositionType = Literal["static", "absolute", "fixed"]
 
 class BaseWidget(
     BindingMixin,  # init
-    FocusMixIn,
+    FocusMixin,
     GrabMixIn,
     WidgetInfoMixin,
     ConfigureMixin,
