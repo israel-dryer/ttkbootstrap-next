@@ -1,8 +1,9 @@
-from tkinter import TclError, ttk
-from typing import Any, Callable, Literal, Optional, Type, TypedDict, Union, Unpack, cast
+from __future__ import annotations
+from tkinter import ttk
+from typing import Any, Callable, Literal, Optional, Protocol, Type, TypedDict, Union, Unpack, cast
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
-from ttkbootstrap.events import Event
+from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.layouts import Pack, Grid
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
@@ -28,13 +29,23 @@ class PageOptions(TypedDict, total=False):
     padding: Padding
 
 
+class PageEventHandler(Protocol):
+    def __call__(self, event: Any) -> Any: ...
+
+
 class PageStack(BaseWidget):
     """A container for managing and navigating between multiple pages."""
 
     widget: ttk.Notebook
-    Pack: Type["PackPage"]
-    Grid: Type["GridPage"]
+    Pack: Type[PackPage]
+    Grid: Type[GridPage]
+
     _configure_methods = {"surface": "surface"}
+
+    @event_handler(Event.PAGE_CHANGED)
+    def on_page_changed(self, event: Any) -> Event:
+        """Bind or get callback for <<PageChanged>> handler"""
+        ...
 
     def __init__(self, **kwargs: Unpack[PageStackOptions]):
         """
@@ -66,8 +77,8 @@ class PageStack(BaseWidget):
     def variant(self, value: str = None):
         """Get or set the current style variant."""
         if value is None:
-            return self._style_builder.variant()
-        self._style_builder.variant(value)
+            return self._style_builder.options('variant')
+        self._style_builder.options(variant=value)
         self.update_style()
         return self
 
@@ -115,11 +126,13 @@ class PageStack(BaseWidget):
             self._pages[self._current].emit(Event.PAGE_UNMOUNTED)
 
         data = dict(data or {})
+        data['page'] = name
         page: Widget = self._pages[name]
         page.emit(Event.PAGE_WILL_MOUNT, data=data)
         self.widget.select(page)
         self._current = name
         page.emit(Event.PAGE_MOUNTED, data=data)
+        self.emit(Event.PAGE_CHANGED, data=data)
         return self
 
     def back(self):
@@ -204,48 +217,23 @@ class PageMixin:
             **kwargs: Options forwarded to the base layout widget.
         """
         self._name = name
-        self._on_page_mounted = None
-        self._on_page_will_mount = None
-        self._on_page_unmounted = None
         self._page_options = {}
         super().__init__(**kwargs)
-        self._bind_lifecycle_events()
 
-    def _bind_lifecycle_events(self) -> None:
-        """Bind internal dispatchers to lifecycle events."""
-        if not hasattr(self, "widget") or getattr(self, "widget", None) is None:
-            raise RuntimeError("PageMixin expects a BaseWidget with .widget")
-        if not callable(getattr(self, "bind", None)):
-            raise RuntimeError("PageMixin expects .bind(...) on the concrete class")
+    @event_handler(Event.PAGE_MOUNTED)
+    def on_page_mounted(self, event: Any):
+        """Bind or get the <<PageMounted>> handler"""
+        ...
 
-        try:
-            if self.widget.winfo_exists():
-                self.bind(Event.PAGE_MOUNTED, self._dispatch_page_mounted, add=False)
-                self.bind(Event.PAGE_WILL_MOUNT, self._dispatch_page_will_mount, add=False)
-                self.bind(Event.PAGE_UNMOUNTED, self._dispatch_page_unmounted, add=False)
-        except TclError as e:
-            msg = str(e).lower()
-            if "invalid command name" in msg or "has been destroyed" in msg:
-                return
-            raise
+    @event_handler(Event.PAGE_WILL_MOUNT)
+    def on_page_will_mounted(self, event: Any):
+        """Bind or get the <<PageWillMounted>> handler"""
+        ...
 
-    def _dispatch_page_mounted(self, event: dict):
-        """Internal dispatcher for PAGE_MOUNTED events."""
-        if self._on_page_mounted:
-            return self._on_page_mounted(event)
-        return None
-
-    def _dispatch_page_will_mount(self, event: dict):
-        """Internal dispatcher for PAGE_WILL_MOUNT events."""
-        if self._on_page_will_mount:
-            return self._on_page_will_mount(event)
-        return None
-
-    def _dispatch_page_unmounted(self, event: dict):
-        """Internal dispatcher for PAGE_UNMOUNTED events."""
-        if self._on_page_unmounted:
-            return self._on_page_unmounted(event)
-        return None
+    @event_handler(Event.PAGE_CHANGED)
+    def on_page_unmounted(self, event: Any):
+        """Bind or get the <<PageUnmounted>> handler"""
+        ...
 
     @property
     def name(self):
@@ -256,27 +244,6 @@ class PageMixin:
     def page_options(self):
         """Return additional page options for insertion into a PageStack."""
         return self._page_options
-
-    def on_page_mounted(self, func: Callable[[dict], Any] = None):
-        """Get or set the PAGE_MOUNTED callback."""
-        if func is None:
-            return self._on_page_mounted
-        self._on_page_mounted = func
-        return self
-
-    def on_page_unmounted(self, func: Callable[[dict], Any] = None):
-        """Get or set the PAGE_UNMOUNTED callback."""
-        if func is None:
-            return self._on_page_unmounted
-        self._on_page_unmounted = func
-        return self
-
-    def on_page_will_mount(self, func: Callable[[dict], Any] = None):
-        """Get or set the PAGE_WILL_MOUNT callback."""
-        if func is None:
-            return self._on_page_will_mount
-        self._on_page_will_mount = func
-        return self
 
 
 class PackPage(PageMixin, Pack):

@@ -1,8 +1,9 @@
 from tkinter import TclError, ttk
-from typing import Callable, Literal, TypedDict, Union, Unpack, cast
+from typing import Any, Callable, Literal, TypedDict, Union, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
+from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.layouts import Grid, Pack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
@@ -95,6 +96,8 @@ class TabGrid(TabMixin, Grid):
 
     def __init__(self, text="", *, name: str = None, **kwargs: Unpack[GridTabOptions]):
         super().__init__(text=text, name=name, **kwargs)
+        self._on_activated = None
+        self._on_deactivated = None
 
 
 class TabPack(TabMixin, Pack):
@@ -132,9 +135,11 @@ class Notebook(BaseWidget):
         style builder and registers it as a managed widget within
         ttkbootstrap.
         """
+
         self._in_context: bool = False
         self._name_registry: dict[str, Widget] = {}  # map name to ttk tab id
         self._style_builder = NotebookStyleBuilder()
+
         parent = kwargs.pop('parent', None)
         tk_options = dict(**kwargs)
         super().__init__(ttk.Notebook, tk_options, parent=parent)
@@ -149,6 +154,11 @@ class Notebook(BaseWidget):
         """Exit layout context; pop this container."""
         pop_container()
         self._in_context: bool = False
+
+    @event_handler(Event.NOTEBOOK_TAB_CHANGED)
+    def on_tab_changed(self, event: Any):
+        """Bind or set callback for <<NotebookTabChanged>> handler"""
+        ...
 
     def add(self, widget: Widget, *, name: str = None, **options: Unpack[NotebookTabOptions]):
         """Add a new tab containing the given widget."""
