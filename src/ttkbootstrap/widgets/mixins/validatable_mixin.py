@@ -22,12 +22,13 @@ class ValidatableMixin:
     emit: Callable[..., None]
     bind: Callable[[str, Callable], str]
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """Initialize the validation mixin."""
         self._rules: list[ValidationRule] = []
         self._on_validated: Optional[Callable[[Any], Any]] = None
         self._on_invalid: Optional[Callable[[Any], Any]] = None
         self._on_valid: Optional[Callable[[Any], Any]] = None
+        super().__init__(*args, **kwargs)
 
     def _setup_validation_events(self):
         """Bind 'keyup' and 'blur' events to automatic validation checks."""

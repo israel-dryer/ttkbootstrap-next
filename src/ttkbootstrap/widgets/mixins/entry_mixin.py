@@ -18,6 +18,9 @@ class EntryMixin:
     """
     _entry: EntryPart | NumberSpinnerPart
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def _value_or_self(self, value, func):
         if value is None: return func()
         func(value)

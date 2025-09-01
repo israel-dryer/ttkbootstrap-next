@@ -2,7 +2,7 @@ class CompositeWidgetMixin:
     """Mixin to synchronize interactive states (hover, pressed, etc.) between a container
     and its internal child widgets, with correct handling of overlapping events."""
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # composite state registry
         self._composite_states = dict(enter=[], leave=[], mouse_down=[], mouse_up=[])
         self._composite_callbacks = dict(
@@ -12,6 +12,7 @@ class CompositeWidgetMixin:
             mouse_up=self._on_mouse_up
         )
         self._hover_count = 0
+        super().__init__(*args, **kwargs)
 
     def _register_composite_states(self, widget, events=None):
         events = events or ['enter', 'leave', 'mouse-down', 'mouse-up']
