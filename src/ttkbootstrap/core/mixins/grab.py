@@ -6,6 +6,10 @@ class GrabMixIn:
 
     widget: Widget
 
+    def __init__(self, *args, **kwargs):
+        """Cooperative init for multiple inheritance."""
+        super().__init__(*args, **kwargs)
+
     def acquire_grab(self):
         """Acquire a local grab, directing all events to this widget."""
         self.widget.grab_set()
