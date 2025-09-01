@@ -107,7 +107,6 @@ class Label(BaseWidget, IconMixin):
             **kwargs
         )
         super().__init__(ttk.Label, tk_options, parent=parent)
-        IconMixin.__init__(self)
 
     def text(self, value: str = None):
         """Get or set the label text."""

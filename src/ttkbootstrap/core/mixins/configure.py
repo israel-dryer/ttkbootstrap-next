@@ -41,10 +41,10 @@ class ConfigureMixin:
 
     def __init__(self, *args, **kwargs):
         """Cooperative init; prepare handler caches from subclass declarations."""
-        super().__init__(*args, **kwargs)
         self.__cfg_map = {}
         self.__cfg_aliases = dict(getattr(self, "_configure_aliases", {}) or {})
         self.__build_cfg_map()
+        super().__init__(*args, **kwargs)
 
     # ------------------------------------------------------------------
     # Public API

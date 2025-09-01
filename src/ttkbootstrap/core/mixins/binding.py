@@ -28,11 +28,11 @@ class BindingMixin:
 
     def __init__(self, *args, **kwargs):
         """Initialize binding state (cooperative)."""
-        super().__init__(*args, **kwargs)
         self.__tcl_bound_events = defaultdict(list)
         self.__tcl_callbacks = {}
         self.__py_bound_events = defaultdict(list)
         self.__py_callbacks = {}
+        super().__init__(*args, **kwargs)
 
     # ---------------------------------------------------------------------
     # Normalization

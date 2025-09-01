@@ -20,12 +20,12 @@ PositionType = Literal["static", "absolute", "fixed"]
 
 
 class BaseWidget(
-    BindingMixin,  # init
+    BindingMixin,
+    LayoutMixin,
     FocusMixin,
     GrabMixIn,
     WidgetInfoMixin,
     ConfigureMixin,
-    LayoutMixin  # init
 ):
     _widget: ttk.Widget
 
@@ -42,55 +42,40 @@ class BaseWidget(
         tk_widget_options = dict(tk_widget_options or {})
         tk_layout_options = dict(tk_layout_options or {})
 
-        # Position is accepted in either layout or widget opts
-        position = tk_widget_options.pop("position", "static")
+        # Position may be supplied in either dict; keep local for pre-mixin logic
+        position = tk_widget_options.pop("position", tk_layout_options.pop("position", "static"))
         tk_layout_options.setdefault("position", position)
-
-        # Initialize LayoutMixin first (establishes _position, etc.)
-        LayoutMixin.__init__(self, **tk_layout_options)
 
         # Determine logical parent (container for styling/registration)
         logical_parent = parent if parent is not None else current_container()
 
-        # Figure out if we're building a true root (tk.Tk subclass)
+        # Identify widget class flavor
         is_class = inspect.isclass(tk_widget)
         is_root_class = is_class and issubclass(tk_widget, tk.Tk)
         is_toplevel_class = is_class and issubclass(tk_widget, tk.Toplevel)
 
         # --- Decide Tk master (actual widget parent) ---
         if is_root_class:
-            # True root: master is None; allowed to have no container/parent
             master_ref = None
         else:
             if logical_parent is None:
-                # No container provided and not a root: that's an error
                 raise RuntimeError("No parent or container; cannot create a widget.")
-            # For fixed, parent to the window’s toplevel; else parent to the logical container
-            master_ref = logical_parent.widget.winfo_toplevel() if self._position == "fixed" else logical_parent
+            master_ref = logical_parent.widget.winfo_toplevel() if position == "fixed" else logical_parent
 
         # Keep references
-        self._parent = logical_parent  # may be None for roots
-        self._master_ref = master_ref  # None for roots (tk.Tk)
+        self._parent = logical_parent
+        self._master_ref = master_ref
 
-        # Initialize the rest of the mixins
-        super().__init__()
-
-        # --- Create the underlying Tk/ttk widget ---
+        # --- Create the underlying Tk/ttk widget FIRST ---
         tk_kwargs = unsnake_kwargs(tk_widget_options) or {}
-
         if is_root_class:
-            # tk.Tk() takes no master
-            self._widget = tk_widget(**tk_kwargs)
+            self._widget = tk_widget(**tk_kwargs)  # tk.Tk takes no master
         else:
-            # Toplevel/ttk widgets take a master
             master_arg = resolve_parent(self._master_ref)
-            # If it's a Toplevel with master None and no default root exists yet,
-            # Tk will create a default root implicitly; but we typically have a root already.
-            if is_toplevel_class and master_arg is None:
-                # Create it anyway; Tk will bind to default root.
-                self._widget = tk_widget(master_arg, **tk_kwargs)
-            else:
-                self._widget = tk_widget(master_arg, **tk_kwargs)
+            self._widget = tk_widget(master_arg, **tk_kwargs)
+
+        # --- Now run cooperative mixin initializers (safe to bind now) ---
+        super().__init__(**tk_layout_options)
 
         # Theme surface & binding
         self._surface_token = surface
@@ -99,9 +84,9 @@ class BaseWidget(
         # Auto-register with the *logical* container (if any)
         container = self._parent
         if container and hasattr(container, "register_layout_child"):
-            # Infer an initial layout method (mirror LayoutMixin._infer_layout_method)
+            # Infer an initial layout method (same heuristics as before)
             method = None
-            if getattr(self, "_position", "static") in ("absolute", "fixed"):
+            if position in ("absolute", "fixed"):
                 method = "place"
             elif str(container) == ".":
                 method = "pack"
@@ -126,11 +111,9 @@ class BaseWidget(
             self._pending_parent = container
             container.register_layout_child(self, method, {})
 
-    # ---- Properties ----
-
+    # ---- Properties / Utilities unchanged below ----
     @property
     def parent(self):
-        """Logical container parent (may be None for root)."""
         return self._parent
 
     @property
@@ -143,12 +126,9 @@ class BaseWidget(
 
     @property
     def surface_token(self):
-        # Inherit from logical container if ours isn't set
         if self._surface_token is not None:
             return self._surface_token
         return getattr(self._parent, "surface_token", None) if self._parent is not None else None
-
-    # ---- Utilities ----
 
     def schedule(self, ms: int, func: Callable, *args):
         return self.widget.after(ms, func, *args)
@@ -160,19 +140,15 @@ class BaseWidget(
         return self.widget.after_cancel(func_id)
 
     def is_ttk(self) -> bool:
-        """Check if the underlying widget is a ttk widget."""
         return self.widget_class().startswith("T")
 
     def state(self, value: str | list[str] | tuple[str, ...] = None):
-        """Get or set the widget state."""
         return self.widget.state(value)
 
     def destroy(self):
-        """Destroy and unregister the widget."""
         self.widget.destroy()
 
     def update_style(self):
-        """Apply theme styling."""
         if hasattr(self, "_style_builder"):
             self._style_builder.surface(self.surface_token)
             style_name = self._style_builder.build()

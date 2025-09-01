@@ -98,7 +98,6 @@ class Button(BaseWidget, IconMixin):
             **kwargs
         )
         super().__init__(ttk.Button, tk_options, parent=parent)
-        IconMixin.__init__(self)
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
