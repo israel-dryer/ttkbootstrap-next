@@ -16,6 +16,10 @@ class WidgetInfoMixin:
 
     widget: Widget
 
+    def __init__(self, *args, **kwargs):
+        """Cooperative init to play nice with multiple inheritance."""
+        super().__init__(*args, **kwargs)
+
     def geometry(self) -> Geometry:
         """Return widget geometry as width, height, x, and y coordinates."""
         value = self.widget.winfo_geometry()
