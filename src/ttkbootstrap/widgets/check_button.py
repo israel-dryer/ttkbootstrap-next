@@ -110,6 +110,15 @@ class CheckButton(BaseWidget):
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
             return self
 
+    def on_toggle(self, value: Callable[[Any], Any] = None):
+        """Callback triggered whenever the button is clicked"""
+        if value is None:
+            return self._on_toggle
+        else:
+            self._on_toggle = value
+            self.widget.configure(command=value)
+            return self
+
     def color(self, value: SemanticColor = None):
         """Get or set the color role."""
         if value is None:
