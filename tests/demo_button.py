@@ -4,8 +4,8 @@ from ttkbootstrap.widgets import Button
 
 with App("Demo Button") as app:
     with Pack(padding=16).layout(fill="x"):
-        Button(icon="house-fill")
-        Button("House", icon="house")
+        b = Button(icon="house-fill")
+        Button("House", icon="house", on_click=lambda: b.icon("airplane"))
         Button("House", icon="house-fill")
         Button("House", icon="house-fill", color="warning")
         Button(icon="house", variant="outline")
