@@ -3,10 +3,11 @@ from tkinter.font import Font
 from typing import Any, Callable, TypedDict, Unpack
 
 from ttkbootstrap.types import Justify, Padding, Widget
-from ttkbootstrap.events import Event
+from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
+from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
+from ttkbootstrap.widgets.mixins.validatable_mixin import ValidationMixin
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.entry import EntryStyleBuilder
 
@@ -39,7 +40,7 @@ class EntryOptions(TypedDict, total=False):
     parent: Widget
 
 
-class EntryPart(BaseWidget, ValidatableMixin):
+class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
     widget: ttk.Entry
 
     _configure_methods = {
@@ -85,7 +86,6 @@ class EntryPart(BaseWidget, ValidatableMixin):
         assert_valid_keys(kwargs, EntryOptions, where="EntryPart")
         tk_options = dict(textvariable=self._signal.var, **kwargs)
         super().__init__(ttk.Entry, tk_options, parent=parent)
-        ValidatableMixin.__init__(self)
 
         if on_change:
             self.on_change(on_change)
@@ -96,7 +96,6 @@ class EntryPart(BaseWidget, ValidatableMixin):
 
         self.bind(Event.FOCUS, self._store_prev_value)
         self.bind(Event.BLUR, self._check_if_changed)
-        self._setup_validation_events()
 
         if initial_focus:
             self.focus()
@@ -135,39 +134,15 @@ class EntryPart(BaseWidget, ValidatableMixin):
         self._on_change_fid = self._signal.subscribe(self._on_change)
         return self
 
-    def on_enter(self, value: Callable[[Any], Any] = None):
-        """Set callback for when Enter is pressed."""
-        if value is None:
-            return self._on_enter
-        self._on_enter = value
-        self.bind(Event.RETURN, lambda _: self._on_enter(self._signal()))
-        return self
+    @event_handler(Event.RETURN)
+    def on_enter(self, handler: Callable = None):
+        """Bind or get the <Return> event handler."""
+        return self._signal()
 
-    def on_changed(self, value: Callable[[str], Any] = None):
+    @event_handler(Event.CHANGED)
+    def on_changed(self, handler: Callable = None):
         """Set callback for when focus out causes value change."""
-        if value is None:
-            return self._on_changed
-        self._on_changed = value
-        self.bind(Event.CHANGED, lambda e: self._on_changed(self._signal()))
-        return self
-
-    def readonly(self, value: bool = None):
-        """Get or set readonly state."""
-        if value is None:
-            return "readonly" in self.widget.state()
-        states = ['disabled', 'readonly'] if value else ['!disabled', '!readonly']
-        self.widget.state(states)
-        return self
-
-    def disable(self):
-        """Disable the entry."""
-        self.widget.state(['disabled'])
-        return self
-
-    def enable(self):
-        """Enable the entry."""
-        self.state(['!disabled', '!readonly'])
-        return self
+        return self._signal()
 
     def destroy(self) -> None:
         """Clean up subscriptions and destroy the widget."""
@@ -175,69 +150,3 @@ class EntryPart(BaseWidget, ValidatableMixin):
             self._signal.unsubscribe(self._on_change_fid)
             self._on_change_fid = None
         super().destroy()
-
-    def get_bounding_box(self, index: int) -> tuple[int, int, int, int] | None:
-        """Return bounding box of character at index."""
-        return self.widget.bbox(index)
-
-    def delete_text(self, first: int, last: int) -> None:
-        """Delete text between indices."""
-        self.widget.delete(first, last)
-
-    def insert_text(self, index: int, text: str):
-        """Insert text at index."""
-        self.widget.insert(index, text)
-        return self
-
-    def set_cursor_index(self, index: int):
-        """Set the cursor position."""
-        self.widget.icursor(index)
-        return self
-
-    def get_cursor_index(self, index: str = "insert") -> int:
-        """Return the character index (defaults to cursor)."""
-        return self.widget.index(index)
-
-    def start_drag_scroll(self, x: int):
-        """Start drag-to-scroll behavior."""
-        self.widget.scan_mark(x)
-        return self
-
-    def update_drag_scroll(self, x: int):
-        """Continue drag-to-scroll behavior."""
-        self.widget.scan_dragto(x)
-        return self
-
-    def adjust_selection_to_index(self, index: int):
-        """Adjust selection endpoint."""
-        self.widget.selection_adjust(index)
-        return self
-
-    def clear_selection(self):
-        """Clear text selection."""
-        self.widget.selection_clear()
-        return self
-
-    def select_from_index(self, index: int):
-        """Select text starting from index."""
-        self.widget.selection_from(index)
-        return self
-
-    def select_to_index(self, index: int):
-        """Extend selection to index."""
-        self.widget.selection_to(index)
-        return self
-
-    def select_range(self, first: int, last: int):
-        """Select text between two indices."""
-        self.widget.selection_range(first, last)
-        return self
-
-    def has_selection(self) -> bool:
-        """Return True if text is selected."""
-        return self.widget.selection_present()
-
-    def select_all(self):
-        """Select all text."""
-        self.widget.selection_range(0, 'end')
-        return self

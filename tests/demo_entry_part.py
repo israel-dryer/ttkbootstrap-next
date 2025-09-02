@@ -1,15 +1,18 @@
 from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Grid
+from ttkbootstrap.layouts import Grid, Pack
+from ttkbootstrap.widgets.mixins.composite_mixin import CompositeWidgetMixin
+from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
 from ttkbootstrap.widgets.parts.entry_part import EntryPart
+
+
+class TestEntry(CompositeWidgetMixin, EntryMixin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._entry = EntryPart()
+
 
 with App() as app:
     with Grid(gap=8, padding=8).layout(fill="x"):
-        (
-            EntryPart()
-            .on_changed(lambda x: print('Changed', x))
-            .add_validation_rule('required')
-            .on_validated(lambda x: print('Validation rule', x))
-        )
-        EntryPart()
+        TestEntry()
 
 app.run()

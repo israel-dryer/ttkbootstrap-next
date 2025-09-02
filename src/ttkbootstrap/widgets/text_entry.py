@@ -4,6 +4,9 @@ from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
 
 
+class TextEntryOptions(EntryOptions, total=False):
+    required: bool
+
 class TextEntry(EntryField):
     """
     A basic single-line text input field with optional label and message.
@@ -18,5 +21,5 @@ class TextEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
-    def __init__(self, value: str = "", label: str = "", message: str = "", **kwargs: Unpack[EntryOptions]):
+    def __init__(self, value: str = "", label: str = "", message: str = "", **kwargs: Unpack[TextEntryOptions]):
         super().__init__(value, label, message, **kwargs)

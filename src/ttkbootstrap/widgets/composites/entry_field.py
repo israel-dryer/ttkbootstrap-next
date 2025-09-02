@@ -26,6 +26,7 @@ class EntryField(Pack, EntryMixin, ABC):
         label: The label text shown above the input field.
         message: The caption or helper message shown below the input field.
         kind: The input type, either "entry" (default) or "spinbox".
+        required: Whether the field is required.
         **kwargs: Additional keyword arguments passed to the input widget.
     """
 
@@ -34,20 +35,20 @@ class EntryField(Pack, EntryMixin, ABC):
             value: str | int | float = None,
             label: str = None,
             message: str = None,
+            *,
+            required: bool = False,
             kind: str = "entry",
-            enable_validation: bool = False,
             **kwargs,
     ):
         super().__init__(direction="vertical")
 
         # standard composite state
         self._message_text = message
-        self._enable_validation = enable_validation
         self._theme = ColorTheme.instance()
         self._addons: dict[str, Union[Button, Label]] = {}
 
         # add top and bottom labels (conditionally attached)
-        self._label = Label(label, parent=self, font="label").layout(fill='x')
+        self._label = Label(label + ('*' if required else ''), parent=self, font="label").layout(fill='x')
         self._message = Label(message, parent=self, font="caption", foreground="secondary").layout(fill='x')
 
         # field container & field
@@ -63,15 +64,40 @@ class EntryField(Pack, EntryMixin, ABC):
         label and self._label.attach()
         self._field.attach()
         self._entry.attach()
-        (self._enable_validation or self._message_text) and self._message.attach()
-
-        if self._enable_validation:
-            self._entry.bind(Event.INVALID, self._show_error)
-            self._entry.bind(Event.VALID, self._clear_error)
+        self._message.attach()  # always reserve space for messages
+        self._entry.bind(Event.INVALID, self._show_error, add=True)
+        self._entry.bind(Event.VALID, self._clear_error, add=True)
 
         # Bind focus styling to the field frame
         self._entry.bind(Event.FOCUS, lambda e: self._field.state(["focus"]))
         self._entry.bind(Event.BLUR, lambda e: self._field.state(["!focus"]))
+
+        # Add required field
+        if required:
+            self._entry.add_validation_rule("required")
+
+        # Forward reference entry methods
+        # ---- Event Handlers
+        self.on_change = self._entry.on_change
+        self.on_changed = self._entry.on_changed
+        self.on_enter = self._entry.on_enter
+        self.on_invalid = self._entry.on_invalid
+        self.on_valid = self._entry.on_valid
+        self.on_validated = self._entry.on_validated
+
+        # ---- Entry State
+        self.value = self._entry.value
+        self.signal = self._entry.signal
+
+        # ---- Entry Validation
+        self.add_validation_rule = self._entry.add_validation_rule
+        self.add_validation_rules = self._entry.add_validation_rules
+        self.validate = self._entry.validate
+
+        # ---- Entry Behavior (curated)
+        self.delete_text = self._entry.delete_text
+        self.clear_selection = self._entry.clear_selection
+        self.has_selection = self._entry.has_selection
 
     @property
     def addons(self):
@@ -112,15 +138,7 @@ class EntryField(Pack, EntryMixin, ABC):
         return self
 
     def readonly(self, value: bool = None):
-        """
-        Get or set readonly state of the input.
-
-        Args:
-            value: If None, returns current readonly state. Otherwise, sets the state.
-
-        Returns:
-            The current readonly state or self (for chaining).
-        """
+        """Get or set readonly state of the input."""
         if value == False:
             self._field.state(['disabled'])
         elif value:
