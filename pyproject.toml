@@ -30,7 +30,8 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "pillow>=10,<11"
+    "pillow>=10,<11",
+    "babel>=2.15.0"
 ]
 
 [project.urls]
