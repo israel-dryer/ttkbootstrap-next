@@ -2,7 +2,7 @@ from tkinter import ttk
 from tkinter.font import Font
 from typing import Any, Callable, TypedDict, Unpack
 
-from ttkbootstrap.types import Justify, Padding, Widget
+from ttkbootstrap.types import Justify, Padding, Widget, CoreOptions
 from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
@@ -12,7 +12,7 @@ from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.entry import EntryStyleBuilder
 
 
-class EntryOptions(TypedDict, total=False):
+class EntryOptions(CoreOptions, total=False):
     """
     Options for configuring an entry widget.
 
@@ -37,7 +37,6 @@ class EntryOptions(TypedDict, total=False):
     show: str
     width: int
     padding: Padding
-    parent: Widget
 
 
 class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
@@ -58,7 +57,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             *,
             on_change: Callable[[str], Any] = None,
             on_enter: Callable[[str], Any] = None,
-            on_changed: Callable[[str], Any] = None,
             initial_focus: bool = False,
             **kwargs: Unpack[EntryOptions]
     ):
@@ -69,17 +67,14 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             value: Initial value of the entry.
             on_change: Callback triggered when the signal value changes.
             on_enter: Callback triggered when Enter is pressed.
-            on_changed: Callback triggered when the entry loses focus and value changed.
             initial_focus: Whether to give the entry focus after creation.
             **kwargs: Additional entry options.
         """
-        self._on_change = None
-        self._on_change_fid = None
-        self._on_enter = None
-        self._on_changed = None
         self._style_builder = EntryStyleBuilder()
         self._signal = value if isinstance(value, Signal) else Signal(value)
         self._prev_value = value
+        self._on_change = None
+        self._on_change_fid = None
 
         parent = kwargs.pop('parent', None)
 
@@ -91,8 +86,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             self.on_change(on_change)
         if on_enter:
             self.on_enter(on_enter)
-        if on_changed:
-            self.on_changed(on_changed)
 
         self.bind(Event.FOCUS, self._store_prev_value)
         self.bind(Event.BLUR, self._check_if_changed)
