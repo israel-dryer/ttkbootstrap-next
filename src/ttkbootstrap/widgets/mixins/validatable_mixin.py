@@ -1,4 +1,4 @@
-from typing import Callable, Unpack
+from typing import Any, Callable, Unpack
 from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 from ttkbootstrap.validation.rules import ValidationRule
@@ -13,12 +13,13 @@ class ValidationMixin:
     key input, focus loss, or manual checks.
 
     Expected to be used with widgets that implement:
-    - `value() -> str`
+    - `value() -> Any`     # RAW/MODEL VALUE (not necessarily a string)
     - `bind(event, callback)`
     - `emit(event, data=...)`
     """
 
-    value: Callable[[], str]
+    # NOTE: value() returns the raw/model value (str, float, date, None, etc.)
+    value: Callable[[], Any]
     emit: Callable[..., None]
     bind: Callable[[str, Callable], str]
 
@@ -58,8 +59,14 @@ class ValidationMixin:
         self._rules = rules
         return self
 
-    def validate(self, value: str, trigger: RuleTriggerType = "manual") -> bool:
-        """Run validation rules against a value."""
+    def validate(self, value: Any, trigger: RuleTriggerType = "manual") -> bool:
+        """
+        Run validation rules against a *raw/model* value.
+
+        The rule itself is responsible for interpreting the value's type.
+        For example, a 'required' rule may treat `None` as invalid and any
+        non-empty string/number/date as valid.
+        """
         ran_rule = False
         data = {"value": value, "is_valid": True, "message": ""}
 
@@ -68,7 +75,7 @@ class ValidationMixin:
                 continue
 
             ran_rule = True
-            result = rule.validate(value)
+            result = rule.validate(value)  # value is raw/model (Any)
             data.update(message=result.message, is_valid=result.is_valid)
 
             if not result.is_valid:
