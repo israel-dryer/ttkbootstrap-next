@@ -21,8 +21,13 @@ class ValidationRule:
         msg = self.message or self._default_message()
 
         if self.type == "required":
-            if not value.strip():
+            if value is None:
                 return ValidationResult(False, msg)
+            if isinstance(value, str) and not value.strip():
+                return ValidationResult(False, msg)
+            # Everything else is valid (non-empty string, number, date, etc.)
+            return ValidationResult(True, "")
+
         elif self.type == "email":
             if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
                 return ValidationResult(False, msg)
