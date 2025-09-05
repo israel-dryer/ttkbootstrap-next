@@ -29,6 +29,7 @@ Typical usage:
     d  = ei.to_payload_dict(drop_zeros=True)   # -> {'keysym': 'a'}
 """
 
+# interop/foundation/prune.py
 from __future__ import annotations
 from dataclasses import is_dataclass, fields, dataclass
 from types import SimpleNamespace
@@ -41,7 +42,7 @@ __all__ = [
 ]
 
 _EMPTY = (None, "", (), [], {})  # tweak as needed
-
+_KEEP_DEFAULT: tuple[str, ...] = ("data",)  # << ALWAYS keep these fields (as sensible defaults)
 
 # ---------------------------
 # Small helper / pretty repr
@@ -49,11 +50,9 @@ _EMPTY = (None, "", (), [], {})  # tweak as needed
 class NamedNamespace(SimpleNamespace):
     """SimpleNamespace whose repr shows a friendly type label."""
     __typename__: str = "Namespace"
-
     def __repr__(self) -> str:
         body = ", ".join(f"{k}={v!r}" for k, v in vars(self).items() if k != "__typename__")
         return f"{self.__typename__}({body})"
-
 
 def _is_empty(v: Any, drop_zeros: bool) -> bool:
     """Return True if value is considered empty (and optionally zero)."""
@@ -63,15 +62,15 @@ def _is_empty(v: Any, drop_zeros: bool) -> bool:
         return True
     return False
 
-
 # ------------------------------------
 # Mode 1: JSON-ready (dict) pruning
 # ------------------------------------
 def prune_payload(
-        obj: Any,
-        *,
-        drop_zeros: bool = False,
-        drop_empty_dataclasses: bool = True,
+    obj: Any,
+    *,
+    drop_zeros: bool = False,
+    drop_empty_dataclasses: bool = True,
+    keep: tuple[str, ...] = _KEEP_DEFAULT,  # << NEW
 ) -> Any:
     """Recursively prune empties; dataclasses become dicts."""
     if is_dataclass(obj):
@@ -81,38 +80,41 @@ def prune_payload(
                 getattr(obj, f.name),
                 drop_zeros=drop_zeros,
                 drop_empty_dataclasses=drop_empty_dataclasses,
+                keep=keep,  # << pass through
             )
+            if f.name in keep:
+                # Keep even if empty; choose sensible default for known names
+                if _is_empty(val, drop_zeros):
+                    val = {} if f.name == "data" else val
+                d[f.name] = val
+                continue
             if _is_empty(val, drop_zeros):
                 continue
             d[f.name] = val
         return None if (drop_empty_dataclasses and not d) else d
 
     if isinstance(obj, Mapping):
-        out = {
-            k: prune_payload(v, drop_zeros=drop_zeros, drop_empty_dataclasses=drop_empty_dataclasses)
-            for k, v in obj.items()
-        }
+        out = {k: prune_payload(v, drop_zeros=drop_zeros, drop_empty_dataclasses=drop_empty_dataclasses, keep=keep)
+               for k, v in obj.items()}
         return {k: v for k, v in out.items() if not _is_empty(v, drop_zeros)}
 
     if isinstance(obj, Sequence) and not isinstance(obj, (str, bytes, bytearray)):
-        lst = [
-            prune_payload(v, drop_zeros=drop_zeros, drop_empty_dataclasses=drop_empty_dataclasses)
-            for v in obj
-        ]
+        lst = [prune_payload(v, drop_zeros=drop_zeros, drop_empty_dataclasses=drop_empty_dataclasses, keep=keep)
+               for v in obj]
         return [v for v in lst if not _is_empty(v, drop_zeros)]
 
     return obj
-
 
 # ------------------------------------------------------
 # Mode 2: Namespace-style pruning with custom type names
 # ------------------------------------------------------
 def _to_named_namespace_value(
-        value: Any,
-        *,
-        drop_zeros: bool,
-        drop_empty_dataclasses: bool,
-        typename: str | None,  # suggested label for this level; fallback to class name
+    value: Any,
+    *,
+    drop_zeros: bool,
+    drop_empty_dataclasses: bool,
+    typename: str | None,
+    keep: tuple[str, ...] = _KEEP_DEFAULT,  # << NEW
 ) -> Any:
     """Internal: convert/prune to NamedNamespace (or plain containers)."""
     # Dataclass → NamedNamespace (with class name label)
@@ -124,7 +126,13 @@ def _to_named_namespace_value(
                 drop_zeros=drop_zeros,
                 drop_empty_dataclasses=drop_empty_dataclasses,
                 typename=None,  # nested: derive from nested class
+                keep=keep,      # << pass through
             )
+            if f.name in keep:
+                if _is_empty(pv, drop_zeros):
+                    pv = {} if f.name == "data" else pv
+                data[f.name] = pv
+                continue
             if _is_empty(pv, drop_zeros):
                 continue
             data[f.name] = pv
@@ -144,6 +152,7 @@ def _to_named_namespace_value(
                 drop_zeros=drop_zeros,
                 drop_empty_dataclasses=drop_empty_dataclasses,
                 typename=None,
+                keep=keep,  # << pass through
             )
             for k, v in value.items()
         }
@@ -157,6 +166,7 @@ def _to_named_namespace_value(
                 drop_zeros=drop_zeros,
                 drop_empty_dataclasses=drop_empty_dataclasses,
                 typename=None,
+                keep=keep,  # << pass through
             )
             for v in value
         ]
@@ -165,13 +175,13 @@ def _to_named_namespace_value(
     # Primitive / everything else unchanged
     return value
 
-
 def prune_namespace(
-        obj: Any,
-        *,
-        drop_zeros: bool = False,
-        drop_empty_dataclasses: bool = True,
-        typename: str | None = None,
+    obj: Any,
+    *,
+    drop_zeros: bool = False,
+    drop_empty_dataclasses: bool = True,
+    typename: str | None = None,
+    keep: tuple[str, ...] = _KEEP_DEFAULT,  # << NEW
 ) -> NamedNamespace | None | list | dict | Any:
     """Recursively prune empties; dataclasses become NamedNamespace."""
     return _to_named_namespace_value(
@@ -179,8 +189,8 @@ def prune_namespace(
         drop_zeros=drop_zeros,
         drop_empty_dataclasses=drop_empty_dataclasses,
         typename=typename or (type(obj).__name__ if is_dataclass(obj) else None),
+        keep=keep,
     )
-
 
 # -------------------------------
 # Utility: turn NS payload into dict
@@ -197,20 +207,19 @@ def namespace_to_dict(value: Any) -> Any:
         return [namespace_to_dict(v) for v in value]
     return value
 
-
 # -----------------------
 # Mixin: use NamedNamespace
 # -----------------------
 @dataclass
 class PrunableEventMixin:
     """Add `to_payload()` (namespace) and `to_payload_dict()` (dict) to dataclasses."""
-
     def to_payload(
-            self,
-            *,
-            drop_zeros: bool = False,
-            drop_empty_dataclasses: bool = True,
-            typename: str | None = None,
+        self,
+        *,
+        drop_zeros: bool = False,
+        drop_empty_dataclasses: bool = True,
+        typename: str | None = None,
+        keep: tuple[str, ...] = _KEEP_DEFAULT,  # << NEW default keeps "data"
     ) -> NamedNamespace | None:
         """Return a pruned NamedNamespace; repr label defaults to class name."""
         return prune_namespace(
@@ -218,19 +227,24 @@ class PrunableEventMixin:
             drop_zeros=drop_zeros,
             drop_empty_dataclasses=drop_empty_dataclasses,
             typename=typename or type(self).__name__,
+            keep=keep,
         )
 
     def to_payload_dict(
-            self,
-            *,
-            drop_zeros: bool = False,
-            drop_empty_dataclasses: bool = True,
+        self,
+        *,
+        drop_zeros: bool = False,
+        drop_empty_dataclasses: bool = True,
+        keep: tuple[str, ...] = _KEEP_DEFAULT,  # << NEW for dict mode too
     ) -> dict:
         """Return a pruned plain dict suitable for JSON."""
-        ns = self.to_payload(drop_zeros=drop_zeros, drop_empty_dataclasses=drop_empty_dataclasses)
+        ns = self.to_payload(
+            drop_zeros=drop_zeros,
+            drop_empty_dataclasses=drop_empty_dataclasses,
+            keep=keep,
+        )
         return {} if ns is None else namespace_to_dict(ns)
 
     def __repr__(self) -> str:
         """Pretty repr using the pruned NamedNamespace view."""
         return f"{type(self).__name__}({self.to_payload()})"
-

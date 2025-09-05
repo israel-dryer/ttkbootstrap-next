@@ -1,9 +1,48 @@
+"""
+ttkbootstrap.events
+-------------------
+
+Fluent event binding utilities and the `Event` string-enum.
+
+This module provides:
+
+- **Event (StrEnum)** — canonical Tk/Tkinter event strings (e.g., "<Return>", "<<Change>>").
+- **@event_handler(...)** — a decorator that turns a method into a *fluent*
+  getter/setter for a single event **and** an optional *pre-processor*:
+
+  Fluent API (instance level)
+  ---------------------------
+  • `on_change()`              → get the current user handler or `None`
+  • `on_change(fn)`            → set user handler (returns the widget for chaining)
+  • `on_change(None)`          → clear user handler (returns the widget)
+
+  Pre-processor (method body)
+  ---------------------------
+  The decorated function’s *body* runs **before** the user handler and may:
+  - return `"skip"` (any case) → do **not** call the user handler
+  - return `"break"`           → stop Tk event propagation (Tk convention)
+  - return `None`              → pass the original Tk event to the user handler
+  - return `<value>`           → pass `<value>` to the user handler instead
+
+Binding & Rebinding
+-------------------
+- `replace=True` (default): if a prior binding exists, unbind it before rebinding.
+- `dedup=True` (default): request de-duplicated binding in the underlying `bind(...)`.
+
+This pattern keeps the public API fluent while making it explicit that the decorated
+method can act as a transform hook for the event payload.
+"""
+
 from enum import StrEnum
 from typing import Any, Callable, Optional, Union
 from inspect import Signature, Parameter
 
+Transform = Union[Callable[[Any, Any], Any], str]  # (self, event) -> new | None | "skip" | "break"
+
 
 class Event(StrEnum):
+    """Canonical Tk/Tkinter event strings (keyboard, mouse, virtual, etc.)."""
+
     # mouse events
     CLICK = "<Button-1>"
     RIGHT_CLICK = "<Button-3>"
@@ -84,10 +123,12 @@ class _BoundEventMethod:
     def __init__(
             self, owner: Any, name: str, seq: str,
             *, replace: bool, dedup: bool, doc: str,
-            processor: Optional[Callable[[Any, Any], Any]]):
+            processor: Optional[Callable[[Any, Any], Any]],
+            transform_spec: Optional[Transform]):
         self._owner, self._name, self._seq = owner, name, seq
         self._replace, self._dedup = replace, dedup
-        self._processor = processor
+        self._processor = processor  # fallback processor (from method body)
+        self._transform_spec = transform_spec  # decorator-provided transform (callable or str)
         self.__doc__ = doc
         self.__signature__ = Signature(  # type: ignore[attr-defined]
             parameters=[Parameter(
@@ -109,10 +150,25 @@ class _BoundEventMethod:
         if old_id and self._replace and hasattr(self._owner, "unbind"):
             self._owner.unbind(self._seq, func_id=old_id)
 
+        def _resolve_transform():
+            """
+            Choose the active transform:
+              1) decorator-provided `transform=...` (callable or method name)
+              2) else the original method body (`self._processor`)
+              3) else None
+            """
+            spec = self._transform_spec
+            if isinstance(spec, str):
+                return getattr(self._owner, spec, None)  # instance method by name
+            if callable(spec):
+                return lambda e, _fn=spec: _fn(self._owner, e)  # bind self
+            return self._processor
+
         def dispatcher(evt: Any):
             e = evt
-            if self._processor is not None:
-                out = self._processor(self._owner, evt)  # call dummy method as pre-processor
+            xform = _resolve_transform()
+            if xform is not None:
+                out = xform(evt)
                 # ---- control tokens (string-based) ---------------------
                 if isinstance(out, str):
                     if out.lower() == "skip":  # do not call user handler
@@ -131,18 +187,21 @@ class _BoundEventMethod:
 
 
 class _EventMethodDescriptor:
-    def __init__(self, event: Any, *, replace: bool, dedup: bool, doc: str | None):
+    def __init__(self, event: Any, *, replace: bool, dedup: bool, doc: str | None, transform: Optional[Transform]):
         self._event, self._replace, self._dedup, self._doc = event, replace, dedup, doc
         self._name: str | None = None
         self._seq: str | None = None
-        self._processor: Optional[Callable[[Any, Any], Any]] = None  # (self, event) -> transformed/None/"skip"/"break"
+        self._processor: Optional[Callable[[Any, Any], Any]] = None  # original method body
+        self._transform_spec: Optional[Transform] = transform  # decorator arg
 
     def __call__(self, fn: Callable[[Any, Any], Any]):
-        # capture docstring and treat the function body as an optional processor
+        # capture docstring; method body remains a processor *if* no transform was provided
         if self._doc is None and getattr(fn, "__doc__", None):
             self._doc = fn.__doc__
-        self._processor = fn
-        return self  # replace the method with the descriptor
+        if self._transform_spec is None:
+            self._processor = fn  # preserve old behavior
+        # else: transform=... overrides body; body is kept only for docs
+        return self
 
     def __set_name__(self, owner, name: str):
         self._name = name
@@ -157,7 +216,9 @@ class _EventMethodDescriptor:
         return _BoundEventMethod(
             instance, self._name, self._seq,
             replace=self._replace, dedup=self._dedup,
-            doc=self.__doc__ or "", processor=self._processor
+            doc=self.__doc__ or "",
+            processor=self._processor,
+            transform_spec=self._transform_spec,
         )
 
     @staticmethod
@@ -172,16 +233,31 @@ class _EventMethodDescriptor:
         raise TypeError(f"Unsupported event: {ev!r}")
 
 
-def event_handler(event: Any, *, replace: bool = True, dedup: bool = True, doc: str | None = None):
+def event_handler(
+        event: Any,
+        *,
+        replace: bool = True,
+        dedup: bool = True,
+        doc: str | None = None,
+        transform: Optional[Transform] = None,
+):
     """Decorator that creates a Tk-style on_* method with optional pre-processing.
 
-    The decorated function's body (if any) runs before the user handler:
+    Pre-processing order (first match wins):
+      1) `transform=` argument passed to the decorator
+         - callable: (self, event) -> new | None | "skip" | "break"
+         - str: name of an instance method with that signature
+      2) the decorated function body (legacy behavior, kept for convenience)
+      3) no pre-processing
+
+    The decorated function's body (if effective) follows this contract:
       - return "skip" (any case) → do NOT call the user handler
       - return "break"           → stop Tk event propagation
       - return None              → pass the original event to the user handler
       - return <value>           → pass <value> to the user handler instead of the event
     """
-    return _EventMethodDescriptor(event, replace=replace, dedup=dedup, doc=doc)
+    return _EventMethodDescriptor(event, replace=replace, dedup=dedup, doc=doc, transform=transform)
 
 
+# Public alias
 EventType = Union[Event, str]
