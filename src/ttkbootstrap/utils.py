@@ -229,3 +229,21 @@ def merge_build_options(
         if v is not None:
             merged[k] = v
     return merged
+
+
+def encode_event_value_data(v: Any):
+    """Used to encode values when passing data to event handlers"""
+    from datetime import date, time, datetime, timezone
+    from decimal import Decimal
+    if v is None:
+        return None
+    if isinstance(v, float):
+        # for JSON-only pipelines, float is fine; use Decimal path if exactness matters
+        return v
+    if isinstance(v, Decimal):
+        return format(v, "f")
+    if isinstance(v, datetime):
+        return (v if v.tzinfo else v.replace(tzinfo=timezone.utc)).isoformat().replace("+00:00", "Z")
+    if isinstance(v, (date, time)):
+        return v.isoformat()
+    return str(v)
