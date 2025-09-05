@@ -3,11 +3,10 @@ import uuid
 from collections import defaultdict
 from typing import Any, Callable, Dict, List
 
-from ttkbootstrap.interop.aliases import EventType
 from ttkbootstrap.types import Widget
-from ttkbootstrap.events import Event
-from ttkbootstrap.interop.substitutions import get_event_substring
-from ttkbootstrap.interop.commands import event_callback_wrapper
+from ttkbootstrap.events import Event, EventType
+from ttkbootstrap.interop.runtime.substitutions import get_event_substring
+from ttkbootstrap.interop.runtime.commands import event_callback_wrapper
 
 
 class BindingMixin:

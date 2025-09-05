@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 from inspect import Signature, Parameter
 
 
@@ -48,6 +48,7 @@ class Event(StrEnum):
     CONFIGURE = "<Configure>"
 
     # Virtual Events (<<...>>)
+    CHANGE = "<<Change>>"
     CHANGED = "<<Changed>>"
     MODIFIED = "<<Modified>>"
     THEME_CHANGED = "<<ThemeChanged>>"
@@ -80,9 +81,13 @@ class Event(StrEnum):
 
 # -------- bound callable shown on instances: btn.on_click(...) --------
 class _BoundEventMethod:
-    def __init__(self, owner: Any, name: str, seq: str, *, replace: bool, dedup: bool, doc: str):
+    def __init__(
+            self, owner: Any, name: str, seq: str,
+            *, replace: bool, dedup: bool, doc: str,
+            processor: Optional[Callable[[Any, Any], Any]]):
         self._owner, self._name, self._seq = owner, name, seq
         self._replace, self._dedup = replace, dedup
+        self._processor = processor
         self.__doc__ = doc
         self.__signature__ = Signature(  # type: ignore[attr-defined]
             parameters=[Parameter(
@@ -92,33 +97,52 @@ class _BoundEventMethod:
         )
 
     def __call__(self, handler: Optional[Callable[[Any], Any]] = None):
+        # getter
         if handler is None:
             return getattr(self._owner, f"__{self._name}_handler", None)
+
         if not callable(handler):
             raise TypeError(f"{self._name} expects a callable or None")
 
+        # (re)bind with a dispatcher that can pre-process
         old_id = getattr(self._owner, f"__{self._name}_fid", None)
         if old_id and self._replace and hasattr(self._owner, "unbind"):
             self._owner.unbind(self._seq, func_id=old_id)
 
-        fid = self._owner.bind(self._seq, handler, add=True, dedup=self._dedup)
+        def dispatcher(evt: Any):
+            e = evt
+            if self._processor is not None:
+                out = self._processor(self._owner, evt)  # call dummy method as pre-processor
+                # ---- control tokens (string-based) ---------------------
+                if isinstance(out, str):
+                    if out.lower() == "skip":  # do not call user handler
+                        return None
+                    if out == "break":  # Tk convention: stop propagation
+                        return "break"
+                # --------------------------------------------------------
+                if out is not None:
+                    e = out  # transformed payload for user handler
+            return handler(e)
+
+        fid = self._owner.bind(self._seq, dispatcher, add=True, dedup=self._dedup)
         setattr(self._owner, f"__{self._name}_fid", fid)
         setattr(self._owner, f"__{self._name}_handler", handler)
         return self._owner  # chainable
 
 
-# -------- private descriptor; factory returns an instance of this --------
 class _EventMethodDescriptor:
     def __init__(self, event: Any, *, replace: bool, dedup: bool, doc: str | None):
         self._event, self._replace, self._dedup, self._doc = event, replace, dedup, doc
         self._name: str | None = None
         self._seq: str | None = None
+        self._processor: Optional[Callable[[Any, Any], Any]] = None  # (self, event) -> transformed/None/"skip"/"break"
 
-    def __call__(self, fn: Callable):
-        # grab docstring from the dummy method if not provided
-        if self._doc is None and fn.__doc__:
+    def __call__(self, fn: Callable[[Any, Any], Any]):
+        # capture docstring and treat the function body as an optional processor
+        if self._doc is None and getattr(fn, "__doc__", None):
             self._doc = fn.__doc__
-        return self  # descriptor itself replaces the function
+        self._processor = fn
+        return self  # replace the method with the descriptor
 
     def __set_name__(self, owner, name: str):
         self._name = name
@@ -132,7 +156,8 @@ class _EventMethodDescriptor:
             raise RuntimeError("event_handler used before __set_name__")
         return _BoundEventMethod(
             instance, self._name, self._seq,
-            replace=self._replace, dedup=self._dedup, doc=self.__doc__ or "",
+            replace=self._replace, dedup=self._dedup,
+            doc=self.__doc__ or "", processor=self._processor
         )
 
     @staticmethod
@@ -147,12 +172,16 @@ class _EventMethodDescriptor:
         raise TypeError(f"Unsupported event: {ev!r}")
 
 
-# -------- snake_case public API --------
 def event_handler(event: Any, *, replace: bool = True, dedup: bool = True, doc: str | None = None):
-    """Decorator factory for Tk-style on_* methods.
+    """Decorator that creates a Tk-style on_* method with optional pre-processing.
 
-    Usage:
-        @event_handler(Event.ON_CLICK)
-        def on_click(self, event): ...
+    The decorated function's body (if any) runs before the user handler:
+      - return "skip" (any case) → do NOT call the user handler
+      - return "break"           → stop Tk event propagation
+      - return None              → pass the original event to the user handler
+      - return <value>           → pass <value> to the user handler instead of the event
     """
     return _EventMethodDescriptor(event, replace=replace, dedup=dedup, doc=doc)
+
+
+EventType = Union[Event, str]
