@@ -7,7 +7,7 @@ name = "ttkbootstrap"
 dynamic = ["version"]
 description = "A supercharged theme extension for tkinter that enables on-demand modern flat style themes inspired by Bootstrap."
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 license = { file = "LICENSE" }
 authors = [
     { name = "Israel Dryer", email = "israel.dryer@gmail.com" }
@@ -30,7 +30,7 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "pillow>=10,<11",
+    "pillow>=10",
     "babel>=2.15.0"
 ]
 
