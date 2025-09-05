@@ -1,9 +1,5 @@
-from typing import Unpack, Union
+from typing import Union
 from tkinter import ttk
-
-# TODO add an enhanced formatting api similar to:
-#  https://js.devexpress.com/Angular/Documentation/ApiReference/UI_Components/dxNumberBox/Configuration/#format
-
 
 Index = Union[int, str]
 EntryLike = Union[ttk.Entry, ttk.Spinbox]
