@@ -10,7 +10,8 @@ Variable = Union["Signal", "Variable", str]
 Widget = Union["BaseWidget", "App", tk.Misc, tk.Widget]
 Image = Union["BootstrapIcon", "LucideIcon", PhotoImage]
 Orientation = Literal["horizontal", "vertical"]
-Primitive = Union[int, float, str]
+Number = Union[int, float]
+Primitive = Union[Number, str]
 
 # Other
 Compound = Literal['text', 'image', 'center', 'top', 'bottom', 'left', 'right', 'none']
