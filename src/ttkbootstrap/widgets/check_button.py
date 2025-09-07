@@ -1,11 +1,11 @@
-from typing import Any, Callable, Optional, Self, Unpack
+from typing import Any, Optional, Self, Unpack
 
 from tkinter import ttk
 
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
-from ttkbootstrap.types import CoreOptions
+from ttkbootstrap.types import CoreOptions, EventHandler, AltEventHandler
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
@@ -52,8 +52,8 @@ class CheckButton(BaseWidget):
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
-            on_change: Optional[Callable[[Any], Any]] = None,
-            on_toggle: Optional[Callable] = None,
+            on_change: Optional[EventHandler] = None,
+            on_click: Optional[AltEventHandler] = None,
             **kwargs: Unpack[CheckButtonOptions]
     ):
         """
@@ -68,27 +68,24 @@ class CheckButton(BaseWidget):
             off_value: The value when unchecked.
             tristate_value: The value when in the indeterminate state.
             on_change: Callback fired when the value signal changes.
-            on_toggle: Command callback invoked on toggle.
+            on_click: Callback fired when the button is clicked..
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
         self._style_builder = CheckButtonStyleBuilder(color=color)
         self._on_change = on_change
         self._on_change_fid = None
-        self._on_toggle = on_toggle
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._value_signal = value if isinstance(value, Signal) else Signal(value)
-
-        if on_change:
-            self._on_change_fid = self._value_signal.subscribe(self._on_change)
+        self._prev_value = self._value_signal()
 
         parent = kwargs.pop('parent', None)
 
         tk_options = dict(
             textvariable=self._text_signal.var,
+            variable=self._value_signal.var,
             onvalue=on_value,
             offvalue=off_value,
-            command=self._internal_toggle,
             **kwargs
         )
         super().__init__(ttk.Checkbutton, tk_options, parent=parent)
@@ -96,24 +93,44 @@ class CheckButton(BaseWidget):
         # set initial state
         if value == on_value:
             self.widget.invoke()
+
         if value == off_value:
             self.widget.invoke()
             self.widget.invoke()
 
-    # TODO set this up to use the <<Change>> event like the entry widget.
-    def on_change(self, handler: Callable[[Any], Any] = None):
-        """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""
-        if handler is None:
-            return self._on_change
-        else:
-            if self._on_change_fid:
-                self._value_signal.unsubscribe(self._on_change)
-            self._on_change = handler
-            self._on_change_fid = self._value_signal.subscribe(self._on_change)
-            return self
+        # bind initial handlers
+        if on_change:
+            self.on_change(on_change)
 
-    def on_toggle(
-            self, handler: Optional[Callable] = None,
+        if on_click:
+            self.on_click(on_click)
+
+        self._on_change_fid = self._value_signal.subscribe(self._handle_change)
+
+    def _handle_change(self, _: Any):
+        """Trigger <<Change>> event when value signal changes"""
+        value = self._value_signal()
+        prev_value = self._prev_value
+        on_value = self.widget.cget("onvalue")
+        self.emit(Event.CHANGE, checked=value == on_value, value=value, prev_value=prev_value)
+        self._prev_value = value
+
+    def on_change(
+            self, handler: Optional[EventHandler] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<Change>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CHANGE, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(coerce_handler_args(handler))
+        return self
+
+    def on_click(
+            self, handler: Optional[AltEventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<Button-1>>
 
@@ -195,15 +212,6 @@ class CheckButton(BaseWidget):
         else:
             self.state(['!disabled', '!readonly'])
         return self
-
-    def _internal_toggle(self):
-        """Handle toggle command from checkbutton widget"""
-        on_value = self.configure('on_value')
-        off_value = self.configure('off_value')
-
-        if self._on_toggle:
-            self._on_toggle()
-        self.value(on_value if self.is_checked() else off_value)
 
     def toggle(self):
         """Trigger the checkbutton as if it were toggled."""

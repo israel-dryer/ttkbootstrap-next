@@ -1,10 +1,10 @@
 from tkinter import ttk
-from typing import Any, Callable, Literal, Optional, Self, Union, Unpack, cast
+from typing import Any, Literal, Optional, Self, Union, Unpack, cast
 
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
-from ttkbootstrap.types import Compound, IconPosition, Padding, CoreOptions
+from ttkbootstrap.types import AltEventHandler, Compound, IconPosition, Padding, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.mixins.icon import IconMixin
@@ -57,7 +57,7 @@ class Button(BaseWidget, IconMixin):
             variant: ButtonVariant = "solid",
             icon: str | dict = None,
             icon_position: IconPosition = "auto",
-            on_click: Callable = None,
+            on_click: Optional[AltEventHandler] = None,
             **kwargs: Unpack[ButtonOptions]
     ):
         """
@@ -106,7 +106,7 @@ class Button(BaseWidget, IconMixin):
         return "disabled" in self.widget.state()
 
     def on_click(
-            self, handler: Optional[Callable] = None,
+            self, handler: Optional[AltEventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<Button-1>>
 
@@ -185,7 +185,7 @@ class Button(BaseWidget, IconMixin):
 
     def invoke(self):
         """Trigger a button click programmatically."""
-        self.widget.invoke()
+        self.emit(Event.CLICK)
 
     def update_style(self):
         """Update the widget style and bind stateful icons"""

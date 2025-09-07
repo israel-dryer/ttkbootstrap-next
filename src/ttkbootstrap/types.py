@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import tkinter as tk
-from typing import Callable, Literal, Optional, TypedDict, Union, Tuple
+from typing import Any, Callable, Literal, Optional, TypedDict, Union, Tuple
 from PIL.ImageTk import PhotoImage
 
 BindScope = Literal['all', 'class', 'widget']
@@ -76,3 +76,7 @@ class CoreOptions(TypedDict, total=False):
 
 class LayoutOpts(GridItemOptions, PackItemOptions, PlaceItemOptions):
     pass
+
+
+AltEventHandler = Union[Callable[[], Any], Callable[[Any], Any]]
+EventHandler = Callable[[Any], Any]

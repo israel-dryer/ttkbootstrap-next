@@ -3,6 +3,7 @@ from typing import Any, Callable, Optional, Self, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.types import EventHandler
 from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 from ttkbootstrap.validation.rules import ValidationRule
 
@@ -29,7 +30,7 @@ class ValidationMixin(BaseWidget):
 
     def on_invalid(
             self,
-            handler: Optional[Callable[[Any], Any]],
+            handler: Optional[EventHandler],
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<Invalid>>
 
@@ -44,7 +45,7 @@ class ValidationMixin(BaseWidget):
 
     def on_valid(
             self,
-            handler: Optional[Callable[[Any], Any]],
+            handler: Optional[EventHandler],
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<Valid>>
 
@@ -59,7 +60,7 @@ class ValidationMixin(BaseWidget):
 
     def on_validated(
             self,
-            handler: Optional[Callable[[Any], Any]],
+            handler: Optional[EventHandler],
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<Validated>>
 
