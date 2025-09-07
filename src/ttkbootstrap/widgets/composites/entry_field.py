@@ -78,7 +78,7 @@ class EntryField(Pack, EntryMixin, ABC):
 
         # Forward reference entry methods
         # ---- Event Handlers
-        self.on_change = self._entry.on_change
+        self.on_input = self._entry.on_input
         self.on_changed = self._entry.on_changed
         self.on_enter = self._entry.on_enter
         self.on_invalid = self._entry.on_invalid
@@ -169,9 +169,9 @@ class EntryField(Pack, EntryMixin, ABC):
         """
         variant = "suffix" if position == "right" else "prefix"
         if position == "right":
-            instance = widget(parent=self._field, variant=variant, **kwargs)
+            instance = widget(parent=self._field, variant=variant, take_focus=False, **kwargs)
         else:
-            instance = widget(parent=self._field, variant=variant, **kwargs)
+            instance = widget(parent=self._field, variant=variant, take_focus=False, **kwargs)
         key = name or str(instance)
         self._addons[key] = instance
 
