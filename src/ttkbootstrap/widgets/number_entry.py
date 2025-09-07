@@ -5,6 +5,9 @@ from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.button import Button
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
 
+class NumberEntryOptions(EntryOptions, total=False):
+    required: bool
+
 
 class NumberEntry(EntryField):
     """
@@ -22,7 +25,7 @@ class NumberEntry(EntryField):
         **kwargs: Additional keyword arguments passed to the underlying spinbox part.
     """
 
-    def __init__(self, value="", label="", message="", show_spin_buttons=True, **kwargs: Unpack[EntryOptions]):
+    def __init__(self, value="", label="", message="", show_spin_buttons=True, **kwargs: Unpack[NumberEntryOptions]):
         self._show_spin_buttons = show_spin_buttons
         super().__init__(value, label, message, kind="spinbox", **kwargs)
         self.insert_addon(Button, icon="plus", name="increment", on_click=self.increment)

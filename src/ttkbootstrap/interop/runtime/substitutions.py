@@ -26,8 +26,7 @@ Example:
 
 from typing import Callable
 
-from ttkbootstrap.interop.spec.constants import event_subs
-from ttkbootstrap.interop.spec.types import Sub
+from ttkbootstrap.interop.spec.subs import Sub, event_subs
 from ttkbootstrap.interop.runtime.utils import get_substring
 
 

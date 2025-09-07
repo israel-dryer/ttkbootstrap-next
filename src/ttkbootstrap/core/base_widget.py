@@ -9,12 +9,12 @@ from ttkbootstrap.types import Widget
 from ttkbootstrap.events import Event
 from ttkbootstrap.utils import unsnake_kwargs, resolve_parent
 from ttkbootstrap.core.layout_context import current_container
-from ttkbootstrap.core.mixins.binding import BindingMixin
-from ttkbootstrap.core.mixins.configure import ConfigureMixin
-from ttkbootstrap.core.mixins.focus import FocusMixin
-from ttkbootstrap.core.mixins.grab import GrabMixIn
+from ttkbootstrap.interop.runtime.binding import BindingMixin
+from ttkbootstrap.interop.runtime.configure import ConfigureMixin
+from ttkbootstrap.interop.runtime.focus import FocusMixin
+from ttkbootstrap.interop.runtime.grab import GrabMixIn
 from ttkbootstrap.core.mixins.layout import LayoutMixin
-from ttkbootstrap.core.mixins.winfo import WidgetInfoMixin
+from ttkbootstrap.interop.runtime.winfo import WidgetInfoMixin
 
 PositionType = Literal["static", "absolute", "fixed"]
 

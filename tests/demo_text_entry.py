@@ -4,8 +4,9 @@ from ttkbootstrap.widgets import Button, Label, TextEntry
 
 with App("Text Entry Demo", geometry="500x400") as app:
     with Grid(padding=16, columns=2, gap=8, sticky_items="ew").layout(fill="x"):
-        TextEntry(label="First Name", required=True).layout(columnspan=2)
-        TextEntry("16228 Kelby Cove", label="Address").layout(columnspan=2).readonly(True)
+        TextEntry(label="First Name", required=True).layout(columnspan=2).on_validated(lambda e: print(e))
+        TextEntry("16228 Kelby Cove", label="Address").layout(columnspan=2).on_change(lambda x: print(x)).on_enter(lambda x: print(x))
+        TextEntry("July 15, 2025", label="Birthday", display_format="shortDate")
         occupation = TextEntry(label="Email", required=True).layout(columnspan=2)
         occupation.insert_addon(Label, text="@", position="left")
         Button("Submit").on_click(lambda: app.theme.use("dark"))

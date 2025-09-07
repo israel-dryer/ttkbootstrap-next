@@ -19,9 +19,9 @@ class ValidationMixin:
     """
 
     # NOTE: value() returns the raw/model value (str, float, date, None, etc.)
-    value: Callable[[], Any]
-    emit: Callable[..., None]
-    bind: Callable[[str, Callable], str]
+    # value: Callable
+    # emit: Callable
+    # bind: Callable
 
     def __init__(self, *args, **kwargs):
         """Initialize the validation mixin."""
@@ -46,8 +46,8 @@ class ValidationMixin:
 
     def _setup_validation_events(self):
         """Bind 'keyup' and 'blur' events to automatic validation checks."""
-        self.bind(Event.KEYUP, lambda _: self.validate(self.value(), "key"))
-        self.bind(Event.BLUR, lambda _: self.validate(self.value(), "blur"))
+        self.bind(Event.KEYUP, lambda _: self.validate(self.value(), "key"), add=False)
+        self.bind(Event.BLUR, lambda _: self.validate(self.value(), "blur"), add=False)
 
     def add_validation_rule(self, rule_type: RuleType, **kwargs: Unpack[ValidationOptions]):
         """Add a single validation rule."""
@@ -79,12 +79,12 @@ class ValidationMixin:
             data.update(message=result.message, is_valid=result.is_valid)
 
             if not result.is_valid:
-                self.emit(Event.INVALID, data=data)
-                self.emit(Event.VALIDATED, data=data)
+                self.emit(Event.INVALID, **data)
+                self.emit(Event.VALIDATED, **data)
                 return False
 
         if ran_rule:
-            self.emit(Event.VALID, data=data)
-            self.emit(Event.VALIDATED, data=data)
+            self.emit(Event.VALID, **data)
+            self.emit(Event.VALIDATED, **data)
 
         return ran_rule

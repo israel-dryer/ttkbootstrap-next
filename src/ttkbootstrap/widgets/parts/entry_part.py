@@ -4,7 +4,6 @@ from tkinter import ttk
 from tkinter.font import Font
 from typing import Any, Callable, Optional, Unpack
 
-from ttkbootstrap.interop.spec.types import UIEvent
 from ttkbootstrap.types import Justify, Padding, CoreOptions
 from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
@@ -67,13 +66,14 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             *,
             display_format: Optional[FormatSpec] = None,  # None = no formatting/parsing by IntlFormatter
             allow_blank: bool = True,
-            on_value_change: Callable[[UIEvent], Any] = None,  # value changes
-            on_change: Callable[[UIEvent], Any] = None,  # display changes
-            on_enter: Callable[[UIEvent], Any] = None,
+            on_value_change: Callable[[Any], Any] = None,  # value changes
+            on_change: Callable[[Any], Any] = None,  # display changes
+            on_enter: Callable[[Any], Any] = None,
             initial_focus: bool = False,
             **kwargs: Unpack[EntryOptions],
     ):
         self._style_builder = EntryStyleBuilder()
+        self._dirty_text = False
 
         # Internal Intl engine (auto-detects locale; dayfirst/yearfirst False by default)
         self._fmt = IntlFormatter()
@@ -148,54 +148,41 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._signal.set(text)
         return self
 
-    def value(self, obj: Any = ...):
-        """
-        Get or set the parsed Python value.
-        - No args → returns the parsed value (number/date/time/datetime/str/None).
-        - With arg → sets the parsed value and re-renders display.
-        """
-        if obj is ...:
-            return self._value
-        self._value = obj
-        if obj is None:
-            disp = ""
-        else:
-            if self._display_format is None:
-                disp = str(obj)
-            else:
-                disp = self._fmt.format(obj, self._display_format)
-        self._signal.set(disp)
-        return self
+    def value(self):
+        if self._dirty_text:
+            # compute *now* from the UI to avoid lag
+            try:
+                raw = self.widget.get()
+            except Exception:
+                raw = self._signal()
+            raw = (raw or "").strip()
+            try:
+                return (raw if self._display_format is None
+                        else self._fmt.parse(raw, self._display_format))
+            except ValueError:
+                return None  # or your preferred fallback
+        return self._value
 
     def commit(self) -> None:
-        """
-        Parse current display → store as parsed value; normalize display format.
-        Leaves display/value unchanged if parse fails.
-        """
-        s = (self._signal() or "").strip()
-        if s == "":
-            if self._allow_blank:
-                self._value = None
-            return
-
+        # parse from the live widget text (fresh)
+        s = ""
         try:
-            if self._display_format is None:
-                # No Intl parsing → raw string as the model value
-                parsed = s
-            else:
-                parsed = self._fmt.parse(s, self._display_format)
-        except ValueError:
-            return  # keep user input as-is
+            s = self.widget.get()
+        except Exception:
+            s = self._signal()  # fallback to StringVar if needed
 
-        self._value = parsed
-        # Normalize display from parsed value
-        if parsed is None:
-            self._signal.set("")
+        s = (s or "").strip()
+        if s == "":
+            self._value = None if self._allow_blank else self._value
         else:
-            if self._display_format is None:
-                self._signal.set(str(parsed))
-            else:
-                self._signal.set(self._fmt.format(parsed, self._display_format))
+            try:
+                self._value = (s if self._display_format is None
+                               else self._fmt.parse(s, self._display_format))
+            except ValueError:
+                # keep prior _value; display normalization is your call
+                pass
+
+        self._dirty_text = False
 
     def display_format(self, spec: Optional[FormatSpec] = None):
         """
@@ -249,28 +236,27 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._prev_change_value = self._value
 
     def _handle_change(self, _: Any) -> None:
-        current_text = self.display()
+        self._dirty_text = True
+        current_text = self._current_text()
         new_parsed = self._parse_or_none(current_text)
         if new_parsed == self._prev_change_value:
             return
         self.emit(
             Event.CHANGE,
-            data={
-                "value": encode_event_value_data(new_parsed),
-                "prev_value": encode_event_value_data(self._prev_change_value),
-                "text": self.display()
-            })
+            value=encode_event_value_data(new_parsed),
+            prev_value=encode_event_value_data(self._prev_change_value),
+            text=self.display(),
+        )
         self._prev_change_value = new_parsed
 
     def _check_if_changed(self, _: Any) -> None:
         if self._value != self._prev_changed_value:
             self.emit(
                 Event.CHANGED,
-                data={
-                    "value": encode_event_value_data(self._value),
-                    "prev_value": encode_event_value_data(self._prev_changed_value),
-                    "text": self.display()
-                })
+                value=encode_event_value_data(self._value),
+                prev_value=encode_event_value_data(self._prev_changed_value),
+                text=self.display()
+            )
             self._prev_changed_value = self._value
 
     @event_handler(Event.CHANGE)
@@ -278,7 +264,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         """Bind or get the <<Change>> event handler"""
         ...
 
-    def _transform_on_enter(self, event: UIEvent):
+    def _transform_on_enter(self, event: Any):
         """Transform for the on_enter handler"""
         event.data.update(
             {
@@ -300,6 +286,14 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
     # ---------------------------
     # Internals / lifecycle
     # ---------------------------
+
+    def _current_text(self) -> str:
+        # Prefer the live widget text (freshest); fall back to your model/signal.
+        try:
+            return self.widget.get()
+        except Exception:
+            # Use whatever your project uses to read the StringVar:
+            return self._signal()  # or self._signal.get() if that's your API
 
     def _parse_or_none(self, s: str) -> Any:
         s2 = (s or "").strip()

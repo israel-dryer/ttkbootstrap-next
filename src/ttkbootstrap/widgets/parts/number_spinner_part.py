@@ -1,18 +1,19 @@
 from tkinter.font import Font
-from typing import Any, Callable, TypedDict, Unpack
+from typing import Any, Callable, Unpack
 
 from tkinter import ttk
 
-from ttkbootstrap.types import Justify, Padding, Widget
-from ttkbootstrap.events import Event
+from ttkbootstrap.types import Justify, Padding, CoreOptions, Number
+from ttkbootstrap.events import Event, event_handler
 from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.mixins.validatable_mixin import ValidatableMixin
+from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
+from ttkbootstrap.widgets.mixins.validatable_mixin import ValidationMixin
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.spinbox import SpinBoxStyleBuilder
 
 
-class NumberSpinnerOptions(TypedDict, total=False):
+class SpinboxOptions(CoreOptions, total=False):
     """
     Options for configuring a number spinner widget.
 
@@ -38,10 +39,9 @@ class NumberSpinnerOptions(TypedDict, total=False):
     width: int
     padding: Padding
     format: str
-    parent: Widget
 
 
-class NumberSpinnerPart(BaseWidget, ValidatableMixin):
+class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
     """A numeric spinbox widget with signal binding and validation support.
 
     This widget wraps a `ttk.Spinbox` and binds it to a reactive `Signal`,
@@ -52,7 +52,6 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
         value: Initial numeric value (default is 0).
         on_change: Callback triggered on every value change (live).
         on_enter: Callback triggered when Enter is pressed.
-        on_changed: Callback triggered when value changes on focus out.
         min_value: Minimum value of the spinbox (default is 0).
         max_value: Maximum value of the spinbox (default is 100).
         increment: Step size for value changes (default is 1).
@@ -76,27 +75,30 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
 
     def __init__(
             self,
-            value: int | float | Signal = 0,
-            on_change: Callable[[Any], int | float] = None,
-            on_enter: Callable[[Any], int | float] = None,
-            on_changed: Callable[[Any], int | float] = None,
-            min_value: int | float = 0,
-            max_value: int | float = 100,
-            increment: int | float = 1,
+            value: Number | Signal = 0,
+            on_change: Callable[[Any], Number] = None,
+            on_enter: Callable[[Any], Number] = None,
+            min_value: Number = 0,
+            max_value: Number = 100,
+            increment: Number = 1,
             formatter: str = None,
             wrap: bool = False,
             initial_focus: bool = False,
-            **kwargs: Unpack[NumberSpinnerOptions]
+            **kwargs: Unpack[SpinboxOptions]
     ):
-        self._on_enter = None
-        self._on_change = None
-        self._on_changed = None
-        self._on_change_fid = None
         self._style_builder = SpinBoxStyleBuilder()
-        self._signal = value if isinstance(value, Signal) else Signal(value)
-        self._prev_value = value
+        self._on_change = None
+        self._on_change_fid = None
 
-        assert_valid_keys(kwargs, NumberSpinnerOptions, where="NumberSpinnerPart")
+        # coerce signal and signal type
+        if isinstance(value, Signal):
+            self._signal = value
+            self._prev_value = value()
+        else:
+            self._prev_value, increment = self._coerce_signal_value(value, increment)
+            self._signal = Signal(self._prev_value)
+
+        assert_valid_keys(kwargs, SpinboxOptions, where="SpinboxPart")
 
         parent = kwargs.pop('parent', None)
         kwargs.setdefault("from", min_value)
@@ -108,12 +110,11 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
             try:
                 _ = formatter % float(value)
             except Exception:
-                raise ValueError(f"Invalid format: {formatter!r}")
+                raise ValueError(f"Invalid formatter: {formatter!r}")
             kwargs.update(format=formatter)
 
         tk_options = dict(textvariable=self._signal.var, **kwargs)
         super().__init__(ttk.Spinbox, tk_options, parent=parent)
-        ValidatableMixin.__init__(self)
 
         if on_change:
             self.on_change(on_change)
@@ -121,24 +122,25 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
         if on_enter:
             self.on_enter(on_enter)
 
-        if on_changed:
-            self.on_changed(on_changed)
-
         self.bind(Event.FOCUS, self._store_prev_value)
         self.bind(Event.BLUR, self._check_if_changed)
-        self._setup_validation_events()
 
         if initial_focus:
             self.focus()
 
+    @staticmethod
+    def _coerce_signal_value(value, increment):
+        """Ensure signal is setup with appropriate data type"""
+        if isinstance(value, float) or isinstance(increment, float):
+            return float(value or 0), float(increment)
+        return int(value or 0), int(increment)
+
     def _store_prev_value(self, _: Any):
         """Store the current value before focus out."""
-
         self._prev_value = self._signal()
 
     def _check_if_changed(self, _: Any):
         """Emit the 'changed' event if the value was modified after focus out."""
-
         try:
             current = self._signal()
             if self._prev_value is not None and current != self._prev_value:
@@ -146,29 +148,26 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
         except (ValueError, TypeError):
             pass
 
-    def value(self, value: int | float = None):
-        """Get or set the current value of the spinbox.
-
-        Args:
-            value: Optional value to set.
-
-        Returns:
-            The current value if `value` is None, otherwise self.
-        """
+    def value(self, value: Number = None):
+        """Get or set the current value of the spinbox."""
         if value is None:
             return self._signal()
         self._signal.set(value)
         return self
 
-    def signal(self, value: Signal[int | float] = None):
-        """Get or set the bound signal.
+    def formatter(self, value: str = None):
+        if value is None:
+            return self.widget.cget('format')
+        else:
+            try:
+                _ = value % float(value)
+            except Exception:
+                raise ValueError(f"Invalid formatter: {value!r}")
+            self.configure(format=value)
+            return self
 
-        Args:
-            value: Optional signal to assign.
-
-        Returns:
-            The current signal if `value` is None, otherwise self.
-        """
+    def signal(self, value: Signal[Number] = None):
+        """Get or set the bound signal."""
         if value is None:
             return self._signal
         self._signal = value
@@ -176,14 +175,7 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
         return self
 
     def on_change(self, value: Callable[[int | float], Any] = None):
-        """Set callback for live value changes.
-
-        Args:
-            value: A function called when the signal updates.
-
-        Returns:
-            The assigned callback or self.
-        """
+        """Bind or set the <<Change>> event handler."""
         if value is None:
             return self._on_change
         else:
@@ -191,68 +183,15 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
             self._on_change_fid = self._signal.subscribe(lambda _: self._on_change(self._signal()))
             return self
 
-    def on_enter(self, value: Callable[[Any], Any] = None):
-        """Set callback for Enter key press.
+    @event_handler(Event.RETURN)
+    def on_enter(self, handler: Callable = None):
+        """Bind or get the <Return> event handler."""
+        return self._signal()
 
-        Args:
-            value: A function called when Enter is pressed.
-
-        Returns:
-            The assigned callback or self.
-        """
-        if value is None:
-            return self._on_enter
-        self._on_enter = value
-        self.bind(Event.RETURN, lambda _: self._on_enter(self._signal()))
-        return self
-
-    def on_changed(self, value: Callable[[int], Any] = None):
-        """Set callback for value changes on focus out.
-
-        Args:
-            value: A function called if the value has changed on blur.
-
-        Returns:
-            The assigned callback or self.
-        """
-        if value is None:
-            return self._on_changed
-        self._on_changed = value
-        self.bind(Event.CHANGED, lambda e: self._on_changed(self._signal()))
-        return self
-
-    def readonly(self, value: bool = None):
-        """Get or set readonly state.
-
-        Args:
-            value: If True, sets to readonly. If False, makes editable.
-
-        Returns:
-            The readonly state if `value` is None, otherwise self.
-        """
-        if value is None:
-            return "readonly" in self.widget.state()
-        states = ['disabled', 'readonly'] if value else ['!disabled', '!readonly']
-        self.widget.state(states)
-        return self
-
-    def disable(self):
-        """Disable the widget and make it non-editable.
-
-        Returns:
-            self
-        """
-        self.widget.state(['disabled'])
-        return self
-
-    def enable(self):
-        """Enable the widget for editing.
-
-        Returns:
-            self
-        """
-        self.state(['!disabled', '!readonly'])
-        return self
+    @event_handler(Event.CHANGED)
+    def on_changed(self, handler: Callable = None):
+        """Bind or get the <<Changed>> event handler."""
+        return self._signal()
 
     def destroy(self) -> None:
         """Unsubscribe from signal and destroy the widget."""
@@ -260,14 +199,3 @@ class NumberSpinnerPart(BaseWidget, ValidatableMixin):
             self._signal.unsubscribe(self._on_change_fid)
             self._on_change_fid = None
         super().destroy()
-
-    def get_bounding_box(self, index: int) -> tuple[int, int, int, int] | None:
-        """Get the bounding box of a character at a given index.
-
-        Args:
-            index: The character index.
-
-        Returns:
-            A tuple of (x, y, width, height) or None.
-        """
-        return self.widget.bbox(index)

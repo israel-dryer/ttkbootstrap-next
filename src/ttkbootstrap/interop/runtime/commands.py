@@ -2,32 +2,28 @@
 interop.runtime.commands
 ------------------------
 
-Tk/Tcl command registration helpers that wrap Python callables for use by Tkinter.
+Register Python callables as Tcl/Tk commands.
 
-Features
-- `command_wrapper`: register a plain callable as a Tcl command; supports transient (one-shot) commands.
-- `trace_callback_wrapper`: register a Tcl variable trace callback, wrapping args into a `Trace`.
-- `event_callback_wrapper`: register an event handler that constructs a structured `UIEvent` from raw Tcl data.
+- command_wrapper: plain Tcl command (optionally one-shot).
+- trace_callback_wrapper: var-trace command (wraps args into a lightweight Trace).
+- event_callback_wrapper: event handler; builds a minimal, per-event payload
+  using `runtime.event_factory.builder_for(...)` and passes it to the callback.
 
-Error handling
-- Exceptions raised by user callbacks are logged via the standard `logging` module
-  (at ERROR level with traceback) and then re-raised.
-- A pluggable `set_error_handler()` allows consumers to intercept exceptions and
-  report them as they wish; if unset, logging is used.
-
-This design avoids noisy `print()` output and integrates with application logging.
+Errors are routed to an optional custom handler and otherwise logged, then re-raised.
 """
 
 from __future__ import annotations
 
 import logging
-import tkinter as tk
+from collections import namedtuple
 from functools import wraps
 from typing import Any, Callable, Optional
 from uuid import uuid4
 
-from ttkbootstrap.interop.spec.types import Trace
-from ttkbootstrap.interop.runtime.utils import get_event_namedtuple
+import tkinter as tk  # keep tkinter import isolated for runtime layer
+
+from ttkbootstrap.interop.runtime.event_factory import builder_for
+from ttkbootstrap.interop.runtime.event_types import BaseEvent
 
 __all__ = [
     "command_wrapper",
@@ -39,12 +35,13 @@ __all__ = [
 
 log = logging.getLogger(__name__)
 
-# id -> original python function (for bookkeeping; not currently used beyond cleanup)
+# Lightweight container for Tcl variable trace notifications.
+Trace = namedtuple("Trace", "name operation")
+
+# Bookkeeping: Tcl command id -> original Python function
 _registered_commands: dict[str, Callable[..., Any]] = {}
 
 # Optional pluggable error handler: (exc, context, details) -> None
-# context: "command" | "trace" | "event"
-# details: arbitrary context tuple (e.g., (func_name, extra_info...))
 _error_handler: Optional[Callable[[BaseException, str, tuple[Any, ...]], None]] = None
 
 
@@ -55,41 +52,31 @@ def set_error_handler(handler: Optional[Callable[[BaseException, str, tuple[Any,
 
 
 def get_error_handler() -> Optional[Callable[[BaseException, str, tuple[Any, ...]], None]]:
-    """Get the current custom error handler."""
+    """Return the current custom error handler, if any."""
     return _error_handler
 
 
 def _handle_exception(exc: BaseException, *, context: str, details: tuple[Any, ...]) -> None:
-    """
-    Internal: route exceptions to a custom handler if provided; otherwise log with traceback.
-    Always re-raises the original exception.
-    """
-    if _error_handler is not None:
+    """Dispatch exceptions to a custom handler if provided; else log and re-raise."""
+    handler = _error_handler
+    if handler is not None:
         try:
-            _error_handler(exc, context, details)
-        except Exception:  # defensive: custom handler must not break the chain
+            handler(exc, context, details)
+        except Exception:
             log.exception("Error handler raised while handling %s error; falling back to logging.", context)
-            log.exception("%s callback exception", context)
+            log.exception("%s callback exception", context, exc_info=exc)
     else:
-        log.exception("%s callback exception", context)
-    # re-raise to preserve normal error semantics
+        log.exception("%s callback exception", context, exc_info=exc)
     raise exc
 
 
 def command_wrapper(
-        widget: tk.Misc, func: Callable[..., Any], transient: bool = False, func_id: str | None = None) -> str:
-    """
-    Register a Tcl command for a generic Python callback.
-
-    Args:
-        widget: Tkinter widget owning the Tcl interpreter.
-        func: Python callable to expose to Tcl.
-        transient: If True, unregister after first successful invocation.
-        func_id: Optional explicit Tcl command name.
-
-    Returns:
-        The Tcl command name registered in the interpreter.
-    """
+        widget: tk.Misc,
+        func: Callable[..., Any],
+        transient: bool = False,
+        func_id: str | None = None,
+) -> str:
+    """Register a plain Tcl command for a Python callable (optionally one-shot)."""
     if func_id is None:
         func_id = f"cmd_{uuid4().hex}"
 
@@ -109,7 +96,7 @@ def command_wrapper(
                     widget.tk.deletecommand(func_id)
                     _registered_commands.pop(func_id, None)
                 except Exception:
-                    # Best effort cleanup; ignore interpreter state errors
+                    # Best-effort cleanup; ignore interpreter state errors
                     pass
             return result
 
@@ -119,16 +106,7 @@ def command_wrapper(
 
 
 def trace_callback_wrapper(widget: tk.Misc, func: Callable[[Trace], Any]) -> str:
-    """
-    Register a Tcl variable trace callback that receives a `Trace` object.
-
-    Args:
-        widget: Tkinter widget owning the Tcl interpreter.
-        func: Callback accepting a `Trace(name, op)`.
-
-    Returns:
-        The Tcl command name registered in the interpreter.
-    """
+    """Register a Tcl var-trace command that passes a `Trace(name, operation)`."""
     func_id = f"trace_{uuid4().hex}"
 
     @wraps(func)
@@ -145,23 +123,17 @@ def trace_callback_wrapper(widget: tk.Misc, func: Callable[[Trace], Any]) -> str
 
 def event_callback_wrapper(
         widget: tk.Misc,
-        func: Callable[[Any], Any],
+        func: Callable[[BaseEvent], Any],
         event_name: str,
         func_id: str | None = None,
         dedup: bool = False,
 ) -> str:
     """
-    Register a Tcl command that wraps an event handler with structured payload creation.
+    Register a Tcl event command.
 
-    Args:
-        widget: Tkinter widget owning the Tcl interpreter.
-        func: Python event handler receiving a structured UIEvent-like payload.
-        event_name: Logical event name used to build the payload (e.g., '<<Change>>').
-        func_id: Optional explicit Tcl command name.
-        dedup: If True, reuse a stable id for this function to avoid duplicate commands.
-
-    Returns:
-        The Tcl command name registered in the interpreter.
+    Builds the minimal, pattern-specific event payload using a cached builder
+    (`runtime.event_factory.builder_for(event_name)`) and passes it to the
+    Python callback.
     """
     if dedup:
         func_id = f"evt_{id(func)}"
@@ -172,10 +144,13 @@ def event_callback_wrapper(
         widget.tk.deletecommand(func_id)
         _registered_commands.pop(func_id, None)
 
+    # Resolve and cache the builder once per registration (micro-opt).
+    build = builder_for(event_name)
+
     @wraps(func)
     def wrapper(*event_data):
         try:
-            event_obj = get_event_namedtuple(event_name, event_data)
+            event_obj = build(event_name, event_data)  # -> specific slots dataclass
             return func(event_obj)
         except BaseException as exc:
             _handle_exception(

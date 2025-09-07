@@ -6,7 +6,7 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets import Button
 from ttkbootstrap.widgets.parts.entry_part import EntryPart
-from ttkbootstrap.widgets.parts.number_spinner_part import NumberSpinnerPart
+from ttkbootstrap.widgets.parts.number_spinner_part import SpinboxPart
 from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
 from ttkbootstrap.style.theme import ColorTheme
@@ -56,7 +56,7 @@ class EntryField(Pack, EntryMixin, ABC):
         self._field.layout(fill='x', expand=True)
 
         if kind == "spinbox":
-            self._entry = NumberSpinnerPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
+            self._entry = SpinboxPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
         else:
             self._entry = EntryPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
 

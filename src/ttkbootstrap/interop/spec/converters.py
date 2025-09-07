@@ -28,10 +28,9 @@ event payload.
 """
 
 import json
+import re
 from datetime import datetime, timezone
 from json import JSONDecodeError
-
-from ttkbootstrap.interop.foundation.events import EventEnum
 
 
 def convert_event_timestamp(seconds: str) -> str:
@@ -47,17 +46,20 @@ def convert_event_state(state: str | int) -> int | str:
         return state
 
 
-def convert_event_data(data: str) -> object:
-    """Parse JSON string to Python object; return raw data on failure."""
+def convert_event_data(data: str):
+    # try plain JSON first
     try:
         return json.loads(data)
-    except JSONDecodeError:
-        return data
-
-
-def convert_event_type(type_code: str | int) -> EventEnum:
-    """Convert event type code to an EventEnum."""
-    return EventEnum(int(type_code))
+    except (TypeError, JSONDecodeError):
+        pass
+    # strip Tcl backslash-escapes for { } " \ and space, then parse
+    if isinstance(data, str):
+        cleaned = re.sub(r'\\([{}"\\ ])', r'\1', data)
+        try:
+            return json.loads(cleaned)
+        except JSONDecodeError:
+            return {}
+    return {}
 
 
 def convert_event_widget(name: str) -> str:
