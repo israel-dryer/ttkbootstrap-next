@@ -112,7 +112,7 @@ class CheckButton(BaseWidget):
         value = self._value_signal()
         prev_value = self._prev_value
         on_value = self.widget.cget("onvalue")
-        self.emit(Event.CHANGE, checked=value == on_value, value=value, prev_value=prev_value)
+        self.emit(Event.INPUT, checked=value == on_value, value=value, prev_value=prev_value)
         self._prev_value = value
 
     def on_change(
@@ -123,7 +123,7 @@ class CheckButton(BaseWidget):
         - If `handler` is provided → bind immediately and return self (chainable).
         - If no handler → return the Stream for Rx-style composition.
         """
-        stream = self.on(Event.CHANGE, scope=scope)
+        stream = self.on(Event.INPUT, scope=scope)
         if handler is None:
             return stream
         stream.listen(coerce_handler_args(handler))
