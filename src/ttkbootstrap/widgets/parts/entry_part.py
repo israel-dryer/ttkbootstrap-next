@@ -5,6 +5,7 @@ from tkinter.font import Font
 from typing import Any, Callable, Optional, Self, Unpack
 
 from ttkbootstrap.interop.runtime.binding import Scope, Stream
+from ttkbootstrap.interop.runtime.schedule import Job
 from ttkbootstrap.types import EventHandler, Justify, Padding, CoreOptions
 from ttkbootstrap.events import Event
 from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
@@ -81,12 +82,12 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         if isinstance(value, Signal):
             initial_display = value()
             initial_value = self._parse_or_none(initial_display) if display_format is not None else (
-                        initial_display or None)
+                    initial_display or None)
             self._signal = value
         elif isinstance(value, str):
             initial_display = value
             initial_value = self._parse_or_none(initial_display) if display_format is not None else (
-                        initial_display or None)
+                    initial_display or None)
             self._signal = Signal(initial_display)
         else:
             # Treat as parsed value and format for display
@@ -117,7 +118,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
 
         # text-only change tracking (featherweight hot path)
         self._prev_change_text = self._signal()
-        self._change_task: str | None = None
+        self._change_task: Job | None = None
         self._change_seq: int = 0  # guard to drop stale scheduled callbacks
 
         # On change event handler (subscribe after widget created/configured)
@@ -290,10 +291,10 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._change_seq += 1
         seq = self._change_seq
         if self._change_task:
-            self.schedule_cancel(self._change_task)
+            self.schedule.cancel(self._change_task)
 
         # schedule for next loop tick; stale tasks are ignored via seq guard
-        self._change_task = self.schedule(0, lambda: self._emit_change_if_current(seq, text))
+        self._change_task = self.schedule.after(0, lambda: self._emit_change_if_current(seq, text))
 
     def _emit_change_if_current(self, seq: int, text: str) -> None:
         """Run only for the newest scheduled change (drops stale callbacks)."""

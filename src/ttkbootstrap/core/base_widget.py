@@ -3,8 +3,9 @@ from __future__ import annotations
 import inspect
 import tkinter as tk
 from tkinter import ttk
-from typing import Callable, Literal, Type
+from typing import Literal, Type
 
+from ttkbootstrap.interop.runtime.schedule import Schedule
 from ttkbootstrap.types import Widget
 from ttkbootstrap.events import Event
 from ttkbootstrap.utils import unsnake_kwargs, resolve_parent
@@ -27,7 +28,17 @@ class BaseWidget(
     WidgetInfoMixin,
     ConfigureMixin,
 ):
+    """Core wrapper that creates a Tk/ttk widget and layers ttkbootstrap mixins.
+
+    Responsibilities:
+    - Normalize options and create the underlying Tk/ttk widget.
+    - Attach a `Schedule` for safe, UI-thread timers.
+    - Bind theme-change updates and apply a surface token.
+    - Register with the current layout container with an initial layout intent.
+    """
+
     _widget: ttk.Widget
+    schedule: Schedule
 
     def __init__(
             self,
@@ -38,6 +49,43 @@ class BaseWidget(
             tk_layout_options: dict | None = None,
             surface: str | None = None,
     ):
+        """
+        Create the underlying Tk/ttk widget, attach infrastructure, and register layout intent.
+
+        Parameters
+        ----------
+        tk_widget:
+            The concrete Tk/ttk widget class to instantiate (e.g., `ttk.Entry`, `ttk.Button`, `tk.Toplevel`, `tk.Tk`).
+        tk_widget_options:
+            Keyword options passed directly to the widget constructor. Keys may be in snake_case and
+            are normalized via `unsnake_kwargs`. May also include `"position"` which is extracted
+            for layout heuristics (`"static"`, `"absolute"`, or `"fixed"`).
+        parent:
+            The *logical* parent used for styling/registration with layout containers. If omitted,
+            the current layout context (`current_container()`) is used. This may differ from the
+            actual Tk master when `position="fixed"` (master becomes the toplevel).
+        tk_layout_options:
+            Options consumed by mixins and layout registration (e.g., initial layout intent).
+            If `"position"` appears here, it overrides the same key in `tk_widget_options`.
+        surface:
+            Optional theme surface token for this widget. If omitted, the surface is inherited from
+            the logical parent (when available).
+
+        Behavior
+        --------
+        - Determines the actual Tk master: for root widgets (`tk.Tk`) there is no master; for
+          `position="fixed"` the master is the toplevel; otherwise the logical parent.
+        - Instantiates the concrete widget and attaches a `Schedule` bound to that widget.
+        - Initializes mixins with the (possibly updated) layout options.
+        - Binds to `Event.THEME_CHANGED` and reapplies style via `_style_builder` when present.
+        - Registers the widget with the logical container and records an initial layout method
+          (`grid`, `pack`, or `place`) using simple heuristics.
+
+        Raises
+        ------
+        RuntimeError
+            If no `parent` or active layout container is available for non-root widgets.
+        """
         # --- Normalize options ---
         tk_widget_options = dict(tk_widget_options or {})
         tk_layout_options = dict(tk_layout_options or {})
@@ -52,7 +100,6 @@ class BaseWidget(
         # Identify widget class flavor
         is_class = inspect.isclass(tk_widget)
         is_root_class = is_class and issubclass(tk_widget, tk.Tk)
-        is_toplevel_class = is_class and issubclass(tk_widget, tk.Toplevel)
 
         # --- Decide Tk master (actual widget parent) ---
         if is_root_class:
@@ -73,6 +120,9 @@ class BaseWidget(
         else:
             master_arg = resolve_parent(self._master_ref)
             self._widget = tk_widget(master_arg, **tk_kwargs)
+
+        # Attached scheduler
+        self.schedule = Schedule(self._widget)
 
         # --- Now run cooperative mixin initializers (safe to bind now) ---
         super().__init__(**tk_layout_options)
@@ -114,41 +164,40 @@ class BaseWidget(
     # ---- Properties / Utilities unchanged below ----
     @property
     def parent(self):
+        """Return the logical parent/container used for layout and style inheritance."""
         return self._parent
 
     @property
     def widget(self) -> ttk.Widget:
+        """Return the underlying Tk/ttk widget instance."""
         return self._widget
 
     @property
     def tk(self):
+        """Return the Tcl interpreter handle (`tkapp`) of the underlying widget."""
         return self.widget.tk
 
     @property
     def surface_token(self):
+        """Return the effective theme surface token, inheriting from parent when unset."""
         if self._surface_token is not None:
             return self._surface_token
         return getattr(self._parent, "surface_token", None) if self._parent is not None else None
 
-    def schedule(self, ms: int, func: Callable, *args):
-        return self.widget.after(ms, func, *args)
-
-    def schedule_after_idle(self, func: Callable, *args):
-        return self.widget.after_idle(func, *args)
-
-    def schedule_cancel(self, func_id: str):
-        return self.widget.after_cancel(func_id)
-
     def is_ttk(self) -> bool:
+        """True if the underlying widget is a ttk widget (class name starts with 'T')."""
         return self.widget_class().startswith("T")
 
     def state(self, value: str | list[str] | tuple[str, ...] = None):
+        """Pass-through to ttk's `state()` for getting/setting widget state flags."""
         return self.widget.state(value)
 
     def destroy(self):
+        """Destroy the underlying widget."""
         self.widget.destroy()
 
     def update_style(self):
+        """Rebuild and apply the computed style when a theme/surface change occurs."""
         if hasattr(self, "_style_builder"):
             self._style_builder.surface(self.surface_token)
             style_name = self._style_builder.build()
@@ -158,7 +207,9 @@ class BaseWidget(
                 self.configure(style=style_name)
 
     def __str__(self):
+        """Return the Tk path name of the underlying widget."""
         return str(self._widget)
 
     def __repr__(self):
+        """Debug representation; returns the Tk path name."""
         return str(self._widget)

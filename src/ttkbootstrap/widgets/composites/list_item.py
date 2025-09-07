@@ -401,13 +401,13 @@ class ListItem(Pack):
         def defer(field, updater):
             value = record.get(field)
             if self._state.get(field) != value:
-                self.schedule_after_idle(lambda: updater(value))
+                self.schedule.idle(lambda: updater(value))
                 self._state[field] = value
 
         defer("badge", self._update_badge)
-        self.schedule_after_idle(self._update_chevron)
-        self.schedule_after_idle(self._update_delete)
-        self.schedule_after_idle(self._update_drag)
+        self.schedule.idle(self._update_chevron)
+        self.schedule.idle(self._update_delete)
+        self.schedule.idle(self._update_drag)
 
     def _add_composite_widget(self, widget):
         widget.update_style()  # for some reason, update_style will not be invoked by theme_change on composite.

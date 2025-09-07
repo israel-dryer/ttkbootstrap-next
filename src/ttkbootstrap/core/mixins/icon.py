@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable
+
+from ttkbootstrap.interop.runtime.schedule import Schedule
 from ttkbootstrap.utils import resolve_options
 from ttkbootstrap.events import Event
 
@@ -15,7 +17,7 @@ class IconMixin:
     process_idle_tasks: Callable
     has_focus: Callable[[], bool]
     on: Callable
-    schedule_after_idle: Callable
+    schedule: Schedule
 
     def __init__(self, *args, **kwargs):
         # Preserve any icon set by subclasses (e.g., Button.__init__)
@@ -73,7 +75,7 @@ class IconMixin:
             else:
                 self._set_image_if_needed(icons.get("normal"))
 
-        self.schedule_after_idle(apply)
+        self.schedule.idle(apply)
         return self
 
     def _update_icon_assets(self):

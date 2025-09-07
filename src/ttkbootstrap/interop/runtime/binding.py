@@ -46,6 +46,28 @@ T = TypeVar("T")
 U = TypeVar("U")
 
 
+# --------------------------------------------------------------------- timing
+class _TkScheduler:
+    """Small adapter around widget.after/after_cancel for time-based operators."""
+    __slots__ = ("_w",)
+
+    def __init__(self, widget) -> None:
+        self._w = widget
+
+    def call_later(self, ms: int, cb):
+        return self._w.after(ms, cb)
+
+    def call_idle(self, cb):
+        return self._w.after_idle(cb)
+
+    def cancel(self, token):
+        try:
+            self._w.after_cancel(token)
+        except Exception:
+            # token might already have fired or widget destroyed
+            pass
+
+
 class Subscription:
     """Handle returned by Stream terminals; call `.unlisten()` to detach."""
 
@@ -83,11 +105,12 @@ class Stream(Generic[T]):
       - then_stop_when(pred): subscribe a handler that returns 'break' when pred(value) is True
     """
 
-    __slots__ = ("_subs", "_on_empty")
+    __slots__ = ("_subs", "_on_empty", "_sched")
 
-    def __init__(self) -> None:
+    def __init__(self, scheduler: "_TkScheduler | None" = None) -> None:
         self._subs: List[Callable[[T], Any]] = []
         self._on_empty: Optional[Callable[[], None]] = None
+        self._sched = scheduler
 
     # ---------------- terminals ----------------------------------------------
 
@@ -120,21 +143,136 @@ class Stream(Generic[T]):
     # ---------------- operators ----------------------------------------------
 
     def map(self, f: Callable[[T], U]) -> "Stream[U]":
-        """Transform each value with `f`."""
-        out: Stream[U] = Stream()
-        self.listen(lambda v: out._next(f(v)))
+        out: Stream[U] = Stream(self._sched)
+        sub = self.listen(lambda v: out._next(f(v)))
+        out._on_empty = lambda: sub.unlisten()
         return out
 
     def filter(self, pred: Callable[[T], bool]) -> "Stream[T]":
-        """Only pass values for which `pred(value)` is True."""
-        out: Stream[T] = Stream()
-        self.listen(lambda v: out._next(v) if pred(v) else None)
+        out: Stream[T] = Stream(self._sched)
+        sub = self.listen(lambda v: out._next(v) if pred(v) else None)
+        out._on_empty = lambda: sub.unlisten()
         return out
 
     def tap(self, fn: Callable[[T], Any]) -> "Stream[T]":
-        """Run side effects but pass the original value through unchanged."""
-        out: Stream[T] = Stream()
-        self.listen(lambda v: (fn(v), out._next(v)))
+        out: Stream[T] = Stream(self._sched)
+        sub = self.listen(lambda v: (fn(v), out._next(v)))
+        out._on_empty = lambda: sub.unlisten()
+        return out
+
+    def delay(self, ms: int) -> "Stream[T]":
+        """Re-emit each value after `ms` milliseconds."""
+        out: Stream[T] = Stream(self._sched)
+        tokens: List[Any] = []
+
+        def on_value(v: T):
+            token = self._schedule(ms, lambda: out._next(v))
+            tokens.append(token)
+
+        sub = self.listen(on_value)
+
+        def _cleanup():
+            sub.unlisten()
+            for t in tokens:
+                if t is not None:
+                    self._sched.cancel(t)  # type: ignore[union-attr]
+
+        out._on_empty = _cleanup
+        return out
+
+    def idle(self) -> "Stream[T]":
+        """Re-emit each value at Tk idle (after current event processing)."""
+        out: Stream[T] = Stream(self._sched)
+        tokens: List[Any] = []
+
+        def on_value(v: T):
+            token = self._idle(lambda: out._next(v))
+            tokens.append(token)
+
+        sub = self.listen(on_value)
+
+        def _cleanup():
+            sub.unlisten()
+            for t in tokens:
+                if t is not None:
+                    self._sched.cancel(t)  # safe to call even if idle already fired
+
+        out._on_empty = _cleanup
+        return out
+
+    def debounce(self, ms: int) -> "Stream[T]":
+        """
+        Emit after no new values arrive for `ms` milliseconds.
+        Useful for keystroke-driven validation/formatting.
+        """
+        out: Stream[T] = Stream(self._sched)
+        last: Dict[str, Any] = {"value": None, "token": None}
+
+        def fire():
+            v = last["value"]
+            last["token"] = None
+            out._next(v)  # type: ignore[misc]
+
+        def on_value(v: T):
+            last["value"] = v
+            tok = last["token"]
+            if tok is not None:
+                self._sched.cancel(tok)  # type: ignore[union-attr]
+            last["token"] = self._schedule(ms, fire)
+
+        sub = self.listen(on_value)
+
+        def _cleanup():
+            sub.unlisten()
+            tok = last["token"]
+            if tok is not None:
+                self._sched.cancel(tok)  # type: ignore[union-attr]
+            last["token"] = None
+
+        out._on_empty = _cleanup
+        return out
+
+    def throttle(self, ms: int, *, leading: bool = True, trailing: bool = True) -> "Stream[T]":
+        """
+        Emit at most once every `ms` ms.
+        - leading=True: emit immediately on first event in window.
+        - trailing=True: emit once more at the end with the last value.
+        """
+        out: Stream[T] = Stream(self._sched)
+        state = {"open": True, "pending": False, "last": None, "timer": None}
+
+        def open_window():
+            state["open"] = True
+            state["timer"] = None
+            if trailing and state["pending"]:
+                out._next(state["last"])  # type: ignore[misc]
+                state["pending"] = False
+                state["open"] = False
+                state["timer"] = self._schedule(ms, open_window)
+
+        def on_value(v: T):
+            if state["open"]:
+                if leading:
+                    out._next(v)
+                else:
+                    # reserve trailing if not leading
+                    state["pending"] = True
+                    state["last"] = v
+                state["open"] = False
+                state["timer"] = self._schedule(ms, open_window)
+            else:
+                state["pending"] = True
+                state["last"] = v
+
+        sub = self.listen(on_value)
+
+        def _cleanup():
+            sub.unlisten()
+            if state["timer"] is not None:
+                self._sched.cancel(state["timer"])  # type: ignore[union-attr]
+            state["timer"] = None
+
+        out._on_empty = _cleanup
         return out
 
     # ---------------- internal -----------------------------------------------
@@ -142,6 +280,26 @@ class Stream(Generic[T]):
     def _next(self, v: T) -> None:
         for fn in list(self._subs):
             fn(v)
+
+    # ---------- operator utilities (for cleanup and scheduling) ---------------
+    def _chain(self, attach: Callable[[Callable[[T], Any]], "Subscription"], on_value: Callable[[T], Any]) -> "Stream":
+        out: Stream = Stream(self._sched)
+        sub = attach(lambda v: on_value(v))
+        out._on_empty = lambda: sub.unlisten()
+        return out
+
+    def _schedule(self, ms: int, fn: Callable[[], None]):
+        if not self._sched:
+            # Fallback: run immediately if no scheduler (shouldn't happen for Tk streams)
+            fn()
+            return None
+        return self._sched.call_later(ms, fn)
+
+    def _idle(self, fn: Callable[[], None]):
+        if not self._sched:
+            fn()
+            return None
+        return self._sched.call_idle(fn)
 
 
 # =============================================================================
@@ -176,7 +334,7 @@ class _EventHub:
             return s
 
         owner = self._owner_ref()
-        s = Stream[Any]()
+        s = Stream[Any](scheduler=_TkScheduler(owner.widget))
         self._streams[key] = s
 
         if owner is None:
