@@ -17,8 +17,10 @@ Features
 
 New
 ---
-- Stream API: `.on(event, scope=...) -> Stream` with `.map()`, `.filter()`,
-  and `.listen()` (aliases: `.subscribe()`, `.track()`, `.sub()`).
+- Stream API:
+    * `.on(event, scope=...) -> Stream` (lazy pipeline; no Tk bind yet)
+    * Operators: `.map()`, `.filter()`, `.tap()` (return Stream)
+    * Terminals: `.listen()`, `.then_stop()`, `.then_stop_when()` (return Subscription)
 - `scope` may be:
     * "widget" (default) — bind to this widget (uses `bind`)
     * "all"             — bind to the application (uses `bind_all`)
@@ -29,7 +31,6 @@ from __future__ import annotations
 
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic, Literal, Union
-
 import weakref
 
 from ttkbootstrap.interop.runtime.commands import event_callback_wrapper
@@ -46,7 +47,7 @@ U = TypeVar("U")
 
 
 class Subscription:
-    """Handle returned by Stream.listen(); call .unlisten() to detach."""
+    """Handle returned by Stream terminals; call `.unlisten()` to detach."""
 
     __slots__ = ("_cancel", "_done")
 
@@ -69,39 +70,54 @@ class Subscription:
 
 class Stream(Generic[T]):
     """
-    Minimal push-stream supporting map/filter and listener management.
+    Minimal push-stream with composition + terminals.
 
-    - `listen(fn)` attaches a sink and returns a Subscription.
-    - `map(f)` transforms values.
-    - `filter(pred)` drops values that don't match the predicate.
+    Operators (return Stream; composition only):
+      - map(f): transform values
+      - filter(pred): pass only matching values
+      - tap(fn): run side-effects and pass original value through
+
+    Terminals (return Subscription; these CREATE the Tk binding):
+      - listen(fn): subscribe a handler (its return may be 'break')
+      - then_stop(): subscribe a handler that always returns 'break'
+      - then_stop_when(pred): subscribe a handler that returns 'break' when pred(value) is True
     """
 
     __slots__ = ("_subs", "_on_empty")
 
     def __init__(self) -> None:
-        self._subs: List[Callable[[T], None]] = []
+        self._subs: List[Callable[[T], Any]] = []
         self._on_empty: Optional[Callable[[], None]] = None
 
-    # --- subscription API -----------------------------------------------------
+    # ---------------- terminals ----------------------------------------------
 
-    def listen(self, fn: Callable[[T], None]) -> Subscription:
-        """Attach a listener that receives each value."""
+    def listen(self, fn: Callable[[T], Any]) -> Subscription:
+        """Subscribe a handler for each value (this CREATES the Tk binding)."""
         self._subs.append(fn)
 
         def _cancel() -> None:
             if fn in self._subs:
                 self._subs.remove(fn)
-            if not self._subs and self._on_empty:
-                self._on_empty()
+            if not self._subs and self._on_empty is not None:
+                cb = self._on_empty  # narrow Optional for linters
+                cb()  # type: ignore[misc]
 
         return Subscription(_cancel)
 
-    # Aliases users asked for
-    subscribe = listen
-    track = listen
-    sub = listen
+        # ergonomic aliases available via external assignment if desired:
+        # subscribe = listen
+        # track = listen
+        # sub = listen
 
-    # --- operators ------------------------------------------------------------
+    def then_stop(self) -> Subscription:
+        """Subscribe a handler that always stops Tk propagation (returns 'break')."""
+        return self.listen(lambda _v: "break")
+
+    def then_stop_when(self, pred: Callable[[T], bool]) -> Subscription:
+        """Subscribe a handler that stops Tk propagation when predicate is True."""
+        return self.listen(lambda v: "break" if pred(v) else None)
+
+    # ---------------- operators ----------------------------------------------
 
     def map(self, f: Callable[[T], U]) -> "Stream[U]":
         """Transform each value with `f`."""
@@ -115,10 +131,15 @@ class Stream(Generic[T]):
         self.listen(lambda v: out._next(v) if pred(v) else None)
         return out
 
-    # --- internal -------------------------------------------------------------
+    def tap(self, fn: Callable[[T], Any]) -> "Stream[T]":
+        """Run side effects but pass the original value through unchanged."""
+        out: Stream[T] = Stream()
+        self.listen(lambda v: (fn(v), out._next(v)))
+        return out
+
+    # ---------------- internal -----------------------------------------------
 
     def _next(self, v: T) -> None:
-        # Snapshot to tolerate unsubscription during iteration
         for fn in list(self._subs):
             fn(v)
 
@@ -162,10 +183,18 @@ class _EventHub:
             # Owner is gone; return inert stream
             return s
 
-        # Single Tk binding → fan out to all listeners of this stream
-        def _dispatcher(event: Any) -> None:
-            # Whatever event_callback_wrapper provides is forwarded as payload
-            s._next(event)
+        # Single Tk binding → fan out to all listeners of this stream.
+        # IMPORTANT: if any listener returns "break", we return "break" to Tk.
+        def _dispatcher(event: Any):
+            broke = False
+            for fn in list(s._subs):
+                try:
+                    if fn(event) == "break":
+                        broke = True
+                except Exception:
+                    # Optional: log via your error bus; we avoid breaking the chain.
+                    pass
+            return "break" if broke else None
 
         # Route to the correct underlying binder
         if scope_key == "widget":
@@ -238,7 +267,7 @@ class BindingMixin:
         )
         self.__tcl_bound_events[sequence].append(func_id)
         self.__tcl_callbacks[func_id] = func
-        return func_id  # :contentReference[oaicite:2]{index=2}
+        return func_id
 
     def bind_class(
             self,
@@ -339,7 +368,7 @@ class BindingMixin:
     @staticmethod
     def _normalize(ev: EventType) -> str:
         """Normalize an Event or str to a Tk event sequence string."""
-        return str(ev)  #
+        return str(ev)
 
     # ============================================================= stream entry
 
@@ -353,6 +382,14 @@ class BindingMixin:
         """
         Create (or reuse) a Stream for the given Tk event sequence and scope.
 
+        IMPORTANT
+        ---------
+        This method is **lazy**: it builds the pipeline but performs **no Tk
+        binding** until you call a **terminal operator**:
+            - `.listen(handler)`
+            - `.then_stop()`
+            - `.then_stop_when(predicate)`
+
         Parameters
         ----------
         event : EventType
@@ -364,9 +401,11 @@ class BindingMixin:
 
         Notes
         -----
-        - This does a single underlying Tk `bind` per (scope, sequence) and
+        - A single underlying Tk `bind` is installed per (scope, sequence) and
           multiplexes to all listeners of the returned Stream.
         - Internally routes to `.bind`, `.bind_all`, or `.bind_class`.
+        - If any listener returns the string "break", the dispatcher returns
+          "break" to Tk and propagation stops for that event instance.
         """
         sequence = self._normalize(event)
         return self._ensure_hub().on(sequence, scope)

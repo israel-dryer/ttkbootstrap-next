@@ -1,6 +1,9 @@
 from tkinter import ttk
-from typing import Callable, Literal, Optional, Union, Unpack, cast
+from typing import Any, Callable, Literal, Optional, Self, Union, Unpack, cast
 
+from ttkbootstrap.events import Event
+from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.types import Compound, IconPosition, Padding, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.signals.signal import Signal
@@ -41,7 +44,6 @@ class Button(BaseWidget, IconMixin):
     _configure_methods = {
         "text": "text",
         "text_signal": "text_signal",
-        "on_click": "on_click",
         "icon": "icon",
         "icon_position": "icon_position",
         "color": "color",
@@ -103,15 +105,18 @@ class Button(BaseWidget, IconMixin):
         """Indicates if button is in a disabled state"""
         return "disabled" in self.widget.state()
 
-    def on_click(self, func: Optional[Callable] = None):
-        """Get or set the button click handler."""
-        if func is None:
-            return self._on_click
-        if func is not None and callable(func):
-            self._on_click = func
-            self.configure(command=func)
-        else:
-            raise TypeError(f"`on_click` must be callable, got {type(func).__name__}") from None
+    def on_click(
+            self, handler: Optional[Callable] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<Button-1>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CLICK, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(coerce_handler_args(handler))
         return self
 
     def text(self, value: str = None):

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from tkinter import ttk
 from tkinter.font import Font
-from typing import Any, Callable, Optional, Unpack
+from typing import Any, Callable, Optional, Self, Unpack, overload
 
+from ttkbootstrap.interop.runtime.binding import Scope, Stream
 from ttkbootstrap.types import Justify, Padding, CoreOptions
-from ttkbootstrap.events import Event, event_handler
+from ttkbootstrap.events import Event
 from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
@@ -51,10 +52,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         "display": "display",
         "display_format": "display_format",
         "allow_blank": "allow_blank",
-        "on_value_change": "on_value_change",
-        "on_enter": "on_enter",
-        "on_changed": "on_changed",
-        "on_change": "on_change",
         "signal": "signal",
         "readonly": "readonly",
         "commit": "commit",
@@ -122,17 +119,26 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
 
         # External callbacks
         if on_change:
-            self.on_change(on_change)
+            self.on_change().listen(on_change)
         if on_enter:
-            self.on_enter(on_enter)
+            self.on_enter().listen(on_enter)
 
         # On change event handler
         self._on_change_fid = self._signal.subscribe(self._handle_change)
 
         # Normalize-on-commit on blur/enter, and emit CHANGED only when parsed value differs
-        self.bind(Event.FOCUS, self._store_prev_value)
-        self.bind(Event.BLUR, lambda e: (self.commit(), self._check_if_changed(None)))
-        self.bind(Event.RETURN, lambda e: (self.commit(), self._check_if_changed(None), "break"))
+
+        def _do_blur(_: Any):
+            self.commit()
+            self._check_if_changed(None)
+
+        def _do_return(_: Any):
+            self.commit()
+            self._check_if_changed(None)
+
+        self.on(Event.FOCUS).listen(self._store_prev_value)
+        self.on(Event.BLUR).listen(_do_blur)
+        self.on(Event.RETURN).tap(_do_return).then_stop()
 
         if initial_focus:
             self.focus()
@@ -165,7 +171,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
 
     def commit(self) -> None:
         # parse from the live widget text (fresh)
-        s = ""
         try:
             s = self.widget.get()
         except Exception:
@@ -259,29 +264,57 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             )
             self._prev_changed_value = self._value
 
-    @event_handler(Event.CHANGE)
-    def on_change(self, value=None):
-        """Bind or get the <<Change>> event handler"""
-        ...
+    def on_change(
+            self,
+            handler: Optional[Callable[[Any], Any]] = None,
+            *, scope: Scope = "widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<Change>>.
 
-    def _transform_on_enter(self, event: Any):
-        """Transform for the on_enter handler"""
-        event.data.update(
-            {
-                "value": encode_event_value_data(self._value),
-                "text": self.display()}
-        )
-        return event
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CHANGE, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
 
-    @event_handler(Event.RETURN, transform="_transform_on_enter")
-    def on_enter(self, value: Callable = None):
-        """Bind or get the <Return> event handler"""
-        ...
+    def on_enter(
+            self,
+            handler: Optional[Callable[[Any], Any]] = None,
+            *, scope: Scope = "widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <Return>.
 
-    @event_handler(Event.CHANGED)
-    def on_changed(self, value: Callable = None):
-        """Bind or get the <<Changed>> event handler"""
-        ...
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+
+        def update(e: Any):
+            """Update event data with value and text"""
+            e.data.update(
+                {
+                    "value": encode_event_value_data(self._value),
+                    "text": self.display()
+                })
+            return e
+
+        stream = self.on(Event.RETURN, scope=scope).map(update)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
+
+    def on_changed(self, handler: Callable[[any], any] = None, *, scope: Scope = "widget") -> Stream | Self:
+        """Stream or chainable binding for <<Changed>>.
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CHANGED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
 
     # ---------------------------
     # Internals / lifecycle

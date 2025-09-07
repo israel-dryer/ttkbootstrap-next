@@ -1,10 +1,11 @@
 from __future__ import annotations
 from tkinter import ttk
-from typing import Any, Callable, Literal, Optional, Protocol, Type, TypedDict, Union, Unpack, cast
+from typing import Any, Callable, Literal, Optional, Protocol, Self, Type, TypedDict, Union, Unpack, cast
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
-from ttkbootstrap.events import Event, event_handler
+from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
+from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.layouts import Pack, Grid
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.types import Anchor, CoreOptions, Fill, Gap, Padding, Sticky, Widget
@@ -41,11 +42,6 @@ class PageStack(BaseWidget):
     Grid: Type[GridPage]
 
     _configure_methods = {"surface": "surface"}
-
-    @event_handler(Event.PAGE_CHANGED)
-    def on_page_changed(self, event: Any) -> Event:
-        """Bind or get callback for <<PageChanged>> handler"""
-        ...
 
     def __init__(self, **kwargs: Unpack[PageStackOptions]):
         """
@@ -170,6 +166,20 @@ class PageStack(BaseWidget):
         """Return a list of all page identifiers."""
         return list(self._pages.keys())
 
+    def on_page_changed(
+            self, handler: Optional[Callable[[Any], Any]] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<PageChanged>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.PAGE_CHANGED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
+
     @staticmethod
     def _validate_options(options: dict):
         """Validate page options for correctness."""
@@ -202,11 +212,8 @@ class PackPageOptions(TypedDict, total=False):
     variant: str
 
 
-class PageMixin:
+class PageMixin(BaseWidget):
     """Mixin that provides page lifecycle hooks and metadata."""
-
-    bind: Callable
-    widget: Widget
 
     def __init__(self, name: str, **kwargs):
         """
@@ -220,20 +227,47 @@ class PageMixin:
         self._page_options = {}
         super().__init__(**kwargs)
 
-    @event_handler(Event.PAGE_MOUNTED)
-    def on_page_mounted(self, event: Any):
-        """Bind or get the <<PageMounted>> handler"""
-        ...
+    def on_page_mounted(
+            self, handler: Optional[Callable[[Any], Any]] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<PageMounted>>
 
-    @event_handler(Event.PAGE_WILL_MOUNT)
-    def on_page_will_mounted(self, event: Any):
-        """Bind or get the <<PageWillMounted>> handler"""
-        ...
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.PAGE_MOUNTED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
 
-    @event_handler(Event.PAGE_CHANGED)
-    def on_page_unmounted(self, event: Any):
-        """Bind or get the <<PageUnmounted>> handler"""
-        ...
+    def on_page_will_mount(
+            self, handler: Optional[Callable[[Any], Any]] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<PageWillMount>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.PAGE_WILL_MOUNT, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
+
+    def on_page_unmounted(
+            self, handler: Optional[Callable[[Any], Any]] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<PageUnmounted>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.PAGE_UNMOUNTED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
 
     @property
     def name(self):

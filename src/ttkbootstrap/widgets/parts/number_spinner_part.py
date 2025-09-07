@@ -1,10 +1,12 @@
 from tkinter.font import Font
-from typing import Any, Callable, Unpack
+from typing import Any, Callable, Optional, Self, Unpack
 
 from tkinter import ttk
 
+from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.types import Justify, Padding, CoreOptions, Number
-from ttkbootstrap.events import Event, event_handler
+from ttkbootstrap.events import Event
 from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
@@ -65,9 +67,6 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
 
     _configure_methods = {
         "value": "value",
-        "on_change": "on_change",
-        "on_enter": "on_enter",
-        "on_changed": "on_changed",
         "formatter": "formatter",
         "signal": "signal",
         "readonly": "readonly"
@@ -183,15 +182,33 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
             self._on_change_fid = self._signal.subscribe(lambda _: self._on_change(self._signal()))
             return self
 
-    @event_handler(Event.RETURN)
-    def on_enter(self, handler: Callable = None):
-        """Bind or get the <Return> event handler."""
-        return self._signal()
+    def on_enter(
+            self, handler: Optional[Callable] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <Return>
 
-    @event_handler(Event.CHANGED)
-    def on_changed(self, handler: Callable = None):
-        """Bind or get the <<Changed>> event handler."""
-        return self._signal()
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.RETURN, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(coerce_handler_args(handler))
+        return self
+
+    def on_changed(
+            self, handler: Optional[Callable[[Any], Any]] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<Changed>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CHANGED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
 
     def destroy(self) -> None:
         """Unsubscribe from signal and destroy the widget."""
