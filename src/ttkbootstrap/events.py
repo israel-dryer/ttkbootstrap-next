@@ -76,7 +76,7 @@ class Event(StrEnum):
     CONFIGURE = "<Configure>"
 
     # Virtual events
-    CHANGE = "<<Change>>"
+    INPUT = "<<Input>>"
     CHANGED = "<<Changed>>"
     MODIFIED = "<<Modified>>"
     THEME_CHANGED = "<<ThemeChanged>>"
