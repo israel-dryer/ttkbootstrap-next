@@ -1,4 +1,7 @@
-from typing import Any, Literal, Callable, Self, Union, Unpack
+from typing import Any, Literal, Optional, Self, Union, Unpack
+
+from ttkbootstrap.events import Event
+from ttkbootstrap.types import EventHandler
 from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
 from ttkbootstrap.widgets.button import Button
@@ -24,7 +27,7 @@ class FileEntry(EntryField):
         label: Text to display on the button. Defaults to "Choose File".
         dialog_type: Type of dialog to display (e.g., 'openfilename', 'directory').
         dialog_options: Additional options passed to the file dialog (e.g., filetypes).
-        on_change: Optional callback function called with the selected file path(s) as a string.
+        on_changed: Optional callback function called with the selected file path(s) as a string.
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
@@ -34,7 +37,7 @@ class FileEntry(EntryField):
             label: str = "Choose File",
             dialog_type: DialogType = "openfilename",
             dialog_options: dict[str, Any] = None,
-            on_change: Callable[[str], Any] = None,
+            on_changed: Optional[EventHandler] = None,
             **kwargs: Unpack[EntryOptions]
     ):
         self._dialog_type = dialog_type
@@ -51,8 +54,8 @@ class FileEntry(EntryField):
             on_click=self._show_file_chooser
         )
 
-        if on_change:
-            self.on_change(on_change)
+        if on_changed:
+            self.on_changed(on_changed)
 
     @property
     def file_dialog_button(self) -> Button:
@@ -115,3 +118,6 @@ class FileEntry(EntryField):
 
         if result:
             self.value(result)
+            self.entry_widget.emit(Event.CHANGED, value=result, prev_value=self.entry_widget._prev_changed_value)
+            # prevent event from firing again on blur
+            self.entry_widget.commit()
