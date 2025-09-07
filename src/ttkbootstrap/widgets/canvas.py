@@ -285,9 +285,9 @@ class Canvas(BaseWidget, ContainerMixin):
             kwargs['fill'] = self._theme.on_color(surface)
         item = self.widget.create_text(x, y, text=text, **unsnake_kwargs(kwargs))
         if bind_fill_to_theme:
-            self.bind(
-                Event.THEME_CHANGED, lambda _: self.configure_item(
-                    item, fill=self._theme.on_color(self._theme.color(self._style_builder.surface()))), add=True)
+            self.on(Event.THEME_CHANGED).listen(
+                lambda _: self.configure_item(
+                    item, fill=self._theme.on_color(self._theme.color(self._style_builder.surface()))))
         return item
 
     def draw_polygon(

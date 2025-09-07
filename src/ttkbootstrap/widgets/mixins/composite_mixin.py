@@ -18,7 +18,7 @@ class CompositeWidgetMixin:
         events = events or ['enter', 'leave', 'mouse-down', 'mouse-up']
         for event in events:
             self._composite_states[event].append(widget)
-            widget.bind(event, self._composite_callbacks[event])
+            widget.on(event).listen(self._composite_callbacks[event])
 
     def _apply_state(self, event: str, state: str, enable: bool):
         for widget in self._composite_states[event]:
