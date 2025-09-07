@@ -79,7 +79,7 @@ class BaseWidget(
 
         # Theme surface & binding
         self._surface_token = surface
-        self.bind(Event.THEME_CHANGED, lambda _: self.update_style())
+        self.on(Event.THEME_CHANGED).listen(lambda _: self.update_style())
 
         # Auto-register with the *logical* container (if any)
         container = self._parent

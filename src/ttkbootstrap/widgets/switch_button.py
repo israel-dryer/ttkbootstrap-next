@@ -23,8 +23,6 @@ class SwitchButton(BaseWidget):
         "value_signal": "value_signal",
         "text": "text",
         "readonly": "readonly",
-        "on_change": "on_change",
-        "on_toggle": "on_toggle",
     }
 
     def __init__(

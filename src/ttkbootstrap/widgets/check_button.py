@@ -1,7 +1,10 @@
-from typing import Any, Callable, Optional, Unpack
+from typing import Any, Callable, Optional, Self, Unpack
 
 from tkinter import ttk
 
+from ttkbootstrap.events import Event
+from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.types import CoreOptions
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
@@ -39,8 +42,6 @@ class CheckButton(BaseWidget):
         "value_signal": "value_signal",
         "text": "text",
         "readonly": "readonly",
-        "on_change": "on_change",
-        "on_toggle": "on_toggle",
     }
 
     def __init__(
@@ -99,25 +100,31 @@ class CheckButton(BaseWidget):
             self.widget.invoke()
             self.widget.invoke()
 
-    def on_change(self, value: Callable[[Any], Any] = None):
+    # TODO set this up to use the <<Change>> event like the entry widget.
+    def on_change(self, handler: Callable[[Any], Any] = None):
         """Callback triggered whenever the value signal changes (even from another grouped checkbutton)"""
-        if value is None:
+        if handler is None:
             return self._on_change
         else:
             if self._on_change_fid:
                 self._value_signal.unsubscribe(self._on_change)
-            self._on_change = value
+            self._on_change = handler
             self._on_change_fid = self._value_signal.subscribe(self._on_change)
             return self
 
-    def on_toggle(self, value: Callable[[Any], Any] = None):
-        """Callback triggered whenever the button is clicked"""
-        if value is None:
-            return self._on_toggle
-        else:
-            self._on_toggle = value
-            self.widget.configure(command=value)
-            return self
+    def on_toggle(
+            self, handler: Optional[Callable] = None,
+            *, scope="widget") -> Stream[Any] | Self:
+        """Stream or chainable binding for <<Button-1>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CLICK, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(coerce_handler_args(handler))
+        return self
 
     def color(self, value: SemanticColor = None):
         """Get or set the color role."""

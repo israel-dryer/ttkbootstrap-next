@@ -85,7 +85,7 @@ class Scale(BaseWidget):
             self._on_change_fid = self.on_change(self._on_change)
 
         # receive focus when clicked
-        self.bind(Event.CLICK, self.focus)
+        self.on(Event.CLICK).listen(self.focus)
 
         # add mouse wheel scaling
         self._bind_mouse_wheel()
@@ -107,10 +107,10 @@ class Scale(BaseWidget):
 
         # Windows/macOS use <MouseWheel>, Linux/X11 uses Button-4/5 for scroll
         if self.windowing_system() in ("win32", "aqua"):
-            self.bind(Event.MOUSE_WHEEL, self._on_mousewheel_windows_mac, add=True)
+            self.on(Event.MOUSE_WHEEL).listen(self._on_mousewheel_windows_mac)
         else:  # x11
-            self.bind(Event.WHEEL_UP, self._on_mousewheel_x11, add=True)
-            self.bind(Event.WHEEL_DOWN, self._on_mousewheel_x11, add=True)
+            self.on(Event.WHEEL_UP).listen(self._on_mousewheel_x11)
+            self.on(Event.WHEEL_DOWN).listen(self._on_mousewheel_x11)
 
     def _wheel_step(self, event=None) -> float:
         """Base step derived from precision; hold Shift for 10x."""

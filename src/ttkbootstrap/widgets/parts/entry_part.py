@@ -154,7 +154,10 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._signal.set(text)
         return self
 
-    def value(self):
+    def value(self, value=None):
+        if value is not None:
+            self._signal.set(value)
+            return self
         if self._dirty_text:
             # compute *now* from the UI to avoid lag
             try:

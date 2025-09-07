@@ -198,12 +198,12 @@ class _EventHub:
 
         # Route to the correct underlying binder
         if scope_key == "widget":
-            func_id = owner.bind(sequence, _dispatcher, add=True, dedup=True)
+            func_id = owner._bind_widget(sequence, _dispatcher, add=True, dedup=True)
         elif scope_key == "all":
-            func_id = owner.bind_all(sequence, _dispatcher, add=True)
+            func_id = owner._bind_all(sequence, _dispatcher, add=True)
         else:
             # scope_key is a Tk class name
-            func_id = owner.bind_class(scope_key, sequence, _dispatcher, add=True)
+            func_id = owner._bind_class(scope_key, sequence, _dispatcher, add=True)
 
         self._func_ids[key] = func_id
 
@@ -249,7 +249,7 @@ class BindingMixin:
 
     # ------------------------------------------------------------------ binders
 
-    def bind(
+    def _bind_widget(
             self,
             event: EventType,
             func: Callable,
@@ -269,7 +269,7 @@ class BindingMixin:
         self.__tcl_callbacks[func_id] = func
         return func_id
 
-    def bind_class(
+    def _bind_class(
             self,
             class_name: str,
             event: EventType,
@@ -289,7 +289,7 @@ class BindingMixin:
         self.__tcl_callbacks[func_id] = func
         return func_id
 
-    def bind_all(
+    def _bind_all(
             self,
             event: EventType,
             func: Callable,

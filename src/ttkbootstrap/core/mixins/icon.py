@@ -14,7 +14,7 @@ class IconMixin:
     configure: Callable
     process_idle_tasks: Callable
     has_focus: Callable[[], bool]
-    bind: Callable
+    on: Callable
     schedule_after_idle: Callable
 
     def __init__(self, *args, **kwargs):
@@ -31,7 +31,7 @@ class IconMixin:
         super().__init__(*args, **kwargs)
 
         # Now it's safe to bind + build assets
-        self.bind(Event.THEME_CHANGED, self._on_theme_changed)
+        self.on(Event.THEME_CHANGED).listen(self._on_theme_changed)
         self._update_icon_assets()
 
     def _set_image_if_needed(self, image):
@@ -138,13 +138,13 @@ class IconMixin:
             self._selected_state_icon = False
             self._set_image_if_needed(icons.get("normal"))
 
-        self.bind(Event.ENTER, on_enter)
-        self.bind(Event.LEAVE, on_leave)
-        self.bind(Event.FOCUS, on_focus_in)
-        self.bind(Event.BLUR, on_focus_out)
-        self.bind(Event.MOUSE_DOWN, on_press)
-        self.bind(Event.SELECTED, on_selected)
-        self.bind(Event.DESELECTED, on_deselected)
+        self.on(Event.ENTER).listen(on_enter)
+        self.on(Event.LEAVE).listen(on_leave)
+        self.on(Event.FOCUS).listen(on_focus_in)
+        self.on(Event.BLUR).listen(on_focus_out)
+        self.on(Event.MOUSE_DOWN).listen(on_press)
+        self.on(Event.SELECTED).listen(on_selected)
+        self.on(Event.DESELECTED).listen(on_deselected)
 
         self._stateful_icons_bound = True
 

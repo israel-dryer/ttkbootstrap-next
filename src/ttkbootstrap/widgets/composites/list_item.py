@@ -336,7 +336,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', marginx=6)
-                self._delete_widget.bind(Event.MOUSE_DOWN, lambda _: self.delete())
+                self._delete_widget.on(Event.MOUSE_DOWN).listen(lambda _: self.delete())
                 self._add_composite_widget(self._delete_widget)
         else:
             # remove the widget
@@ -412,7 +412,7 @@ class ListItem(Pack):
     def _add_composite_widget(self, widget):
         widget.update_style()  # for some reason, update_style will not be invoked by theme_change on composite.
         self._composite_widgets.add(widget)
-        widget.bind(Event.ENTER, self._on_enter)
-        widget.bind(Event.LEAVE, self._on_leave)
-        widget.bind(Event.MOUSE_DOWN, self._on_mouse_down)
-        widget.bind(Event.MOUSE_UP, self._on_mouse_up)
+        widget.on(Event.ENTER).listen(self._on_enter)
+        widget.on(Event.LEAVE).listen(self._on_leave)
+        widget.on(Event.MOUSE_DOWN).listen(self._on_mouse_down)
+        widget.on(Event.MOUSE_UP).listen(self._on_mouse_up)

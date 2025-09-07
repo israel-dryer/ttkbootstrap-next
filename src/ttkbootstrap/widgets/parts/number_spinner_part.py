@@ -121,8 +121,8 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
         if on_enter:
             self.on_enter(on_enter)
 
-        self.bind(Event.FOCUS, self._store_prev_value)
-        self.bind(Event.BLUR, self._check_if_changed)
+        self.on(Event.FOCUS).listen(self._store_prev_value)
+        self.on(Event.BLUR).listen(self._check_if_changed)
 
         if initial_focus:
             self.focus()
@@ -190,7 +190,10 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
         - If `handler` is provided → bind immediately and return self (chainable).
         - If no handler → return the Stream for Rx-style composition.
         """
-        stream = self.on(Event.RETURN, scope=scope)
+        def transform(event: Any):
+            event.data.update(value=self.value())
+            return event
+        stream = self.on(Event.RETURN, scope=scope).map(transform)
         if handler is None:
             return stream
         stream.listen(coerce_handler_args(handler))

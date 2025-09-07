@@ -48,7 +48,7 @@ class EntryField(Pack, EntryMixin, ABC):
         self._addons: dict[str, Union[Button, Label]] = {}
 
         # add top and bottom labels (conditionally attached)
-        self._label = Label(label + ('*' if required else ''), parent=self, font="label").layout(fill='x')
+        self._label = Label((label or '') + ('*' if required else ''), parent=self, font="label").layout(fill='x')
         self._message = Label(message, parent=self, font="caption", foreground="secondary").layout(fill='x')
 
         # field container & field
@@ -65,12 +65,12 @@ class EntryField(Pack, EntryMixin, ABC):
         self._field.attach()
         self._entry.attach()
         self._message.attach()  # always reserve space for messages
-        self._entry.bind(Event.INVALID, self._show_error, add=True)
-        self._entry.bind(Event.VALID, self._clear_error, add=True)
+        self._entry.on(Event.INVALID).listen(self._show_error)
+        self._entry.on(Event.VALID).listen(self._clear_error)
 
         # Bind focus styling to the field frame
-        self._entry.bind(Event.FOCUS, lambda e: self._field.state(["focus"]))
-        self._entry.bind(Event.BLUR, lambda e: self._field.state(["!focus"]))
+        self._entry.on(Event.FOCUS).listen(lambda _: self._field.state(["focus"]))
+        self._entry.on(Event.BLUR).listen(lambda _: self._field.state(["!focus"]))
 
         # Add required field
         if required:
@@ -190,8 +190,8 @@ class EntryField(Pack, EntryMixin, ABC):
                 instance.disable()
 
         # bind focus events to field frame
-        instance.bind(Event.FOCUS, lambda e: self._field.state(['focus']))
-        instance.bind(Event.BLUR, lambda e: self._field.state(['!focus']))
+        instance.on(Event.FOCUS).listen(lambda _: self._field.state(['focus']))
+        instance.on(Event.BLUR).listen(lambda _: self._field.state(['!focus']))
         return self
 
     def _show_error(self, event: Any):
