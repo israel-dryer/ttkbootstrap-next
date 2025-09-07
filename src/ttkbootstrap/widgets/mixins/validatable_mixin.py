@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Self, Unpack
+from typing import Any, Optional, Self, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
@@ -75,8 +75,8 @@ class ValidationMixin(BaseWidget):
 
     def _setup_validation_events(self):
         """Bind 'keyup' and 'blur' events to automatic validation checks."""
-        self.on(Event.KEYUP).listen(lambda _: self.validate(self.value(), "key"))
-        self.on(Event.BLUR).listen(lambda _: self.validate(self.value(), "blur"))
+        self.on(Event.KEYUP).debounce(50).listen(lambda _: self.validate(self.value(), "key"))
+        self.on(Event.BLUR).debounce(50).listen(lambda _: self.validate(self.value(), "blur"))
 
     def add_validation_rule(self, rule_type: RuleType, **kwargs: Unpack[ValidationOptions]):
         """Add a single validation rule."""
