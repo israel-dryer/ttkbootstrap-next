@@ -1,16 +1,16 @@
 from tkinter import ttk
 from typing import Any, Literal, Optional, Self, Union, Unpack, cast
 
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
-from ttkbootstrap.types import AltEventHandler, Compound, IconPosition, Padding, CoreOptions
-from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.core.mixins.icon import IconMixin
-from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
 from ttkbootstrap.style.builders.button import ButtonStyleBuilder
 from ttkbootstrap.style.types import ButtonVariant, SemanticColor
+from ttkbootstrap.types import AltEventHandler, Compound, CoreOptions, IconPosition, Padding
+from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
 
 
 class ButtonOptions(CoreOptions, total=False):
