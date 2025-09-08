@@ -1,9 +1,10 @@
 from typing import Unpack
 
 from ttkbootstrap.events import Event
-from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
+
 
 class NumberEntryOptions(EntryOptions, total=False):
     required: bool
