@@ -96,6 +96,7 @@ class Event(StrEnum):
     INPUT_METHOD_CHANGED = "<<IMChanged>>"
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
     STATE_CHANGED = "<<StateChanged>>"
+    TOGGLE = "<<Toggle>>"
 
     # Validation
     INVALID = "<<Invalid>>"
