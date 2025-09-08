@@ -1,11 +1,11 @@
+from tkinter import filedialog
 from typing import Any, Literal, Optional, Self, Union, Unpack
 
 from ttkbootstrap.events import Event
 from ttkbootstrap.types import EventHandler
+from ttkbootstrap.widgets.button import Button
 from ttkbootstrap.widgets.composites.entry_field import EntryField
 from ttkbootstrap.widgets.parts.entry_part import EntryOptions
-from ttkbootstrap.widgets.button import Button
-from tkinter import filedialog
 
 DialogType = Literal[
     'openfilename', 'openfile', 'directory', 'openfilenames', 'openfiles',
