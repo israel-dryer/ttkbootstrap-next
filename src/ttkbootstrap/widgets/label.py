@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from tkinter import ttk
 from typing import Unpack
 
-from ttkbootstrap.types import Anchor, Compound, IconPosition, Image, Justify, Padding, CoreOptions
-from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.core.mixins.icon import IconMixin
+from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.builders.label import LabelStyleBuilder
-from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
 from ttkbootstrap.style.types import ForegroundColor, SurfaceColor, TypographyToken
+from ttkbootstrap.types import Anchor, Compound, CoreOptions, IconPosition, Image, Justify, Padding
+from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
 
 
 class LabelOptions(CoreOptions, total=False):
@@ -68,7 +69,6 @@ class Label(BaseWidget, IconMixin):
         Initialize a themed label.
 
         Args:
-            parent: The parent widget.
             text: The label text.
             foreground: Optional foreground color override (e.g., "primary", "secondary-subtle").
             background: Optional background color override (e.g., "gray-200", "layer-2").
