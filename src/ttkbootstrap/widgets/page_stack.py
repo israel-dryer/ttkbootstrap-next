@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 from tkinter import ttk
 from typing import Any, Callable, Literal, Optional, Protocol, Self, Type, TypedDict, Union, Unpack, cast
+
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
 from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.layouts import Pack, Grid
+from ttkbootstrap.layouts import Grid, Pack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.types import Anchor, CoreOptions, EventHandler, Fill, Gap, Padding, Sticky, Widget
 from ttkbootstrap.utils import assert_valid_keys
