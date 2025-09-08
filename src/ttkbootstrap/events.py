@@ -81,9 +81,10 @@ class Event(StrEnum):
     MODIFIED = "<<Modified>>"
     THEME_CHANGED = "<<ThemeChanged>>"
 
+    COMPLETE = "<<Complete>>"
     WINDOW_ACTIVATED = "<<Activate>>"
     WINDOW_DEACTIVATED = "<<Deactivate>>"
-    MENU_SELECTED = "<<MenuSelected>>"
+    MENU_SELECT = "<<MenuSelect>>"
     SELECTION = "<<Selection>>"
     SELECTED = "<<Selected>>"
     DESELECTED = "<<Deselected>>"
@@ -94,6 +95,7 @@ class Event(StrEnum):
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
     INPUT_METHOD_CHANGED = "<<IMChanged>>"
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
+    STATE_CHANGED = "<<StateChanged>>"
 
     # Validation
     INVALID = "<<Invalid>>"

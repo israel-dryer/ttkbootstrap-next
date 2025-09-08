@@ -12,7 +12,7 @@ from ttkbootstrap.types import (
     Anchor,
     Compound,
     CoreOptions,
-    Fill,
+    EventHandler, Fill,
     Gap,
     Image,
     Padding,
@@ -157,7 +157,7 @@ class Notebook(BaseWidget):
         self._in_context: bool = False
 
     def on_tab_changed(
-            self, handler: Optional[Callable[[Any], Any]] = None,
+            self, handler: Optional[EventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<NotebookTabChanged>>
 

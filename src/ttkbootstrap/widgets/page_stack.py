@@ -8,7 +8,7 @@ from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.layouts import Pack, Grid
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
-from ttkbootstrap.types import Anchor, CoreOptions, Fill, Gap, Padding, Sticky, Widget
+from ttkbootstrap.types import Anchor, CoreOptions, EventHandler, Fill, Gap, Padding, Sticky, Widget
 from ttkbootstrap.utils import assert_valid_keys
 
 Page = Union["GridPage", "PackPage"]
@@ -167,7 +167,7 @@ class PageStack(BaseWidget):
         return list(self._pages.keys())
 
     def on_page_changed(
-            self, handler: Optional[Callable[[Any], Any]] = None,
+            self, handler: Optional[EventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<PageChanged>>
 
@@ -242,7 +242,7 @@ class PageMixin(BaseWidget):
         return self
 
     def on_page_will_mount(
-            self, handler: Optional[Callable[[Any], Any]] = None,
+            self, handler: Optional[EventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<PageWillMount>>
 
@@ -256,7 +256,7 @@ class PageMixin(BaseWidget):
         return self
 
     def on_page_unmounted(
-            self, handler: Optional[Callable[[Any], Any]] = None,
+            self, handler: Optional[EventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
         """Stream or chainable binding for <<PageUnmounted>>
 

@@ -1,12 +1,12 @@
-from typing import Any, Callable, Unpack, Literal
-
 from tkinter import ttk
+from typing import Literal, Optional, Unpack
 
-from ttkbootstrap.types import Orientation, CoreOptions
-from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.events import Event
+from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.builders.progressbar import ProgressStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
+from ttkbootstrap.types import CoreOptions, EventHandler, Orientation
 
 
 class ProgressOptions(CoreOptions, total=False):
@@ -25,7 +25,7 @@ class ProgressOptions(CoreOptions, total=False):
     cursor: str
     take_focus: bool
     length: int
-    maximum: int
+    maximum: float
     orient: Orientation
     mode: Literal['determinate', 'indeterminate']
 
@@ -33,7 +33,6 @@ class ProgressOptions(CoreOptions, total=False):
 class Progressbar(BaseWidget):
     widget: ttk.Progressbar
     _configure_methods = {
-        "on_change": "on_change",
         "signal": "signal",
         "value": "value",
         "maximum": "maximum",
@@ -44,11 +43,12 @@ class Progressbar(BaseWidget):
 
     def __init__(
             self,
-            value: int | Signal = 0,
+            value: float | Signal = 0.0,
             color: SemanticColor = "primary",
             orient: Orientation = "horizontal",
             variant: Literal['default', 'striped'] = "default",
-            on_change: Callable[[int], Any] = None,
+            on_changed: Optional[EventHandler] = None,
+            on_complete: Optional[EventHandler] = None,
             **kwargs: Unpack[ProgressOptions]):
         """
         Create a progress bar widget with signal-based value tracking and styling.
@@ -58,14 +58,16 @@ class Progressbar(BaseWidget):
             color: The semantic color for the progress bar (e.g., "primary", "success", "danger").
             orient: The orientation of the progress bar; either "horizontal" or "vertical".
             variant: The visual style variant of the progress bar, either "default" or "striped".
-            on_change: Optional callback function invoked with the new value when it changes.
+            on_changed: Optional callback function invoked with the new value when it changes.
+            on_complete: Optional callback invoked when the progress bar reaches max.
             **kwargs: Additional keyword arguments
         """
         self._style_builder = ProgressStyleBuilder(orient=orient, color=color, variant=variant)
-        self._signal = value if isinstance(value, Signal) else Signal(value)
+        self._signal = value if isinstance(value, Signal) else Signal(float(value))
+        self._prev_value = self._signal()
         self._status = 'active'
-        self._on_change = on_change
-        self._on_change_fid = None
+        self._on_changed_fid = None
+        self._completed = False  # one-shot gate for <<Complete>>
 
         parent = kwargs.pop("parent", None)
         tk_options = dict(
@@ -75,8 +77,12 @@ class Progressbar(BaseWidget):
         )
         super().__init__(ttk.Progressbar, tk_options, parent=parent)
 
-        if self._on_change:
-            self.on_change(self._on_change)
+        self._on_changed_fid = self._signal.subscribe(self._handle_changed)
+
+        if on_changed:
+            self.on_changed(on_changed)
+        if on_complete:
+            self.on_complete(on_complete)
 
     def orient(self, value: Orientation = None):
         """Get or set the widget orientation"""
@@ -106,36 +112,73 @@ class Progressbar(BaseWidget):
             self._style_builder.register_style()
             return self
 
-    def on_change(self, value: Callable[[int], Any] = None):
-        """Get or set the callback triggered when the group value changes."""
-        if value is None:
-            return self._on_change
-        if self._on_change_fid:
-            self._signal.unsubscribe(self._on_change)
-        self._on_change = value
-        self._on_change_fid = self._signal.subscribe(self._on_change)
+    def _handle_changed(self, *_):
+        cur = float(self._signal())
+        maximum = float(self.widget.cget("maximum"))
+        prev = float(self._prev_value)
+
+        # clamp
+        if cur > maximum:
+            cur = maximum
+            self._signal.set(cur)
+
+        # always emit CHANGED
+        self.emit(Event.CHANGED, value=cur, prev_value=prev)
+
+        # one-shot COMPLETE when crossing the boundary
+        if not self._completed and prev < maximum <= cur:
+            self._completed = True
+            self.emit(Event.COMPLETE)
+
+        # reset the gate if we drop below max (e.g., you reset the bar)
+        if self._completed and cur < maximum:
+            self._completed = False
+
+        self._prev_value = cur
+
+    def on_changed(self, handler: Optional[EventHandler] = None, scope="widget"):
+        """Stream or chainable binding for <<Changed>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CHANGED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
+        return self
+
+    def on_complete(self, handler: Optional[EventHandler] = None, scope="widget"):
+        """Stream or chainable binding for <<Complete>>
+
+        - If `handler` is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.COMPLETE, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(handler)
         return self
 
     def signal(self, value: Signal = None):
         """Get or set the signal controlling the progress value."""
         if value is None:
             return self._signal
-        else:
-            if self._on_change_fid:
-                self._signal.unsubscribe(self._on_change_fid)
-            self._signal = value
-            self.configure(variable=value)
-            if self._on_change:
-                self._on_change_fid = value.subscribe(self._on_change)
-            return self
+        if self._on_changed_fid:
+            self._signal.unsubscribe(self._on_changed_fid)
+        self._signal = value
+        self.configure(variable=value.var)
+        self._on_changed_fid = self._signal.subscribe(self._handle_changed)
+        return self
 
     def value(self, value: int | float = None):
         """Get or set the current progress value."""
         if value is None:
             return self._signal()
-        else:
-            self._signal.set(value)
-            return self
+        max_value = float(self.widget.cget("maximum"))
+        # clamp to avoid overshoot spam
+        self._signal.set(min(float(value), max_value))
+        return self
 
     def maximum(self, value: int = None):
         """Get or set the maximum value for the progress bar."""
@@ -155,23 +198,21 @@ class Progressbar(BaseWidget):
         self.widget.stop()
         return self
 
-    def step(self, value=1, clamp=True):
-        """Adjust the value of the progressbar by `value` steps.
-
-        If `clamp` is True, ensures the value does not exceed maximum.
-        """
-        current = self._signal()
-        new = current + value
+    def step(self, value=1.0, clamp=True):
+        """Adjust the value by `value` steps."""
+        cur = float(self._signal())
+        nxt = cur + float(value)
         if clamp:
-            new = min(new, self.maximum())
-            self._signal.set(new)
+            nxt = min(nxt, float(self.widget.cget("maximum")))
+            self._signal.set(nxt)
         else:
+            # Avoid using widget.step() when you’re driving with a variable.
             self.widget.step(value)
         return self
 
     def destroy(self):
         """Unsubscribe listeners and destroy the widget."""
-        if self._on_change_fid:
-            self._signal.unsubscribe(self._on_change_fid)
-            self._on_change_fid = None
+        if self._on_changed_fid:
+            self._signal.unsubscribe(self._on_changed_fid)
+            self._on_changed_fid = None
         super().destroy()
