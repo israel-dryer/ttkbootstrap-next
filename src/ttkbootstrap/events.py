@@ -80,7 +80,7 @@ class Event(StrEnum):
     CHANGED = "<<Changed>>"
     MODIFIED = "<<Modified>>"
     THEME_CHANGED = "<<ThemeChanged>>"
-
+    INVOKE = "<<Invoke>>"
     COMPLETE = "<<Complete>>"
     WINDOW_ACTIVATED = "<<Activate>>"
     WINDOW_DEACTIVATED = "<<Deactivate>>"
@@ -89,6 +89,8 @@ class Event(StrEnum):
     SELECTED = "<<Selected>>"
     DESELECTED = "<<Deselected>>"
     COMBOBOX_SELECTED = "<<ComboboxSelected>>"
+    RADIO_SELECTED = SELECTED
+    RADIO_DESELECTED = DESELECTED
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
     DELETE = "<<Delete>>"
