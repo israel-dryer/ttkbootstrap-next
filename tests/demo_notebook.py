@@ -7,11 +7,11 @@ with App("Notebook Demo", geometry="500x500") as app:
     with Pack(padding=16).layout(fill='both', expand=True):
         with Notebook().layout(fill='both', expand=True) as nb:
             with nb.Pack("Tab 1", name="tab1") as tab1:
-                Button('Tab 1 - Option 1', on_click=lambda: nb.select('tab2'))
+                Button('Tab 1 - Option 1', on_invoke=lambda: nb.select('tab2'))
                 Button('Tab 1 - Option 2')
 
             with nb.Grid("Tab 2", name="tab2"):
-                Button('Tab 2 - Option 1', on_click=lambda: nb.select('tab1'))
+                Button('Tab 2 - Option 1', on_invoke=lambda: nb.select('tab1'))
                 Button('Tab 2 - Option 2')
 
         nb.on_tab_changed(lambda x: print(x))

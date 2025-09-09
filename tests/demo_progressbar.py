@@ -7,5 +7,5 @@ with App("Demo Progressbar") as app:
         #Progressbar(75).start(4)
         pb = Progressbar(50).on_complete(lambda x: print(x))
         #Progressbar(60).start(7)
-        Button("Step", on_click=lambda: pb.step())
+        Button("Step", on_invoke=lambda: pb.step())
 app.run()

@@ -10,8 +10,8 @@ with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
     ds = DataSource(page_size=25)
     ds.set_data(records)
 
-    Button("Dark", on_click=lambda: app.theme.use("dark"))
-    Button("Light", on_click=lambda: app.theme.use("light"))
+    Button("Dark", on_invoke=lambda: app.theme.use("dark"))
+    Button("Light", on_invoke=lambda: app.theme.use("light"))
 
     with Pack().layout(fill='both', expand=True):
 
