@@ -66,7 +66,7 @@ class RadioButton(BaseWidget):
             group: A signal name or Signal instance to group multiple buttons.
             color: A foreground color token for styling the label.
             selected: Whether this button should be initially selected.
-            on_invoke: A callback triggered when the user invokes the button.
+            on_invoke: Callback fired when the button is invoked.
             **kwargs: Additional keyword arguments.
         """
         self._style_builder = RadioButtonStyleBuilder(color=color, variant=variant)

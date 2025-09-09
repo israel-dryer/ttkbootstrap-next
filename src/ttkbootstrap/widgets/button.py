@@ -69,7 +69,7 @@ class Button(BaseWidget, IconMixin):
             variant: Optional style variant.
             icon: Optional icon identifier.
             icon_position: The position of the icon in the button.
-            on_invoke: Callback for when the button is invoked.
+            on_invoke: Callback fired when the button is invoked.
             **kwargs: Additional Button options.
         """
         self._on_invoke = on_invoke

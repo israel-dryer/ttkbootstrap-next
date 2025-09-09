@@ -52,7 +52,7 @@ class CheckButton(BaseWidget):
             off_value: int | str = 0,
             tristate_value: int | str = -1,
             on_changed: Optional[EventHandler] = None,
-            on_toggle: Optional[AltEventHandler] = None,
+            on_invoke: Optional[AltEventHandler] = None,
             **kwargs: Unpack[CheckButtonOptions]
     ):
         """
@@ -67,7 +67,7 @@ class CheckButton(BaseWidget):
             off_value: The value when unchecked.
             tristate_value: The value when in the indeterminate state.
             on_changed: Callback fired when the value signal changes.
-            on_toggle: Callback fired when the button is clicked.
+            on_invoke: Callback fired when the button is invoked.
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
@@ -102,14 +102,14 @@ class CheckButton(BaseWidget):
         if on_changed:
             self.on_changed(on_changed)
 
-        if on_toggle:
-            self.on_toggle(on_toggle)
+        if on_invoke:
+            self.on_invoke(on_invoke)
 
         self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
 
     def _handle_invoke(self):
-        """Trigger the <<Toggle>> event when the button is clicked."""
-        self.emit(Event.TOGGLE, checked=self.is_checked(), value=self._value_signal())
+        """Trigger the <<Invoke>> event when the button is clicked."""
+        self.emit(Event.INVOKE, checked=self.is_checked(), value=self._value_signal())
 
     def _handle_change(self, _: Any):
         """Trigger <<Changed>> event when value signal changes"""
@@ -133,15 +133,15 @@ class CheckButton(BaseWidget):
         stream.listen(coerce_handler_args(handler))
         return self
 
-    def on_toggle(
+    def on_invoke(
             self, handler: Optional[AltEventHandler] = None,
             *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<Toggle>>
+        """Stream or chainable binding for <<Invoke>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
         - If no handler → return the Stream for Rx-style composition.
         """
-        stream = self.on(Event.TOGGLE, scope=scope)
+        stream = self.on(Event.INVOKE, scope=scope)
         if handler is None:
             return stream
         stream.listen(coerce_handler_args(handler))
@@ -222,7 +222,7 @@ class CheckButton(BaseWidget):
             self.state(['!disabled', '!readonly'])
         return self
 
-    def toggle(self):
+    def invoke(self):
         """Trigger the checkbutton as if it were toggled."""
         self.widget.invoke()
         return self
