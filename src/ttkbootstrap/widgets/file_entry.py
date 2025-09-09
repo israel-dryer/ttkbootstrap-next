@@ -27,7 +27,7 @@ class FileEntry(EntryField):
         label: Text to display on the button. Defaults to "Choose File".
         dialog_type: Type of dialog to display (e.g., 'openfilename', 'directory').
         dialog_options: Additional options passed to the file dialog (e.g., filetypes).
-        on_changed: Optional callback function called with the selected file path(s) as a string.
+        on_changed: Callback fired when the file path is selected.
         **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
