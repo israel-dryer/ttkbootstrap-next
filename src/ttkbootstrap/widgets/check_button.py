@@ -67,7 +67,7 @@ class CheckButton(BaseWidget):
             off_value: The value when unchecked.
             tristate_value: The value when in the indeterminate state.
             on_changed: Callback fired when the value signal changes.
-            on_toggle: Callback fired when the button is clicked..
+            on_toggle: Callback fired when the button is clicked.
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
@@ -85,6 +85,7 @@ class CheckButton(BaseWidget):
             variable=self._value_signal.var,
             onvalue=on_value,
             offvalue=off_value,
+            command=self._handle_invoke,
             **kwargs
         )
         super().__init__(ttk.Checkbutton, tk_options, parent=parent)
@@ -106,13 +107,16 @@ class CheckButton(BaseWidget):
 
         self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
 
+    def _handle_invoke(self):
+        """Trigger the <<Toggle>> event when the button is clicked."""
+        self.emit(Event.TOGGLE, checked=self.is_checked(), value=self._value_signal())
+
     def _handle_change(self, _: Any):
         """Trigger <<Changed>> event when value signal changes"""
         value = self._value_signal()
         prev_value = self._prev_value
         on_value = self.widget.cget("onvalue")
         self.emit(Event.CHANGED, checked=value == on_value, value=value, prev_value=prev_value)
-        self.emit(Event.TOGGLE, checked=value == on_value, value=value, prev_value=prev_value)
         self._prev_value = value
 
     def on_changed(
@@ -161,11 +165,16 @@ class CheckButton(BaseWidget):
         return self
 
     def value_signal(self, value: Signal[str | int] = None):
-        """Get or set the checkbutton value signal."""
+        """Get or set the signal controlling the checkbutton value."""
         if value is None:
             return self._value_signal
+        # change signals
+        if self._on_changed_fid:
+            self._value_signal.unsubscribe(self._on_changed_fid)
         self._value_signal = value
         self.configure(variable=self._value_signal.var)
+        self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
+        self._prev_value = self._value_signal()
         return self
 
     def text(self, value: str = None):
