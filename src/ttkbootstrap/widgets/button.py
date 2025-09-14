@@ -94,15 +94,13 @@ class Button(BaseWidget, IconMixin):
 
         tk_options = dict(
             compound=compound,
+            command=self._handle_invoke,
             textvariable=self._text_signal.var,
             **kwargs
         )
         super().__init__(ttk.Button, tk_options, parent=parent)
         if on_invoke:
             self.on_invoke(on_invoke)
-
-        for key in (Event.KEYUP_SPACE, Event.KEYUP_RETURN, Event.KEYUP_KP_ENTER, Event.CLICK1_UP):
-            self.on(key).map(self._handle_invoke).then_stop()
 
     def _handle_invoke(self, *_):
         """Trigger the <<Invoke>> event"""
@@ -191,7 +189,7 @@ class Button(BaseWidget, IconMixin):
 
     def invoke(self):
         """Trigger a button click programmatically."""
-        self.emit(Event.INVOKE, when="tail")
+        self.widget.invoke()
 
     def update_style(self):
         """Update the widget style and bind stateful icons"""
