@@ -85,7 +85,6 @@ class CheckButton(BaseWidget):
             variable=self._value_signal.var,
             onvalue=on_value,
             offvalue=off_value,
-            command=self._handle_invoke,
             **kwargs
         )
         super().__init__(ttk.Checkbutton, tk_options, parent=parent)
@@ -98,7 +97,9 @@ class CheckButton(BaseWidget):
             self.widget.invoke()
             self.widget.invoke()
 
-        # bind initial handlers
+        # bind handlers
+        self.widget.configure(command=self._handle_invoke)
+
         if on_changed:
             self.on_changed(on_changed)
 
@@ -109,7 +110,7 @@ class CheckButton(BaseWidget):
 
     def _handle_invoke(self):
         """Trigger the <<Invoke>> event when the button is clicked."""
-        self.emit(Event.INVOKE, checked=self.is_checked(), value=self._value_signal())
+        self.emit(Event.INVOKE, checked=self.is_checked(), value=self._value_signal(), when="tail")
 
     def _handle_change(self, _: Any):
         """Trigger <<Changed>> event when value signal changes"""
