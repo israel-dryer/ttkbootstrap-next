@@ -13,57 +13,137 @@ Exports
 
 from __future__ import annotations
 
+import sys
 from enum import StrEnum
 from typing import Union
 
 __all__ = ["Event", "EventType", "normalize_event"]
 
+# Public type for APIs that accept either our enum or a raw Tk sequence
 EventType = Union["Event", str]
+
+# Cross-platform accelerator key (Command on macOS, Control elsewhere)
+ACCEL = "Command" if sys.platform == "darwin" else "Control"
 
 
 class Event(StrEnum):
     """Canonical Tk/Tkinter event strings (keyboard, mouse, virtual, etc.)."""
 
-    # Mouse (buttons)
-    CLICK = "<Button-1>"
-    RIGHT_CLICK = "<Button-3>"
-    MIDDLE_CLICK = "<Button-2>"
-    DBL_CLICK = "<Double-Button-1>"
-    MOUSE_DOWN = "<ButtonPress>"
-    MOUSE_UP = "<ButtonRelease>"
+    # --------------------------------------------------------------------- #
+    # Mouse — buttons & wheel
+    # --------------------------------------------------------------------- #
 
-    # Mouse (wheel)
-    MOUSE_WHEEL = "<MouseWheel>"
+    CLICK1 = "<Button-1>"  # left press
+    CLICK2 = "<Button-2>"  # middle press
+    CLICK3 = "<Button-3>"  # right press
+
+    CLICK = CLICK1  # alias
+
+    CLICK1_DOWN = "<ButtonPress-1>"
+    CLICK1_UP = "<ButtonRelease-1>"
+    CLICK2_DOWN = "<ButtonPress-2>"
+    CLICK2_UP = "<ButtonRelease-2>"
+    CLICK3_DOWN = "<ButtonPress-3>"
+    CLICK3_UP = "<ButtonRelease-3>"
+
+    # --- Multi-click (Tk fires these on *press*) --------------------------------
+    DBL_CLICK1 = "<Double-Button-1>"
+    DBL_CLICK2 = "<Double-Button-2>"
+    DBL_CLICK3 = "<Double-Button-3>"
+    TRIPLE_CLICK1 = "<Triple-Button-1>"
+    TRIPLE_CLICK2 = "<Triple-Button-2>"
+    TRIPLE_CLICK3 = "<Triple-Button-3>"
+
+    # --- Motion & Drags -------------------------------------------------- #
+    MOTION = "<Motion>"
+    DRAG1 = "<B1-Motion>"
+    DRAG2 = "<B2-Motion>"
+    DRAG3 = "<B3-Motion>"
+
+    # Any-button helpers
+    ANY_CLICK = "<Button>"  # any button press
+    ANY_RELEASE = "<ButtonRelease>"  # any button release
+
+    # Wheel (cross-platform & X11 specifics)
+    MOUSE_WHEEL = "<MouseWheel>"  # use event.delta (+/-) for direction
     WHEEL_UP = "<Button-4>"  # Linux/X11
     WHEEL_DOWN = "<Button-5>"  # Linux/X11
+    WHEEL_LEFT = "<Button-6>"  # optional (some X11 setups)
+    WHEEL_RIGHT = "<Button-7>"  # optional (some X11 setups)
 
-    # Pointer motion/drag
-    DRAG = "<B1-Motion>"
-    MOTION = "<Motion>"
-
-    # Enter/leave (HOVER is an alias of ENTER)
+    # Hover/enter/leave
     ENTER = "<Enter>"
-    HOVER = "<Enter>"
     LEAVE = "<Leave>"
+    HOVER = ENTER  # alias
 
-    # Keyboard (generic)
+    # --------------------------------------------------------------------- #
+    # Keyboard — generic & common keys
+    # --------------------------------------------------------------------- #
     KEYDOWN = "<KeyPress>"
     KEYUP = "<KeyRelease>"
 
-    # Keyboard (common keys)
     RETURN = "<Return>"
     TAB = "<Tab>"
     ESCAPE = "<Escape>"
 
-    # Keyboard (specific key transitions)
-    KEYDOWN_ENTER = "<KeyPress-Return>"
-    KEYUP_ENTER = "<KeyRelease-Return>"
+    # Activation (prefer release to mirror native behavior)
+    KEYUP_RETURN = "<KeyRelease-Return>"
+    KEYUP_KP_ENTER = "<KeyRelease-KP_Enter>"
+    KEYUP_SPACE = "<KeyRelease-space>"
+    KEYDOWN_SPACE = "<KeyPress-space>"  # handy for previews
+
+    # Cancel / Dismiss
     KEYDOWN_ESC = "<KeyPress-Escape>"
     KEYUP_ESC = "<KeyRelease-Escape>"
+
+    # Focus navigation
     KEYDOWN_TAB = "<KeyPress-Tab>"
     KEYUP_TAB = "<KeyRelease-Tab>"
+    KEYDOWN_SHIFT_TAB = "<Shift-Tab>"  # often delivered as ISO_Left_Tab
+    ISO_LEFT_TAB = "<ISO_Left_Tab>"  # X11/Linux Shift+Tab alias
 
-    # Focus / visibility / map state
+    # Arrow navigation
+    KEYDOWN_LEFT = "<KeyPress-Left>"
+    KEYDOWN_RIGHT = "<KeyPress-Right>"
+    KEYDOWN_UP = "<KeyPress-Up>"
+    KEYDOWN_DOWN = "<KeyPress-Down>"
+    KEYUP_LEFT = "<KeyRelease-Left>"
+    KEYUP_RIGHT = "<KeyRelease-Right>"
+    KEYUP_UP = "<KeyRelease-Up>"
+    KEYUP_DOWN = "<KeyRelease-Down>"
+
+    # Paging / Jump
+    KEYDOWN_PAGE_UP = "<KeyPress-Prior>"  # PageUp
+    KEYDOWN_PAGE_DOWN = "<KeyPress-Next>"  # PageDown
+    KEYDOWN_HOME = "<KeyPress-Home>"
+    KEYDOWN_END = "<KeyPress-End>"
+
+    # Editing
+    KEYDOWN_BACKSPACE = "<KeyPress-BackSpace>"
+    KEYUP_BACKSPACE = "<KeyRelease-BackSpace>"
+    KEYDOWN_DELETE = "<KeyPress-Delete>"
+    KEYUP_DELETE = "<KeyRelease-Delete>"
+
+    # --------------------------------------------------------------------- #
+    # Modifiers / Accelerators (cross-platform helpers)
+    # --------------------------------------------------------------------- #
+    ACCEL_A = f"<{ACCEL}-a>"  # Select All
+    ACCEL_C = f"<{ACCEL}-c>"  # Copy
+    ACCEL_X = f"<{ACCEL}-x>"  # Cut
+    ACCEL_V = f"<{ACCEL}-v>"  # Paste
+    ACCEL_Z = f"<{ACCEL}-z>"  # Undo
+    ACCEL_Y = f"<{ACCEL}-y>"  # Redo (Win/Linux)
+    ACCEL_SHIFT_Z = f"<Shift-{ACCEL}-z>"  # Redo (macOS)
+    ACCEL_S = f"<{ACCEL}-s>"  # Save
+    ACCEL_O = f"<{ACCEL}-o>"  # Open
+    ACCEL_F = f"<{ACCEL}-f>"  # Find
+
+    # Alt / Option mnemonics (bind specific letters like Alt+F)
+    ALT_ANY = "<Alt-KeyPress>"  # or use: f"<Alt-KeyPress-{letter}>"
+
+    # --------------------------------------------------------------------- #
+    # Focus / visibility / window state
+    # --------------------------------------------------------------------- #
     FOCUS = "<FocusIn>"
     BLUR = "<FocusOut>"
     MOUNT = "<Map>"
@@ -75,12 +155,16 @@ class Event(StrEnum):
     # Window/configure
     CONFIGURE = "<Configure>"
 
-    # Virtual events
+    # --------------------------------------------------------------------- #
+    # Virtual events (semantic / high-level)
+    # --------------------------------------------------------------------- #
     INPUT = "<<Input>>"
     CHANGED = "<<Changed>>"
+    CHANGE_START = "<<ChangeStart>>"
+    CHANGE_END = "<<ChangeEnd>>"
     MODIFIED = "<<Modified>>"
     THEME_CHANGED = "<<ThemeChanged>>"
-    INVOKE = "<<Invoke>>"
+    INVOKE = "<<Invoked>>"  # use to avoid clashing with built-in <<Invoke>>
     COMPLETE = "<<Complete>>"
     WINDOW_ACTIVATED = "<<Activate>>"
     WINDOW_DEACTIVATED = "<<Deactivate>>"
@@ -100,12 +184,16 @@ class Event(StrEnum):
     STATE_CHANGED = "<<StateChanged>>"
     TOGGLE = "<<Toggle>>"
 
+    # --------------------------------------------------------------------- #
     # Validation
+    # --------------------------------------------------------------------- #
     INVALID = "<<Invalid>>"
     VALID = "<<Valid>>"
     VALIDATED = "<<Validated>>"
 
-    # Navigation
+    # --------------------------------------------------------------------- #
+    # Navigation (app-level)
+    # --------------------------------------------------------------------- #
     PAGE_WILL_MOUNT = "<<PageWillMount>>"
     PAGE_MOUNTED = "<<PageMounted>>"
     PAGE_UNMOUNTED = "<<PageUnmounted>>"
