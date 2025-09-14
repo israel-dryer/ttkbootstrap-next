@@ -580,3 +580,18 @@ class BindingMixin:
         """
         sequence = self._normalize(event)
         return self._ensure_hub().on(sequence, scope)
+
+    def process_tasks(self) -> None:
+        """Pump Tk's event loop once: input, timers, idles, geometry, repaints."""
+        try:
+            self.widget.update()
+        except Exception:
+            # Widget may be destroyed or in teardown; ignore safely.
+            pass
+
+    def process_idle_tasks(self) -> None:
+        """Process only idle tasks (geometry/repaint/after_idle); no user input."""
+        try:
+            self.widget.update_idletasks()
+        except Exception:
+            pass
