@@ -72,10 +72,9 @@ class Button(BaseWidget, IconMixin):
             on_invoke: Callback fired when the button is invoked.
             **kwargs: Additional Button options.
         """
-        self._on_invoke = on_invoke
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._icon = resolve_options(icon, 'name') or None
-        self._has_text = len(text) > 0
+        self._has_text = bool((self._text_signal() or ""))
         self._has_icon = icon is not None
         self._icon_position = icon_position
 
@@ -94,33 +93,36 @@ class Button(BaseWidget, IconMixin):
         assert_valid_keys(kwargs, ButtonOptions, where="Button")
 
         tk_options = dict(
-            command=on_invoke,
             compound=compound,
             textvariable=self._text_signal.var,
             **kwargs
         )
         super().__init__(ttk.Button, tk_options, parent=parent)
+        if on_invoke:
+            self.on_invoke(on_invoke)
 
-    def _handle_invoke(self):
+        for key in (Event.KEYUP_SPACE, Event.KEYUP_RETURN, Event.KEYUP_KP_ENTER, Event.CLICK1_UP):
+            self.on(key).map(self._handle_invoke).then_stop()
+
+    def _handle_invoke(self, *_):
         """Trigger the <<Invoke>> event"""
-        self.emit(Event.INVOKE)
+        self.emit(Event.INVOKE, when="tail")
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
         return "disabled" in self.widget.state()
 
-    def on_invoke(
-            self, handler: Optional[AltEventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<Invoke>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.INVOKE, scope=scope)
+    def on_invoke(self, handler: Optional[AltEventHandler] = None) -> Stream[Any] | Self:
+        """Stream or chainable binding for <<Invoke>>."""
+        stream = self.on(Event.INVOKE)
         if handler is None:
             return stream
-        stream.listen(coerce_handler_args(handler))
+
+        def rename_event(e):
+            e.name = 'Invoke'
+            return e
+
+        stream.map(rename_event).listen(coerce_handler_args(handler))
         return self
 
     def text(self, value: str = None):
@@ -189,7 +191,7 @@ class Button(BaseWidget, IconMixin):
 
     def invoke(self):
         """Trigger a button click programmatically."""
-        self.widget.invoke()
+        self.emit(Event.INVOKE, when="tail")
 
     def update_style(self):
         """Update the widget style and bind stateful icons"""
