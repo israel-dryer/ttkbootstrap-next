@@ -144,7 +144,7 @@ class IconMixin:
         self.on(Event.LEAVE).listen(on_leave)
         self.on(Event.FOCUS).listen(on_focus_in)
         self.on(Event.BLUR).listen(on_focus_out)
-        self.on(Event.MOUSE_DOWN).listen(on_press)
+        self.on(Event.CLICK).listen(on_press)
         self.on(Event.SELECTED).listen(on_selected)
         self.on(Event.DESELECTED).listen(on_deselected)
 
