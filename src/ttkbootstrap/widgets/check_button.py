@@ -37,8 +37,6 @@ class CheckButton(BaseWidget):
     widget: ttk.Checkbutton
     _configure_methods = {
         "color": "color",
-        "text_signal": "text_signal",
-        "value_signal": "value_signal",
         "text": "text",
         "readonly": "readonly",
     }
@@ -72,8 +70,7 @@ class CheckButton(BaseWidget):
         """
         self._tristate_value = tristate_value
         self._style_builder = CheckButtonStyleBuilder(color=color)
-        self._on_changed = on_changed
-        self._on_changed_fid = None
+        self._value_signal_fid = None
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._value_signal = value if isinstance(value, Signal) else Signal(value)
         self._prev_value = self._value_signal()
@@ -106,7 +103,7 @@ class CheckButton(BaseWidget):
         if on_invoke:
             self.on_invoke(on_invoke)
 
-        self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
+        self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
 
     def _handle_invoke(self):
         """Trigger the <<Invoke>> event when the button is clicked."""
@@ -170,11 +167,11 @@ class CheckButton(BaseWidget):
         if value is None:
             return self._value_signal
         # change signals
-        if self._on_changed_fid:
-            self._value_signal.unsubscribe(self._on_changed_fid)
+        if self._value_signal_fid:
+            self._value_signal.unsubscribe(self._value_signal_fid)
         self._value_signal = value
         self.configure(variable=self._value_signal.var)
-        self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
+        self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
         self._prev_value = self._value_signal()
         return self
 
@@ -234,7 +231,7 @@ class CheckButton(BaseWidget):
 
     def destroy(self):
         """Unsubscribe callbacks and destroy the widget."""
-        if self._on_changed_fid:
-            self._value_signal.unsubscribe(self._on_changed_fid)
-            self._on_changed_fid = None
+        if self._value_signal_fid:
+            self._value_signal.unsubscribe(self._value_signal_fid)
+            self._value_signal_fid = None
         super().destroy()
