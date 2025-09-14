@@ -1,3 +1,4 @@
+from enum import Enum
 from tkinter import ttk
 from typing import Any, Callable, Optional, Self, Union, Unpack
 
@@ -39,10 +40,7 @@ class RadioButton(BaseWidget):
     widget: ttk.Radiobutton
     _configure_methods = {
         "text": "text",
-        "text_signal": "text_signal",
         "value": "value",
-        "value_signal": "value_signal",
-        "group": "group",
         "readonly": "readonly"
     }
 
@@ -71,6 +69,8 @@ class RadioButton(BaseWidget):
         """
         self._style_builder = RadioButtonStyleBuilder(color=color, variant=variant)
         self._text_signal = Signal(text)
+        self._value_signal = None
+        self._group = group
 
         if isinstance(group, Signal):
             self._value_signal = group
@@ -87,7 +87,6 @@ class RadioButton(BaseWidget):
             value=value,
             textvariable=self._text_signal.var,
             variable=self._value_signal.var,
-            command=self._handle_invoke,
             **kwargs
         )
         super().__init__(ttk.Radiobutton, tk_options, parent=parent)
@@ -95,13 +94,17 @@ class RadioButton(BaseWidget):
         if selected:
             self.select()
 
+        # Add event handlers
+        self.widget.configure(command=self._handle_invoke)
+
         if on_invoke:
             self.on_invoke(on_invoke)
-        self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
+
+        self._signal_fid = self._value_signal.subscribe(self._handle_change)
 
     def _handle_invoke(self):
         """Trigger <<Invoke>> when the button is activated"""
-        self.emit(Event.INVOKE, selected=self.is_selected(), value=self._value_signal())
+        self.emit(Event.INVOKE, selected=self.is_selected(), value=self._value_signal(), when="tail")
 
     def _handle_change(self, _: Any):
         """Trigger <<RadioSelected>> / <<RadioDeselected>> on group value changes."""
@@ -111,9 +114,9 @@ class RadioButton(BaseWidget):
         on_value = self._coerce_to_signal_type(self.widget.cget("value"))
 
         if value == on_value and prev_value != on_value:
-            self.emit(Event.RADIO_SELECTED, selected=True, value=value, prev_value=prev_value)
+            self.emit(Event.RADIO_SELECTED, selected=True, value=value, prev_value=prev_value, when="tail")
         elif prev_value == on_value and value != on_value:
-            self.emit(Event.RADIO_DESELECTED, selected=False, value=value, prev_value=prev_value)
+            self.emit(Event.RADIO_DESELECTED, selected=False, value=value, prev_value=prev_value, when="tail")
 
         self._prev_value = value
 
@@ -144,15 +147,15 @@ class RadioButton(BaseWidget):
         return self
 
     def value_signal(self, value: Signal[str | int] = None):
-        """Get or set the signal controlling the radiobutton group value."""
+        """Get or set the signal controlling the radiobutton value."""
         if value is None:
             return self._value_signal
         # change signals
-        if self._on_changed_fid:
-            self._value_signal.unsubscribe(self._on_changed_fid)
+        if self._signal_fid:
+            self._value_signal.unsubscribe(self._signal_fid)
         self._value_signal = value
         self.configure(variable=self._value_signal.var)
-        self._on_changed_fid = self._value_signal.subscribe(self._handle_change)
+        self._signal_fid = self._value_signal.subscribe(self._handle_change)
         self._prev_value = self._value_signal()
         return self
 
@@ -228,19 +231,28 @@ class RadioButton(BaseWidget):
 
     def destroy(self):
         """Unsubscribe callbacks and destroy the widget."""
-        if self._on_changed_fid:
-            self._value_signal.unsubscribe(self._on_changed_fid)
-            self._on_changed_fid = None
+        if self._signal_fid:
+            self._value_signal.unsubscribe(self._signal_fid)
+            self._signal_fid = None
         super().destroy()
 
     def _coerce_to_signal_type(self, v):
         # Align the radiobutton's 'value' with the group's Signal[T] type
         t = getattr(self._value_signal, "_type", None)
+
+        # Fast paths
         if t is int:   return int(v)
         if t is float: return float(v)
         if t is str:   return str(v)
+
         try:
-            # best-effort fallback
-            return t(v) if t else v
-        except Exception:
+            # Enum: try by value, then by name
+            if isinstance(t, type) and issubclass(t, Enum):
+                try:
+                    return t(v)
+                except ValueError:
+                    return t[str(v)]
+            # Generic callable (skip if not callable, e.g. typing.Union)
+            return t(v) if callable(t) else v
+        except (ValueError, TypeError, KeyError):
             return v
