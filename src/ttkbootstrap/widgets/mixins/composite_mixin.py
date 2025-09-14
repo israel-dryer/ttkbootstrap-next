@@ -1,3 +1,6 @@
+from ttkbootstrap.events import Event
+
+
 class CompositeWidgetMixin:
     """Mixin to synchronize interactive states (hover, pressed, etc.) between a container
     and its internal child widgets, with correct handling of overlapping events."""
@@ -15,7 +18,7 @@ class CompositeWidgetMixin:
         super().__init__(*args, **kwargs)
 
     def _register_composite_states(self, widget, events=None):
-        events = events or ['enter', 'leave', 'mouse-down', 'mouse-up']
+        events = events or [Event.HOVER, Event.BLUR, Event.CLICK1_DOWN, Event.CLICK1_UP]
         for event in events:
             self._composite_states[event].append(widget)
             widget.on(event).listen(self._composite_callbacks[event])
@@ -41,9 +44,9 @@ class CompositeWidgetMixin:
         if hasattr(self, 'select') and hasattr(self, 'is_selected'):
             self.select()
             if self.is_selected:
-                self._apply_state('mouse-down', 'selected', True)
+                self._apply_state(Event.CLICK1_DOWN, 'selected', True)
             else:
-                self._apply_state('mouse-down', 'selected', False)
+                self._apply_state(Event.CLICK1_DOWN, 'selected', False)
 
     def _on_mouse_up(self, _):
         pass
