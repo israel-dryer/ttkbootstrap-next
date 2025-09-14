@@ -44,6 +44,7 @@ from ttkbootstrap.types import Widget
 
 T = TypeVar("T")
 U = TypeVar("U")
+When = Literal["now", "tail", "head", "mark"]
 
 
 # --------------------------------------------------------------------- timing
@@ -492,7 +493,14 @@ class BindingMixin:
 
     # ---------------------------------------------------------------- emitters
 
-    def emit(self, event: EventType, data: dict[str, Any] | None = None, **kwargs) -> None:
+    def emit(
+            self,
+            event: EventType,
+            data: dict[str, Any] | None = None,
+            *,
+            when: When = "now",
+            **kwargs,
+    ) -> None:
         """
         Programmatically generate a Tk event on this widget.
 
@@ -501,9 +509,15 @@ class BindingMixin:
         event : EventType
             The event sequence (e.g., <<Invalid>>, <Return>).
         data : dict | None
-            Optional dict payload.
+            Optional dict payload for virtual events (<<...>>).
+        when : Literal["now","tail","head","mark"]
+            Scheduling of the generated event in the Tk event queue.
+            - "now"  (default): process immediately before returning
+            - "tail": append behind all queued events
+            - "head": place at the front of the queue
+            - "mark": front, but after previously queued "mark" events
         **kwargs
-            Other Arbitrary key-value pairs to flatten into event.data.
+            Additional key-values flattened into the payload for virtual events.
         """
         sequence = self._normalize(event)
 
@@ -516,10 +530,9 @@ class BindingMixin:
 
         if sequence.startswith("<<") and sequence.endswith(">>") and payload:
             import json
-
-            self.widget.event_generate(sequence, data=json.dumps(payload))
+            self.widget.event_generate(sequence, data=json.dumps(payload), when=when)
         else:
-            self.widget.event_generate(sequence)
+            self.widget.event_generate(sequence, when=when)
 
     # ---------------------------------------------------------------- helpers
 
