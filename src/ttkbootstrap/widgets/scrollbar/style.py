@@ -1,5 +1,4 @@
-from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.element import Element
+from ttkbootstrap.style import StyleBuilderBase, Element
 
 
 class ScrollbarStyleBuilder(StyleBuilderBase):

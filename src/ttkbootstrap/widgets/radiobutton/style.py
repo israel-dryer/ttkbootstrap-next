@@ -1,7 +1,5 @@
 from ttkbootstrap.images.utils import create_transparent_image
-from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.element import Element, ElementImage
-from ttkbootstrap.style.utils import recolor_image
+from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
 
 
 class RadiobuttonStyleBuilder(StyleBuilderBase):

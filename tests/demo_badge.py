@@ -1,4 +1,4 @@
-from ttkbootstrap.app import App
+from ttkbootstrap import App
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets import Badge
 

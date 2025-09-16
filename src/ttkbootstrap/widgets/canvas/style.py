@@ -1,6 +1,6 @@
 import tkinter
 
-from ttkbootstrap.style.builders.base import StyleBuilderBase
+from ttkbootstrap.style import StyleBuilderBase
 
 
 class CanvasStyleBuilder(StyleBuilderBase):

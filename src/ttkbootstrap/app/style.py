@@ -1,7 +1,5 @@
-from typing import TYPE_CHECKING
-
-from .base import StyleBuilderBase
-from ...types import Widget
+from ttkbootstrap.style import StyleBuilderBase
+from ttkbootstrap.types import Widget
 
 
 class WindowStyleBuilder(StyleBuilderBase):

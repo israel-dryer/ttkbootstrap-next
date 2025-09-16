@@ -1,9 +1,7 @@
 from tkinter.font import nametofont
 
 from ttkbootstrap.icons import BootstrapIcon
-from ttkbootstrap.style.builders.base import StyleBuilderBase
-from ttkbootstrap.style.element import Element, ElementImage
-from ttkbootstrap.style.utils import recolor_image
+from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
 
 _images = []
 
