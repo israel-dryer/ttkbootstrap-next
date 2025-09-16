@@ -1,32 +1,12 @@
 from tkinter import ttk
-from typing import TypedDict, Unpack
+from typing import Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.style.builders.frame import FrameStyleBuilder
-from ttkbootstrap.types import Padding, Position, Widget
+from ttkbootstrap.layouts.style import FrameStyleBuilder
+from ttkbootstrap.layouts.types import FrameOptions
+from ttkbootstrap.types import Widget
 from ttkbootstrap.utils import merge_build_options, unsnake_kwargs
-
-
-class FrameOptions(TypedDict, total=False):
-    """Optional keyword arguments accepted by the `Frame` widget.
-
-    Attributes:
-        cursor: Mouse cursor to display when hovering over the frame.
-        height: The height of the frame in pixels.
-        padding: Space around the frame content.
-        take_focus: Specifies if the frame accepts focus during keyboard traversal.
-        width: The width of the frame in pixels.
-        builder: key-value options passed to the style builder
-    """
-    cursor: str
-    height: int
-    padding: Padding
-    take_focus: bool
-    width: int
-    builder: dict
-    parent: Widget
-    position: Position
 
 
 class BaseLayout(BaseWidget, ContainerMixin):

@@ -1,9 +1,10 @@
 from typing import Any, List, Literal, Optional, Tuple, Union, Unpack, cast
 
 from ttkbootstrap.core.layout_context import pop_container, push_container
-from ttkbootstrap.layouts.base_layout import BaseLayout, FrameOptions
+from ttkbootstrap.layouts.base_layout import BaseLayout
+from ttkbootstrap.layouts.types import GridItemOptions, GridOptions, PlaceItemOptions
 from ttkbootstrap.layouts.utils import add_pad, margin_to_pad, normalize_gap
-from ttkbootstrap.types import Gap, GridItemOptions, Padding, PlaceItemOptions, Sticky
+from ttkbootstrap.types import Gap, Padding, Sticky
 from ttkbootstrap.utils import assert_valid_keys
 
 
@@ -19,11 +20,6 @@ def _parse_size(value: Union[int, str]) -> tuple[int, int]:
             except ValueError:
                 return 0, 0
     return 0, 0
-
-
-class GridOptions(FrameOptions, total=False):
-    surface: str
-    variant: str
 
 
 class Grid(BaseLayout):

@@ -37,48 +37,10 @@ Spacing = Union[int, tuple[int, int]]
 Gap = Spacing
 
 
-class GridItemOptions(TypedDict, total=False):
-    row: int
-    column: int
-    rowspan: int
-    columnspan: int
-    sticky: Sticky
-    anchor: Anchor
-    marginx: Spacing
-    marginy: Spacing
-
-
-class PackItemOptions(TypedDict, total=False):
-    side: Side
-    fill: Fill
-    expand: bool
-    anchor: Anchor
-    before: Widget
-    after: Widget
-    marginx: Spacing
-    marginy: Spacing
-
-
-class PlaceItemOptions(TypedDict, total=False):
-    x: int | float | str
-    y: int | float | str
-    width: int | float | str
-    height: int | float | str
-    anchor: Anchor
-    bordermode: Literal["inside", "outside"]
-    target: Widget
-    xoffset: int
-    yoffset: int
-
-
 class CoreOptions(TypedDict, total=False):
     parent: Widget
     position: Position
     id: str
-
-
-class LayoutOpts(GridItemOptions, PackItemOptions, PlaceItemOptions):
-    pass
 
 
 AltEventHandler = Union[Callable[[], Any], Callable[[Any], Any]]

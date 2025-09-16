@@ -15,7 +15,7 @@ from ttkbootstrap.style import Typography
 from ttkbootstrap.style.builders.window import WindowStyleBuilder
 from ttkbootstrap.style.theme import ColorTheme
 from ttkbootstrap.style.types import ColorMode
-from ttkbootstrap.types import GridItemOptions, PackItemOptions
+from ttkbootstrap.layouts.types import GridItemOptions, PackItemOptions
 from ttkbootstrap.utils import assert_valid_keys
 
 

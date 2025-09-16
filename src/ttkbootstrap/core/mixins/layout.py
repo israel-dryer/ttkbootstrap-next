@@ -3,9 +3,9 @@ from typing import Any, Literal, Tuple, Unpack, Self
 
 from ttkbootstrap.exceptions import LayoutError
 from ttkbootstrap.types import (
-    GridItemOptions, PackItemOptions, PlaceItemOptions,
     Widget, Position, Primitive,
 )
+from ttkbootstrap.layouts.types import GridItemOptions, PackItemOptions, PlaceItemOptions
 from ttkbootstrap.core.layout_context import current_container, has_current_container
 from ttkbootstrap.utils import assert_valid_keys, parse_dim
 

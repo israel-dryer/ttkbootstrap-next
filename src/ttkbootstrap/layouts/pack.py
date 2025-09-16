@@ -3,9 +3,10 @@ from tkinter import ttk
 from typing import Any, List, Literal, Optional, Tuple, Unpack, cast
 
 from ttkbootstrap.core.layout_context import pop_container, push_container
-from ttkbootstrap.layouts.base_layout import BaseLayout, FrameOptions
+from ttkbootstrap.layouts.base_layout import BaseLayout
+from ttkbootstrap.layouts.types import FrameOptions, PackItemOptions, PlaceItemOptions
 from ttkbootstrap.layouts.utils import add_pad
-from ttkbootstrap.types import Anchor, Fill, PackItemOptions, Padding, PlaceItemOptions, Side
+from ttkbootstrap.types import Anchor, Fill, Padding, Side
 from ttkbootstrap.utils import assert_valid_keys
 
 
