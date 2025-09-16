@@ -1,17 +1,22 @@
+from decimal import Decimal, ROUND_HALF_UP
 from tkinter import ttk
-from typing import Any, Callable, Union, Unpack
+from typing import Any, Optional, Self, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
+from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.types import Orientation
+from ttkbootstrap.types import EventHandler, Orientation
+from ttkbootstrap.widgets.scale.events import ScaleChangedEvent
 from ttkbootstrap.widgets.scale.style import ScaleStyleBuilder
 from ttkbootstrap.widgets.scale.types import ScaleOptions
 
 
 class Scale(BaseWidget):
     widget: ttk.Scale
+
     _configure_methods = {
         "value": "value",
         "min_value": "min_value",
@@ -25,136 +30,164 @@ class Scale(BaseWidget):
             min_value: int | float = 0.0,
             max_value: int | float = 100.0,
             precision: int = 0,
+            *,
+            step: float | None = None,
             color: SemanticColor = "primary",
             orient: Orientation = "horizontal",
-            on_change: Callable[[float], Any] = None,
-            **kwargs: Unpack[ScaleOptions]
+            on_change: Optional[EventHandler] = None,  # convenience: binds to <<Changed>>
+            **kwargs: Unpack[ScaleOptions],
     ):
-        """Create a new Scale widget with a signal-based value and callback.
+        """Create a new Scale widget bound to a Signal with event emission.
 
-        Args:
-            parent: The parent widget.
-            value: The initial value of the slider.
-            min_value: The minimum value for the slider range.
-            max_value: The maximum value for the slider range.
-            precision: The number of decimal places to round the value.
-            color: The color used to theme the slider (e.g., "primary", "info").
-            orient: The orientation of the slider; either "horizontal" or "vertical".
-            on_change: Optional callback invoked with the rounded value when the value changes significantly.
-            **kwargs: Additional options supported by Scale.
+        - Dtype is inferred from the Signal (Signal[int] → int mode, else float).
+        - All changes normalize via: clamp → step snap → precision → cast.
+        - Emits <<Changed>> with data {value, prev_value} when the stable value changes.
         """
         self._style_builder = ScaleStyleBuilder(color=color, orient=orient)
         self._signal = value if isinstance(value, Signal) else Signal(value)
-        self._on_change = on_change
-        self._on_change_fid = None
-        self._precision = precision
-
-        cur = self._signal()
-        self._prev_value = round(float(cur), precision)
+        self._precision = int(precision)
+        self._step = step
+        self._in_change = False  # reentrancy guard
+        self._sig_sub_id: Any = None
+        self._prev_value: int | float = 0  # baseline set after init
 
         parent = kwargs.pop("parent", None)
-
         tk_options = {
             "from_": min_value,
             "to": max_value,
             "orient": orient,
-            "variable": self._signal.var,
-            **kwargs
+            "variable": self._signal.var,  # bind Tk variable, not the Signal itself
+            **kwargs,
         }
         super().__init__(ttk.Scale, tk_options, parent=parent)
-        if on_change:
-            self._on_change_fid = self.on_change(self._on_change)
 
-        # receive focus when clicked
+        # Baseline after Tk options are live (so min/max are readable)
+        self._prev_value = self._normalize_value(float(self._signal()))
+
+        # Subscribe to signal to enforce normalization and emit events
+        self._sig_sub_id = self._signal.subscribe(self._handle_change)
+
+        # Focus on click (nice UX)
         self.on(Event.CLICK).listen(self.focus)
 
-        # add mouse wheel scaling
+        # Mouse wheel support
         self._bind_mouse_wheel()
 
+        # Optional immediate binding for convenience
+        if on_change:
+            self.on_changed(on_change)
+
+    # -------- dtype & normalization --------
+
     def _signal_type(self):
-        # Many Signal impls expose a _type; fall back to current value type
+        """Declared Signal type if present, else type(value)."""
         return getattr(self._signal, "_type", type(self._signal()))
 
+    def _effective_dtype(self) -> type[int] | type[float]:
+        """Infer dtype strictly from the bound Signal."""
+        return int if self._signal_type() is int else float
+
+    def _effective_step(self) -> float | None:
+        """Default step=1.0 for int mode if not provided."""
+        return self._step if self._step is not None else (1.0 if self._effective_dtype() is int else None)
+
+    def _normalize_value(self, v: float) -> int | float:
+        """Clamp → step snap → precision → cast per inferred dtype."""
+        min_ = float(self.min_value())
+        max_ = float(self.max_value())
+        dtype = self._effective_dtype()
+        step = self._effective_step()
+        precision = 0 if dtype is int else max(0, int(self._precision))
+
+        # clamp
+        v = min(max(v, min_), max_)
+        d = Decimal(str(v))
+        dmin = Decimal(str(min_))
+
+        # snap
+        if step is not None and step > 0:
+            dstep = Decimal(str(step))
+            q = ((d - dmin) / dstep).to_integral_value(rounding=ROUND_HALF_UP)
+            d = dmin + q * dstep
+
+        # round (floats only)
+        if precision is not None and precision >= 0:
+            d = d.quantize(Decimal(1).scaleb(-precision), rounding=ROUND_HALF_UP)
+
+        return int(d) if dtype is int else float(d)
+
     def _coerce_for_signal(self, val: float | int):
-        t = self._signal_type()
-        if t is int:
-            # int signal: round to precision then cast to int
-            return int(round(val))
-        # float (or other): round to configured precision
-        return round(float(val), self._precision)
+        return self._normalize_value(float(val))
+
+    # -------- wheel behavior --------
 
     def _bind_mouse_wheel(self) -> None:
         """Bind mouse wheel to change value (X11 uses Button-4/5; Win/mac use MouseWheel)."""
-
-        # Windows/macOS use <MouseWheel>, Linux/X11 uses Button-4/5 for scroll
         if self.windowing_system() in ("win32", "aqua"):
             self.on(Event.MOUSE_WHEEL).listen(self._on_mousewheel_windows_mac)
-        else:  # x11
+        else:
             self.on(Event.WHEEL_UP).listen(self._on_mousewheel_x11)
             self.on(Event.WHEEL_DOWN).listen(self._on_mousewheel_x11)
 
     def _wheel_step(self, event=None) -> float:
-        """Base step derived from precision; hold Shift for 10x."""
-        base = 1.0 if self._precision == 0 else (10 ** (-self._precision))
-        if event is not None and (getattr(event, "state", 0) & 0x0001):  # Shift modifier
+        """
+        Base step:
+          - explicit step if set,
+          - else 1 for int signals,
+          - else 10^-precision for float signals.
+        Hold Shift for 10x.
+        """
+        base = self._effective_step()
+        if base is None:
+            base = 1.0 if self._precision == 0 else (10 ** (-self._precision))
+        if event is not None and (getattr(event, "state", 0) & 0x0001):  # Shift
             base *= 10
         return base
 
     def _apply_delta(self, delta: float) -> str:
-        """Apply delta, clamped to [min,max], and respect precision."""
-        cur = self.value()
-        new_val = cur + delta
-        new_val = max(self.min_value(), min(self.max_value(), new_val))
-        self.value(self._coerce_for_signal(new_val))
+        cur = float(self.value())
+        new_val = self._normalize_value(cur + delta)
+        if new_val != cur:
+            self.value(new_val)
         return "break"
 
     def _orientation_sign(self, scroll_up: bool) -> float:
-        """
-        Convert scroll direction to +/- delta sign, considering orientation and range.
-        Goal: 'scroll up' should move the indicator UP for vertical, RIGHT for horizontal.
-        """
-        # +1 means "increase value" when min<max, -1 means "decrease value"
+        """Map scroll direction to +/- considering orientation and range direction."""
         inc_dir = 1.0 if self.min_value() < self.max_value() else -1.0
-
         if str(self.configure("orient")) == "vertical":
-            # For vertical: UP should move the indicator UP.
-            # With the usual min<max, increasing moves the thumb DOWN,
-            # so invert: scroll_up => DECREASE (i.e., -inc_dir)
             return (-inc_dir) if scroll_up else (+inc_dir)
         else:
-            # For horizontal: UP should INCREASE (move right)
             return (+inc_dir) if scroll_up else (-inc_dir)
 
     def _on_mousewheel_windows_mac(self, event) -> str:
-        """Handle <MouseWheel> on Windows/macOS."""
         step = self._wheel_step(event)
-        # Windows: event.delta is multiples of 120; macOS: ±1 or small values.
         scroll_up = (event.delta > 0)
         sgn = self._orientation_sign(scroll_up)
         return self._apply_delta(sgn * step)
 
     def _on_mousewheel_x11(self, event) -> str:
-        """Handle Button-4 (up) / Button-5 (down) on X11/Linux."""
         step = self._wheel_step(event)
-        scroll_up = (event.num == 4)  # 4 = up, 5 = down
+        scroll_up = (event.num == 4)  # 4=up, 5=down
         sgn = self._orientation_sign(scroll_up)
         return self._apply_delta(sgn * step)
 
+    # -------- public API --------
+
     def signal(self, value: Signal = None):
-        """Get or set the slider value signal."""
+        """Get or set the slider Signal."""
         if value is None:
             return self._signal
         else:
-            if self._on_change_fid:
-                self._signal.unsubscribe(self._on_change_fid)
+            if self._sig_sub_id is not None:
+                self._signal.unsubscribe(self._sig_sub_id)
             self._signal = value
-            self.configure(variable=value)
-            if self._on_change:
-                self._on_change_fid = value.subscribe(self._on_change)
+            self.configure(variable=value.var)
+            self._prev_value = self._normalize_value(float(self._signal()))
+            self._sig_sub_id = self._signal.subscribe(self._handle_change)
             return self
 
     def value(self, value: int | float = None):
-        """Get or set the current slider value."""
+        """Get or set the current slider value (normalized)."""
         if value is None:
             return self._signal()
         else:
@@ -163,61 +196,80 @@ class Scale(BaseWidget):
             return self
 
     def min_value(self, value: int | float = None):
-        """Get or set the minimum value for the slider."""
+        """Get or set the minimum value."""
         if value is None:
             return self.configure("from_")
         else:
             self.configure(from_=value)
+            self._prev_value = self._normalize_value(float(self._signal()))
             return self
 
     def max_value(self, value: int | float = None):
-        """Get or set the maximum value for the slider."""
+        """Get or set the maximum value."""
         if value is None:
             return self.configure("to")
         else:
             self.configure(to=value)
+            self._prev_value = self._normalize_value(float(self._signal()))
             return self
 
     def precision(self, value: int = None):
-        """Get or set the number of decimal places for rounding."""
+        """Get or set decimal precision (ignored in int mode)."""
         if value is None:
             return self._precision
         else:
             if not isinstance(value, int) or value < 0:
                 raise ValueError("precision must be a non-negative integer")
             self._precision = value
-            self._prev_value = round(self._signal(), value)
+            self._prev_value = self._normalize_value(float(self._signal()))
             return self
 
-    def _handle_change(self, raw_value: int | float):
-        """Handle internal value change and invoke callback if needed."""
-        rounded = round(raw_value, self._precision)
-        if rounded == self._prev_value:
-            return "break"
-        else:
-            self._prev_value = rounded
-            if self._on_change:
-                return self._on_change(rounded)
-        return "break"
+    # ---- Event-style API (preferred) ----
 
-    def on_change(self, func: Callable[[Union[int, float]], Any] = None):
-        """Get or set the callback triggered on significant value change."""
-        if func is None:
-            return self._on_change
-        else:
-            if func is not None and not callable(func):
-                raise TypeError(f"`on_change` must be callable, got {type(func).__name__}")
-            if self._on_change_fid:
-                self._signal.unsubscribe(self._on_change_fid)
-                self._on_change_fid = None
-            self._on_change = func
-            if func:
-                self._on_change_fid = self._signal.subscribe(self._handle_change)
-            return self
+    def on_changed(
+            self, handler: Optional[EventHandler] = None, *, scope: str = "widget",
+    ) -> Stream[ScaleChangedEvent] | Self:
+        """Stream or chainable binding for <<Changed>>.
+
+        - If handler is provided → bind immediately and return self (chainable).
+        - If no handler → return the Stream for Rx-style composition.
+        """
+        stream = self.on(Event.CHANGED, scope=scope)
+        if handler is None:
+            return stream
+        stream.listen(coerce_handler_args(handler))
+        return self
 
     def destroy(self):
-        """Unsubscribe signal listeners and destroy the slider widget."""
-        if self._on_change_fid:
-            self._signal.unsubscribe(self._on_change_fid)
-            self._on_change_fid = None
+        """Unsubscribe listeners and destroy the widget."""
+        if self._sig_sub_id is not None:
+            try:
+                self._signal.unsubscribe(self._sig_sub_id)
+            except Exception:
+                pass
+            self._sig_sub_id = None
         super().destroy()
+
+    # -------- internal: signal change → emit <<Changed>> --------
+
+    def _handle_change(self, raw_value: int | float):
+        """Normalize, snap-back if needed, and emit <<Changed>> with value/prev_value."""
+        if self._in_change:
+            return "break"
+        self._in_change = True
+        try:
+            snapped = self._normalize_value(float(raw_value))
+
+            # If normalization changed the value, write it back to the Signal (updates UI)
+            if snapped != raw_value and snapped != self._signal():
+                self._signal.set(snapped)
+
+            # Only emit when the stable value changes
+            if snapped != self._prev_value:
+                prev = self._prev_value
+                self._prev_value = snapped
+                self.emit(Event.CHANGED, value=snapped, prev_value=prev)
+
+            return "break"
+        finally:
+            self._in_change = False

@@ -1,3 +1,5 @@
+from typing import TypedDict
+
 from ttkbootstrap.types import CoreOptions, Orientation
 
 
@@ -15,3 +17,8 @@ class ScaleOptions(CoreOptions, total=False):
     take_focus: bool
     length: int
     orient: Orientation
+
+
+class ScaleChangedData(TypedDict):
+    value: int | float
+    prev_value: int | float
