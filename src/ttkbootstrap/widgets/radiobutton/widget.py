@@ -7,28 +7,15 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.style.builders.radio_button import RadioButtonStyleBuilder
 from ttkbootstrap.style.types import ForegroundColor
-from ttkbootstrap.types import AltEventHandler, CoreOptions, EventHandler
+from ttkbootstrap.types import AltEventHandler, EventHandler
+from ttkbootstrap.widgets.radiobutton.events import RadiobuttonDeselectedEvent, RadiobuttonInvokeEvent, \
+    RadiobuttonSelectedEvent
+from ttkbootstrap.widgets.radiobutton.style import RadiobuttonStyleBuilder
+from ttkbootstrap.widgets.radiobutton.types import RadiobuttonOptions
 
 
-class RadioButtonOptions(CoreOptions, total=False):
-    """Optional keyword arguments accepted by the `RadioButton` widget.
-
-    Attributes:
-        cursor: Mouse cursor to display when hovering over the widget.
-        take_focus: Specifies if the widget accepts focus during keyboard traversal.
-        underline: The integer index (0-based) of a character to underline in the text.
-        width: The width of the widget in pixels.
-        parent: The parent of this widget.
-    """
-    cursor: str
-    take_focus: bool
-    underline: int
-    width: int
-
-
-class RadioButton(BaseWidget):
+class Radiobutton(BaseWidget):
     """
     A themed radio button widget with support for signal binding,
     grouped selection logic, and callback interactions.
@@ -53,7 +40,7 @@ class RadioButton(BaseWidget):
             selected: bool = False,
             on_invoke: Callable[[AltEventHandler], Any] = None,
             variant="default",
-            **kwargs: Unpack[RadioButtonOptions]
+            **kwargs: Unpack[RadiobuttonOptions]
     ):
         """
         Initialize a new RadioButton.
@@ -67,7 +54,7 @@ class RadioButton(BaseWidget):
             on_invoke: Callback fired when the button is invoked.
             **kwargs: Additional keyword arguments.
         """
-        self._style_builder = RadioButtonStyleBuilder(color=color, variant=variant)
+        self._style_builder = RadiobuttonStyleBuilder(color=color, variant=variant)
         self._text_signal = Signal(text)
         self._value_signal = None
         self._group = group
@@ -161,7 +148,7 @@ class RadioButton(BaseWidget):
 
     def on_selected(
             self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[RadiobuttonSelectedEvent] | Self:
         """Stream or chainable binding for <<Selected>>>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -175,7 +162,7 @@ class RadioButton(BaseWidget):
 
     def on_deselected(
             self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[RadiobuttonDeselectedEvent] | Self:
         """Stream or chainable binding for <<Deselected>>>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -189,7 +176,7 @@ class RadioButton(BaseWidget):
 
     def on_invoke(
             self, handler: Optional[AltEventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[RadiobuttonInvokeEvent] | Self:
         """Stream or chainable binding for <<Invoke>>
 
         - If `handler` is provided → bind immediately and return self (chainable).

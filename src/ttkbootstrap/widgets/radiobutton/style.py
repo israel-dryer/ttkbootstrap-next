@@ -4,7 +4,7 @@ from ttkbootstrap.style.element import Element, ElementImage
 from ttkbootstrap.style.utils import recolor_image
 
 
-class RadioButtonStyleBuilder(StyleBuilderBase):
+class RadiobuttonStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
 
