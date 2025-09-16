@@ -43,7 +43,6 @@ class Button(BaseWidget, IconMixin):
     widget: ttk.Button
     _configure_methods = {
         "text": "text",
-        "text_signal": "text_signal",
         "icon": "icon",
         "icon_position": "icon_position",
         "color": "color",

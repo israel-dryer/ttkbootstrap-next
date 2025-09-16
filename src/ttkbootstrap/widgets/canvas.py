@@ -257,7 +257,7 @@ class Canvas(BaseWidget, ContainerMixin):
 
     def add_widget(self, x: float, y: float, widget: Widget, **kwargs: Unpack[CanvasWidgetOptions]) -> int:
         """Embed a widget at the given (x, y) coordinates."""
-        return self.widget.create_window(x, y, window=widget, **unsnake_kwargs(kwargs))
+        return self.widget.create_window(x, y, window=widget.tk_name, **unsnake_kwargs(kwargs))
 
     def draw_arc(self, x1: float, y1: float, x2: float, y2: float, **kwargs: CanvasArcOptions) -> int:
         """Draw an arc within a rectangular bounding box."""

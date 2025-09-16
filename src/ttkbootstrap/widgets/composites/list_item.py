@@ -336,7 +336,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', marginx=6)
-                self._delete_widget.on(Event.MOUSE_DOWN).listen(lambda _: self.delete())
+                self._delete_widget.on(Event.CLICK1_DOWN).listen(lambda _: self.delete())
                 self._add_composite_widget(self._delete_widget)
         else:
             # remove the widget
@@ -414,5 +414,5 @@ class ListItem(Pack):
         self._composite_widgets.add(widget)
         widget.on(Event.ENTER).listen(self._on_enter)
         widget.on(Event.LEAVE).listen(self._on_leave)
-        widget.on(Event.MOUSE_DOWN).listen(self._on_mouse_down)
-        widget.on(Event.MOUSE_UP).listen(self._on_mouse_up)
+        widget.on(Event.CLICK1_DOWN).listen(self._on_mouse_down)
+        widget.on(Event.CLICK1_UP).listen(self._on_mouse_up)

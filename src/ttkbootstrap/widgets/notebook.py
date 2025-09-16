@@ -175,9 +175,9 @@ class Notebook(BaseWidget):
         if hasattr(widget, '_tab_options'):
             opts = getattr(widget, '_tab_options') or dict()
             if opts:
-                self.widget.add(widget, **opts)
+                self.widget.add(widget.tk_name, **opts)
             else:
-                self.widget.add(widget, **options)
+                self.widget.add(widget.tk_name, **options)
 
         if name is not None:
             self._name_registry[name] = widget
@@ -189,26 +189,26 @@ class Notebook(BaseWidget):
         """Remove a tab by widget, index, or registered name."""
         if tab in self._name_registry:
             widget = self._name_registry.pop(tab)
-            self.widget.forget(widget)
+            self.widget.forget(widget.tk_name)
         else:
-            self.widget.forget(tab)
+            self.widget.forget(resolve_name(tab))
         return self
 
     def hide(self, tab: Tab):
         """Hide a tab temporarily without removing it."""
         if tab in self._name_registry:
             widget = self._name_registry.get(tab)
-            self.widget.hide(widget)
+            self.widget.hide(widget.tk_name)
         else:
-            self.widget.hide(tab)
+            self.widget.hide(resolve_name(tab))
 
     def tab_index(self, tab: Tab):
         """Return the numeric index of a given tab."""
         if tab in self._name_registry:
             widget = self._name_registry.get(tab)
-            self.widget.index(widget)
+            self.widget.index(widget.tk_name)
         else:
-            self.widget.index(tab)
+            self.widget.index(resolve_name(tab))
 
     def tab_count(self):
         """Return the total number of tabs."""
@@ -219,10 +219,10 @@ class Notebook(BaseWidget):
         if tab is not None:
             if tab in self._name_registry:
                 widget = self._name_registry.get(tab)
-                self.widget.select(widget)
+                self.widget.select(widget.tk_name)
             else:
                 try:
-                    self.widget.select(tab)
+                    self.widget.select(resolve_name(tab))
                 except TclError as _:
                     raise NavigationError(
                         message=f"No such tab: {tab}",
@@ -234,7 +234,7 @@ class Notebook(BaseWidget):
 
     def insert(self, position: Literal['end'] | int, widget: Widget, **options: Unpack[NotebookTabOptions]):
         """Insert a tab at the specified position."""
-        self.widget.insert(position, widget, **options)
+        self.widget.insert(position, widget.tk_name, **options)
 
     def tab_at_coordinate(self, x: int, y: int):
         """Return the tab index at the given (x, y) coordinate."""
@@ -243,9 +243,9 @@ class Notebook(BaseWidget):
     def configure_tab(self, tab: Tab, option: str = None, **options: Unpack[NotebookTabOptions]):
         """Get or set tab configuration options."""
         if option is not None:
-            return self.widget.tab(tab, option)
+            return self.widget.tab(resolve_name(tab), option)
         elif options is not None:
-            self.widget.tab(tab, **options)
+            self.widget.tab(resolve_name(tab), **options)
             return self
         else:
             return self
@@ -262,3 +262,11 @@ class Notebook(BaseWidget):
     def _validate_options(options: dict):
         """Validate layout options for child widgets."""
         pass
+
+
+def resolve_name(tab: Tab) -> str:
+    """Return the tcl/tk name if exists otherwise the tab"""
+    try:
+        return tab.tk_name
+    except AttributeError:
+        return tab

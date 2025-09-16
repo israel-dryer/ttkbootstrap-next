@@ -4,6 +4,7 @@ from ttkbootstrap.widgets.date_entry import DateEntry
 
 with App("Demo Date Entry") as app:
     with Pack(padding=16, gap=8):
-        DateEntry("March 14, 1981", "Birthdate", message="Required").add_validation_rule("required", message="This is required")
+        DateEntry("March 14, 1981", "Birthdate", message="Required").add_validation_rule(
+            "required", message="This is required")
         DateEntry()
 app.run()

@@ -1,5 +1,5 @@
 from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Grid, Pack
+from ttkbootstrap.layouts import Grid
 from ttkbootstrap.widgets.mixins.composite_mixin import CompositeWidgetMixin
 from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
 from ttkbootstrap.widgets.parts.entry_part import EntryPart

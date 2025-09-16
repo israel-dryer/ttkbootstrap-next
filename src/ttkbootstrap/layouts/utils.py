@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from typing import Any, Optional, Tuple, Union
 
+type Pad = Union[int, Tuple[int, int]]
 PadScalarOrPair = Union[int, Tuple[int, int]]
 
 

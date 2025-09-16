@@ -178,10 +178,10 @@ class EntryField(Pack, EntryMixin, ABC):
         # set prefix or suffix
         options = pack_options or {}
         if position == "right":
-            options.update(side=position, after=self._entry)
+            options.update(side=position, after=self._entry.tk_name)
             instance.attach(**options)
         else:
-            options.update(side=position, before=self._entry)
+            options.update(side=position, before=self._entry.tk_name)
             instance.attach(**options)
 
         # match parent disabled state

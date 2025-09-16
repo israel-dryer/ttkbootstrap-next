@@ -168,6 +168,11 @@ class BaseWidget(
         return self._parent
 
     @property
+    def tk_name(self):
+        """The tcl/tk pathname"""
+        return str(self._widget)
+
+    @property
     def widget(self) -> ttk.Widget:
         """Return the underlying Tk/ttk widget instance."""
         return self._widget
@@ -208,8 +213,8 @@ class BaseWidget(
 
     def __str__(self):
         """Return the Tk path name of the underlying widget."""
-        return str(self._widget)
+        return str(self.__class__.__name__)
 
     def __repr__(self):
         """Debug representation; returns the Tk path name."""
-        return str(self._widget)
+        return str(self.__class__.__name__)

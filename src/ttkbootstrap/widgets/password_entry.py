@@ -32,8 +32,8 @@ class PasswordEntry(EntryField):
         self.show_visible_toggle(show_visible_toggle)
 
         addon = self.addons.get('visibility')
-        addon.on(Event.MOUSE_DOWN).listen(self._show_password)
-        addon.on(Event.MOUSE_UP).listen(self._hide_password)
+        addon.on(Event.CLICK1_DOWN).listen(self._show_password)
+        addon.on(Event.CLICK1_UP).listen(self._hide_password)
 
     @property
     def _visibility_addon(self):

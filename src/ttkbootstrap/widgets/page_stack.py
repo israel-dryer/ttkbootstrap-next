@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tkinter import ttk
-from typing import Any, Callable, Literal, Optional, Protocol, Self, Type, TypedDict, Union, Unpack, cast
+from typing import Any, Callable, Literal, Optional, Protocol, Self, Type, TypedDict, Union, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
@@ -90,7 +90,7 @@ class PageStack(BaseWidget):
 
     def add(self, widget: Page):
         """Add a new page to the stack."""
-        self.widget.add(cast(Widget, widget), **widget.page_options)
+        self.widget.add(widget.tk_name, **widget.page_options)
         self._pages[widget.name] = widget
         return self
 
@@ -98,7 +98,7 @@ class PageStack(BaseWidget):
         """Remove a page by name."""
         if name in self._pages:
             widget = self._pages.pop(name)
-            self.widget.forget(widget)
+            self.widget.forget(widget.tk_name)
         else:
             self.widget.forget(name)
         return self
@@ -127,7 +127,7 @@ class PageStack(BaseWidget):
         data['page'] = name
         page: Widget = self._pages[name]
         page.emit(Event.PAGE_WILL_MOUNT, data=data)
-        self.widget.select(page)
+        self.widget.select(page.tk_name)
         self._current = name
         page.emit(Event.PAGE_MOUNTED, data=data)
         self.emit(Event.PAGE_CHANGED, data=data)
@@ -158,9 +158,9 @@ class PageStack(BaseWidget):
     def configure_page(self, page: Union[Page, str], option: PageOptions = None, **options: Unpack[PageOptions]):
         """Get or set configuration options for a page."""
         if option is not None:
-            return self.widget.tab(page, option)
+            return self.widget.tab(page.tk_name, option)
         elif options is not None:
-            self.widget.tab(page, **options)
+            self.widget.tab(page.tk_name, **options)
             return self
         return self
 

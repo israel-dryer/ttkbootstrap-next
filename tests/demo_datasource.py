@@ -1,5 +1,5 @@
-from typing import List, Dict, Any, Optional
 import sqlite3
+from typing import Any, Dict, List, Optional
 
 
 class SQLiteDataSourceMixin:

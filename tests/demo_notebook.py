@@ -18,7 +18,6 @@ with App("Notebook Demo", geometry="500x500") as app:
 
 app.run()
 
-
 # Inline Version
 # app = App()
 #

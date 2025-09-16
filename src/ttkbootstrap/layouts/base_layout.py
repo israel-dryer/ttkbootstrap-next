@@ -1,11 +1,11 @@
 from tkinter import ttk
 from typing import TypedDict, Unpack
 
-from ttkbootstrap.types import Padding, Widget, Position
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
-from ttkbootstrap.utils import merge_build_options, unsnake_kwargs
 from ttkbootstrap.style.builders.frame import FrameStyleBuilder
+from ttkbootstrap.types import Padding, Position, Widget
+from ttkbootstrap.utils import merge_build_options, unsnake_kwargs
 
 
 class FrameOptions(TypedDict, total=False):
@@ -48,11 +48,11 @@ class BaseLayout(BaseWidget, ContainerMixin):
 
     # Mount a 'place' child directly on this container (no overlay)
     def _mount_child_place(self, child, opts: dict) -> None:
-        parent = self.widget
+        parent: Widget = self.widget
         if hasattr(child, "_attach_place"):
             getattr(child, '_attach_place')(parent, **opts)
         elif hasattr(child, "attach_place"):
-            child.attach_place(parent=parent, **opts)
+            child.attach_place(parent=parent.tk_name, **opts)
         else:
             tk = getattr(child, "widget", child)
             tk.place(
