@@ -72,6 +72,7 @@ class PlaceItemOptions(TypedDict, total=False):
 class CoreOptions(TypedDict, total=False):
     parent: Widget
     position: Position
+    id: str
 
 
 class LayoutOpts(GridItemOptions, PackItemOptions, PlaceItemOptions):

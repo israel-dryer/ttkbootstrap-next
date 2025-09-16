@@ -5,17 +5,17 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Literal, Type
 
-from ttkbootstrap.interop.runtime.schedule import Schedule
-from ttkbootstrap.types import Widget
-from ttkbootstrap.events import Event
-from ttkbootstrap.utils import unsnake_kwargs, resolve_parent
 from ttkbootstrap.core.layout_context import current_container
+from ttkbootstrap.core.mixins.layout import LayoutMixin
+from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import BindingMixin
 from ttkbootstrap.interop.runtime.configure import ConfigureMixin
 from ttkbootstrap.interop.runtime.focus import FocusMixin
 from ttkbootstrap.interop.runtime.grab import GrabMixIn
-from ttkbootstrap.core.mixins.layout import LayoutMixin
+from ttkbootstrap.interop.runtime.schedule import Schedule
 from ttkbootstrap.interop.runtime.winfo import WidgetInfoMixin
+from ttkbootstrap.types import Widget
+from ttkbootstrap.utils import resolve_parent, unsnake_kwargs
 
 PositionType = Literal["static", "absolute", "fixed"]
 
@@ -71,16 +71,6 @@ class BaseWidget(
             Optional theme surface token for this widget. If omitted, the surface is inherited from
             the logical parent (when available).
 
-        Behavior
-        --------
-        - Determines the actual Tk master: for root widgets (`tk.Tk`) there is no master; for
-          `position="fixed"` the master is the toplevel; otherwise the logical parent.
-        - Instantiates the concrete widget and attaches a `Schedule` bound to that widget.
-        - Initializes mixins with the (possibly updated) layout options.
-        - Binds to `Event.THEME_CHANGED` and reapplies style via `_style_builder` when present.
-        - Registers the widget with the logical container and records an initial layout method
-          (`grid`, `pack`, or `place`) using simple heuristics.
-
         Raises
         ------
         RuntimeError
@@ -92,6 +82,7 @@ class BaseWidget(
 
         # Position may be supplied in either dict; keep local for pre-mixin logic
         position = tk_widget_options.pop("position", tk_layout_options.pop("position", "static"))
+        custom_id = tk_widget_options.pop("id", None)
         tk_layout_options.setdefault("position", position)
 
         # Determine logical parent (container for styling/registration)
@@ -126,6 +117,10 @@ class BaseWidget(
 
         # --- Now run cooperative mixin initializers (safe to bind now) ---
         super().__init__(**tk_layout_options)
+
+        # allow optional 'id' to come by layout options
+        from ttkbootstrap.core.widget_registry import register as _register
+        _register(self, custom_id=custom_id)
 
         # Theme surface & binding
         self._surface_token = surface
@@ -189,6 +184,24 @@ class BaseWidget(
             return self._surface_token
         return getattr(self._parent, "surface_token", None) if self._parent is not None else None
 
+    @property
+    def custom_id(self) -> str | None:
+        from ttkbootstrap.core.widget_registry import get_id as _get_id
+        return _get_id(self)
+
+    @custom_id.setter
+    def custom_id(self, value: str | None) -> None:
+        from ttkbootstrap.core.widget_registry import set_id as _set_id
+        _set_id(self, value)
+
+    def destroy(self):
+        """Destroy the underlying widget."""
+        try:
+            from ttkbootstrap.core.widget_registry import unregister as _unregister
+            _unregister(self)
+        finally:
+            self.widget.destroy()
+
     def is_ttk(self) -> bool:
         """True if the underlying widget is a ttk widget (class name starts with 'T')."""
         return self.widget_class().startswith("T")
@@ -196,10 +209,6 @@ class BaseWidget(
     def state(self, value: str | list[str] | tuple[str, ...] = None):
         """Pass-through to ttk's `state()` for getting/setting widget state flags."""
         return self.widget.state(value)
-
-    def destroy(self):
-        """Destroy the underlying widget."""
-        self.widget.destroy()
 
     def update_style(self):
         """Rebuild and apply the computed style when a theme/surface change occurs."""
