@@ -1,5 +1,5 @@
-# interop/runtime/event_types.py
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple
 
@@ -9,16 +9,16 @@ from ttkbootstrap.interop.runtime.key_resolver import decode_mods, resolve_press
 @dataclass(slots=True)
 class BaseEvent:
     name: str
-    widget: Optional[str] = None
+    target: Optional[str] = None
     data: Dict[str, Any] = field(default_factory=dict)
     timestamp: Optional[str] = None
-    root: Optional[str] = None
+    toplevel: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         out: Dict[str, Any] = {"name": self.name, "data": self.data}
-        if self.widget is not None: out["widget"] = self.widget
+        if self.target is not None: out["target"] = self.target
         if self.timestamp is not None: out["timestamp"] = self.timestamp
-        if self.root is not None: out["root"] = self.root
+        if self.toplevel is not None: out["root"] = self.toplevel
         return out
 
 
@@ -60,8 +60,8 @@ class KeyEvent(BaseEvent):
 class ButtonEvent(BaseEvent):
     x: Optional[int] = None
     y: Optional[int] = None
-    x_root: Optional[int] = None
-    y_root: Optional[int] = None
+    screen_x: Optional[int] = None
+    screen_y: Optional[int] = None
     state: Optional[int] = None
 
 
@@ -69,8 +69,8 @@ class ButtonEvent(BaseEvent):
 class MotionEvent(BaseEvent):
     x: Optional[int] = None
     y: Optional[int] = None
-    x_root: Optional[int] = None
-    y_root: Optional[int] = None
+    screen_x: Optional[int] = None
+    screen_y: Optional[int] = None
     state: Optional[int] = None
 
 

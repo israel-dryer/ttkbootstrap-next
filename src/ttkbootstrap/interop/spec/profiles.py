@@ -26,13 +26,13 @@ _SUB_BY_NAME: Dict[str, Sub] = {s.name: s for s in event_subs}
 
 # Patterns → fields to request from Tcl (order matters)
 _FIELDS: Dict[str, List[str]] = {
-    "key": ["keysym", "char", "state", "widget"],
-    "button": ["x", "y", "x_root", "y_root", "state", "widget"],
-    "motion": ["x", "y", "x_root", "y_root", "state", "widget"],
-    "wheel": ["delta", "x", "y", "widget"],
-    "configure": ["width", "height", "x", "y", "widget"],
-    "widget": ["widget"],
-    "virtual": ["data", "timestamp", "widget"]
+    "key": ["keysym", "char", "state", "target", "toplevel"],
+    "button": ["x", "y", "screen_x", "screen_y", "state", "target", "toplevel"],
+    "motion": ["x", "y", "screen_x", "screen_y", "state", "target", "toplevel"],
+    "wheel": ["delta", "x", "y", "target", "toplevel"],
+    "configure": ["width", "height", "x", "y", "target", "toplevel"],
+    "widget": ["target", "toplevel"],
+    "virtual": ["data", "timestamp", "target", "toplevel"]
 }
 
 # Physical event sequence → pattern

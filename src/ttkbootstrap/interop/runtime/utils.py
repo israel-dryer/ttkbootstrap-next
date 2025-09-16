@@ -23,7 +23,7 @@ import inspect
 from collections import namedtuple
 from typing import Any, Callable, Sequence
 
-from ttkbootstrap.interop.spec.subs import Sub, event_subs
+from ttkbootstrap.interop.spec.subs import Sub
 
 _namedtuple_cache: dict[tuple[str, ...], Any] = {}
 
@@ -55,6 +55,7 @@ def map_event_data(event_data: Sequence[str], subs: list[Sub]) -> dict[str, Any]
                 continue
     return out_data
 
+
 # Utility: adapt 0-arg or 1-arg handlers to a 1-arg (event) callable
 def coerce_handler_args(fn: Callable[..., Any]) -> Callable[[Any], Any]:
     """
@@ -80,4 +81,5 @@ def coerce_handler_args(fn: Callable[..., Any]) -> Callable[[Any], Any]:
                 return fn(event)
             except TypeError:
                 return fn()
+
         return wrapper

@@ -15,8 +15,8 @@ event_subs: list[Sub] = [
     # Position
     Sub("x", "%x", int),
     Sub("y", "%y", int),
-    Sub("x_root", "%X", int),
-    Sub("y_root", "%Y", int),
+    Sub("screen_x", "%X", int),
+    Sub("screen_y", "%Y", int),
 
     # Geometry
     Sub("width", "%w", int),
@@ -37,8 +37,8 @@ event_subs: list[Sub] = [
     Sub("property", "%P", str),
 
     # Widget references
-    Sub("root", "%R", convert_event_widget),
-    Sub("widget", "%W", convert_event_widget),
+    Sub("toplevel", "[winfo toplevel %W]", convert_event_widget),
+    Sub("target", "%W", convert_event_widget),
 
     # Custom
     Sub("data", "%d", convert_event_data),
