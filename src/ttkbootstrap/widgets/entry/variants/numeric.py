@@ -25,8 +25,8 @@ class NumericEntry(EntryField):
     def __init__(self, value="", label="", message="", show_spin_buttons=True, **kwargs: Unpack[NumberEntryOptions]):
         self._show_spin_buttons = show_spin_buttons
         super().__init__(value, label, message, kind="spinbox", **kwargs)
-        self.insert_addon(Button, icon="plus", name="increment", on_click=self.increment)
-        self.insert_addon(Button, icon="dash", name="decrement", on_click=self.decrement)
+        self.insert_addon(Button, icon="plus", name="increment", on_invoke=self.increment)
+        self.insert_addon(Button, icon="dash", name="decrement", on_invoke=self.decrement)
         self.show_spin_buttons(show_spin_buttons)
 
     @property

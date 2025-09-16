@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from tkinter import ttk
 from tkinter.font import Font
-from typing import Callable, Literal, Union
+from typing import Callable, Literal, TypedDict, Union
 
 from ttkbootstrap.localization.intl_format import FormatSpec
-from ttkbootstrap.types import CoreOptions, Justify, Padding
+from ttkbootstrap.types import CoreOptions, EventHandler, Justify, Number, Padding
 
 DialogType = Literal[
     'openfilename', 'openfile', 'directory', 'openfilenames', 'openfiles',
@@ -33,7 +33,16 @@ class TextEntryOptions(EntryOptions, total=False):
 
 
 class NumberEntryOptions(EntryOptions, total=False):
+    display_format: FormatSpec
+    allow_blank: bool
+    min_value: Number
+    max_value: Number
+    increment: Number
+    wrap: bool
     required: bool
+    on_input: EventHandler = None
+    on_enter: EventHandler = None
+    initial_focus: bool
 
 
 Index = Union[int, str]
@@ -66,3 +75,15 @@ class SpinboxOptions(CoreOptions, total=False):
     width: int
     padding: Padding
     format: str
+
+class SpinboxInputData(TypedDict):
+    text: str
+
+class SpinboxChangedData(TypedDict):
+    value: Number
+    prev_value: Number
+    text: str
+
+class SpinboxEnterData(TypedDict):
+    value: Number
+    text: str

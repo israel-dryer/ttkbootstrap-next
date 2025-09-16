@@ -32,6 +32,7 @@ class Button(BaseWidget, IconMixin):
     def __init__(
             self,
             text: str | Signal = "",
+            *,
             color: Union[SemanticColor, str] = "primary",
             variant: ButtonVariant = "solid",
             icon: str | dict = None,
@@ -51,6 +52,7 @@ class Button(BaseWidget, IconMixin):
             on_invoke: Callback fired when the button is invoked.
             **kwargs: Additional Button options.
         """
+        print(kwargs)
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._icon = resolve_options(icon, 'name') or None
         self._has_text = bool((self._text_signal() or ""))

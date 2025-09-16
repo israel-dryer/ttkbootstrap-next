@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, DateEntry
+from ttkbootstrap import App, DateEntry, Pack
 
 with App("Demo Date Entry") as app:
     with Pack(padding=16, gap=8):
