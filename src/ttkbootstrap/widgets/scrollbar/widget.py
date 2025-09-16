@@ -1,22 +1,10 @@
 from tkinter import ttk
 from typing import Callable, Unpack
 
-from ttkbootstrap.types import Orientation, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.style.builders.scrollbar import ScrollbarStyleBuilder
-
-
-class ScrollbarOptions(CoreOptions, total=False):
-    """
-    Options for configuring a scrollbar widget.
-
-    Attributes:
-        cursor: The cursor that appears when the mouse is over the widget.
-        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
-    """
-    cursor: str
-    take_focus: bool
-    on_scroll: Callable
+from ttkbootstrap.types import Orientation
+from ttkbootstrap.widgets.scrollbar.style import ScrollbarStyleBuilder
+from ttkbootstrap.widgets.scrollbar.types import ScrollbarOptions
 
 
 class Scrollbar(BaseWidget):
@@ -69,3 +57,6 @@ class Scrollbar(BaseWidget):
     def set(self, first: float | str, last: float | str):
         """Set the fractional range (first, last) of the slider position (0.0 to 1.0)."""
         self.widget.set(first, last)
+
+
+ScrollBar = Scrollbar
