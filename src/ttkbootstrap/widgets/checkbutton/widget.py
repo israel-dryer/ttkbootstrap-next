@@ -6,27 +6,14 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.style.builders.check_button import CheckButtonStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.types import AltEventHandler, CoreOptions, EventHandler
+from ttkbootstrap.types import AltEventHandler, EventHandler
+from ttkbootstrap.widgets.checkbutton.events import CheckbuttonChangedEvent, CheckbuttonInvokeEvent
+from ttkbootstrap.widgets.checkbutton.style import CheckbuttonStyleBuilder
+from ttkbootstrap.widgets.checkbutton.types import CheckbuttonOptions
 
 
-class CheckButtonOptions(CoreOptions, total=False):
-    """Optional keyword arguments accepted by the `CheckButton` widget.
-
-    Attributes:
-        cursor: Mouse cursor to display when hovering over the widget.
-        take_focus: Specifies if the widget accepts focus during keyboard traversal.
-        underline: The integer index (0-based) of a character to underline in the text.
-        width: The width of the widget in pixels.
-    """
-    cursor: str
-    take_focus: bool
-    underline: int
-    width: int
-
-
-class CheckButton(BaseWidget):
+class Checkbutton(BaseWidget):
     """
     A themed checkbutton widget with support for signals and callbacks.
 
@@ -51,10 +38,10 @@ class CheckButton(BaseWidget):
             tristate_value: int | str = -1,
             on_changed: Optional[EventHandler] = None,
             on_invoke: Optional[AltEventHandler] = None,
-            **kwargs: Unpack[CheckButtonOptions]
+            **kwargs: Unpack[CheckbuttonOptions]
     ):
         """
-        Initialize a new CheckButton widget.
+        Initialize a new Checkbutton widget.
 
         Args:
             parent: The parent widget.
@@ -69,7 +56,7 @@ class CheckButton(BaseWidget):
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
-        self._style_builder = CheckButtonStyleBuilder(color=color)
+        self._style_builder = CheckbuttonStyleBuilder(color=color)
         self._value_signal_fid = None
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._value_signal = value if isinstance(value, Signal) else Signal(value)
@@ -119,7 +106,7 @@ class CheckButton(BaseWidget):
 
     def on_changed(
             self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[CheckbuttonChangedEvent] | Self:
         """Stream or chainable binding for <<Changed>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -133,7 +120,7 @@ class CheckButton(BaseWidget):
 
     def on_invoke(
             self, handler: Optional[AltEventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[CheckbuttonInvokeEvent] | Self:
         """Stream or chainable binding for <<Invoke>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -235,3 +222,6 @@ class CheckButton(BaseWidget):
             self._value_signal.unsubscribe(self._value_signal_fid)
             self._value_signal_fid = None
         super().destroy()
+
+
+CheckButton = Checkbutton

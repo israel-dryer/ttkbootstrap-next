@@ -1,6 +1,6 @@
-from ttkbootstrap.types import BaseUIEvent
+from ttkbootstrap.types import UIEvent
 from ttkbootstrap.widgets.notebook.types import NotebookChangedData, TabLifecycleData
 
-NotebookChangedEvent = BaseUIEvent[NotebookChangedData]
-NotebookTabActivatedEvent = BaseUIEvent[TabLifecycleData]
-NotebookTabDeactivatedEvent = BaseUIEvent[TabLifecycleData]
+NotebookChangedEvent = UIEvent[NotebookChangedData]
+NotebookTabActivatedEvent = UIEvent[TabLifecycleData]
+NotebookTabDeactivatedEvent = UIEvent[TabLifecycleData]

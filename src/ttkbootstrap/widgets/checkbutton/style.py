@@ -4,7 +4,7 @@ from ttkbootstrap.style.element import Element, ElementImage
 from ttkbootstrap.style.utils import recolor_image
 
 
-class CheckButtonStyleBuilder(StyleBuilderBase):
+class CheckbuttonStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__('TCheckbutton', **kwargs)

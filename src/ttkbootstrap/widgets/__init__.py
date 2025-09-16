@@ -1,5 +1,5 @@
 from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.widgets.check_button import CheckButton
+from ttkbootstrap.widgets.checkbutton import Checkbutton
 from ttkbootstrap.widgets.switch_button import SwitchButton
 from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.badge import Badge
@@ -19,7 +19,7 @@ from ttkbootstrap.widgets.password_entry import PasswordEntry
 from ttkbootstrap.widgets.number_entry import NumberEntry
 
 __all__ = [
-    "Button", "CheckButton", "SwitchButton",
+    "Button", "Checkbutton", "SwitchButton",
     "Label", "Badge", "Scale", "Progressbar", "Canvas",
     "Scrollbar", "SizeGrip", "Separator", "PageStack", "Notebook",
     "TextEntry", "FileEntry", "PasswordEntry", "NumberEntry"

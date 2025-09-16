@@ -1,3 +1,3 @@
-from ttkbootstrap.types import BaseUIEvent
+from ttkbootstrap.types import UIEvent
 
-ButtonInvokeEvent = BaseUIEvent
+ButtonInvokeEvent = UIEvent

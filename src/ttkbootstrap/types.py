@@ -88,7 +88,7 @@ TData = TypeVar("TData", bound=Mapping[str, Any])
 
 
 @runtime_checkable
-class BaseUIEvent(Protocol[TData]):
+class UIEvent(Protocol[TData]):
     name: str
     target: str | None
     timestamp: str | None

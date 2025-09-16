@@ -1,13 +1,13 @@
 from ttkbootstrap.app import App
 from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import CheckButton
+from ttkbootstrap.widgets import Checkbutton
 
 with App("Demo CheckButton", theme="dark") as app:
     with Pack(padding=16, gap=8, fill_items="x"):
-        CheckButton("Unchecked", 0, "danger")
-        CheckButton("Unchecked", 0, "success").on_invoke(lambda: print('toggled'))
-        CheckButton("Unchecked", 0).disable()
-        CheckButton("Indeterminate", -1).on_invoke(lambda x: print(x)).on_changed(lambda x: print(x))
-        CheckButton("Checked", 1, on_changed=lambda x: print(x))
-        CheckButton("Whatever", on_invoke=lambda: print("Hello"))
+        Checkbutton("Unchecked", 0, "danger")
+        Checkbutton("Unchecked", 0, "success").on_invoke(lambda: print('toggled'))
+        Checkbutton("Unchecked", 0).disable()
+        Checkbutton("Indeterminate", -1).on_invoke(lambda x: print(x)).on_changed(lambda x: print(x))
+        Checkbutton("Checked", 1, on_changed=lambda x: print(x))
+        Checkbutton("Whatever", on_invoke=lambda: print("Hello"))
 app.run()

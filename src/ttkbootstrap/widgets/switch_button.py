@@ -6,7 +6,7 @@ from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.style.builders.switch_button import SwitchButtonStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.widgets.check_button import CheckButtonOptions
+from ttkbootstrap.widgets.checkbutton.types import CheckbuttonOptions
 
 
 class SwitchButton(BaseWidget):
@@ -34,7 +34,7 @@ class SwitchButton(BaseWidget):
             off_value: int | str = 0,
             on_change: Optional[Callable[[Any], Any]] = None,
             on_toggle: Optional[Callable] = None,
-            **kwargs: Unpack[CheckButtonOptions]
+            **kwargs: Unpack[CheckbuttonOptions]
     ):
         """
         Initialize a new SwitchButton widget.
