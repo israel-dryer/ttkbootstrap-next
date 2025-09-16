@@ -1,39 +1,20 @@
 from tkinter import ttk
-from typing import Literal, Optional, Unpack
+from typing import Literal, Optional, Self, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
+from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.style.builders.progressbar import ProgressStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.types import CoreOptions, EventHandler, Orientation
-
-
-class ProgressOptions(CoreOptions, total=False):
-    """
-    Options for configuring a progress bar widget.
-
-    Attributes:
-        cursor: The cursor that appears when the mouse is over the widget.
-        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
-        length: The length of the progress bar in pixels.
-        maximum: The maximum value for the progress bar range.
-        orient: Indicates whether the widget should be laid or horizontally or vertically
-        mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
-        parent: The parent widget for this widget.
-    """
-    cursor: str
-    take_focus: bool
-    length: int
-    maximum: float
-    orient: Orientation
-    mode: Literal['determinate', 'indeterminate']
+from ttkbootstrap.types import EventHandler, Orientation
+from ttkbootstrap.widgets.progressbar.events import ProgressbarChangedEvent, ProgressbarCompleteEvent
+from ttkbootstrap.widgets.progressbar.style import ProgressbarStyleBuilder
+from ttkbootstrap.widgets.progressbar.types import ProgressbarOptions
 
 
 class Progressbar(BaseWidget):
     widget: ttk.Progressbar
     _configure_methods = {
-        "signal": "signal",
         "value": "value",
         "maximum": "maximum",
         "orient": "orient",
@@ -49,7 +30,7 @@ class Progressbar(BaseWidget):
             variant: Literal['default', 'striped'] = "default",
             on_changed: Optional[EventHandler] = None,
             on_complete: Optional[EventHandler] = None,
-            **kwargs: Unpack[ProgressOptions]):
+            **kwargs: Unpack[ProgressbarOptions]):
         """
         Create a progress bar widget with signal-based value tracking and styling.
 
@@ -62,7 +43,7 @@ class Progressbar(BaseWidget):
             on_complete: Optional callback invoked when the progress bar reaches max.
             **kwargs: Additional keyword arguments
         """
-        self._style_builder = ProgressStyleBuilder(orient=orient, color=color, variant=variant)
+        self._style_builder = ProgressbarStyleBuilder(orient=orient, color=color, variant=variant)
         self._signal = value if isinstance(value, Signal) else Signal(float(value))
         self._prev_value = self._signal()
         self._status = 'active'
@@ -122,13 +103,13 @@ class Progressbar(BaseWidget):
             cur = maximum
             self._signal.set(cur)
 
-        # always emit CHANGED
-        self.emit(Event.CHANGED, value=cur, prev_value=prev)
+        if cur != prev:
+            self.emit(Event.CHANGED, value=cur, prev_value=prev, when="tail")
 
         # one-shot COMPLETE when crossing the boundary
         if not self._completed and prev < maximum <= cur:
             self._completed = True
-            self.emit(Event.COMPLETE)
+            self.emit(Event.COMPLETE, when="tail")
 
         # reset the gate if we drop below max (e.g., you reset the bar)
         if self._completed and cur < maximum:
@@ -136,7 +117,9 @@ class Progressbar(BaseWidget):
 
         self._prev_value = cur
 
-    def on_changed(self, handler: Optional[EventHandler] = None, scope="widget"):
+    def on_changed(
+            self, handler: Optional[EventHandler] = None, scope="widget"
+    ) -> Stream[ProgressbarChangedEvent] | Self:
         """Stream or chainable binding for <<Changed>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -148,7 +131,9 @@ class Progressbar(BaseWidget):
         stream.listen(handler)
         return self
 
-    def on_complete(self, handler: Optional[EventHandler] = None, scope="widget"):
+    def on_complete(
+            self, handler: Optional[EventHandler] = None, scope="widget"
+    ) -> Stream[ProgressbarCompleteEvent] | Self:
         """Stream or chainable binding for <<Complete>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
