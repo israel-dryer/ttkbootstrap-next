@@ -1,7 +1,7 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 
 
-class PanedWindowStyleBuilder(StyleBuilderBase):
+class PanedwindowStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__("TPanedwindow", **kwargs)
