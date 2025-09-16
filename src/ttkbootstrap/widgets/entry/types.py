@@ -5,7 +5,7 @@ from tkinter.font import Font
 from typing import Callable, Literal, TypedDict, Union
 
 from ttkbootstrap.localization.intl_format import FormatSpec
-from ttkbootstrap.types import CoreOptions, EventHandler, Justify, Number, Padding
+from ttkbootstrap.types import CoreOptions, EventHandler, Justify, Number, Padding, Primitive
 
 DialogType = Literal[
     'openfilename', 'openfile', 'directory', 'openfilenames', 'openfiles',
@@ -40,8 +40,8 @@ class NumberEntryOptions(EntryOptions, total=False):
     increment: Number
     wrap: bool
     required: bool
-    on_input: EventHandler = None
-    on_enter: EventHandler = None
+    on_input: EventHandler
+    on_enter: EventHandler
     initial_focus: bool
 
 
@@ -76,14 +76,32 @@ class SpinboxOptions(CoreOptions, total=False):
     padding: Padding
     format: str
 
+
 class SpinboxInputData(TypedDict):
     text: str
+
 
 class SpinboxChangedData(TypedDict):
     value: Number
     prev_value: Number
     text: str
 
+
 class SpinboxEnterData(TypedDict):
     value: Number
+    text: str
+
+
+class EntryInputData(TypedDict):
+    text: str
+
+
+class EntryChangedData(TypedDict):
+    value: Primitive
+    prev_value: Primitive
+    text: str
+
+
+class EntryEnterData(TypedDict):
+    value: Primitive
     text: str

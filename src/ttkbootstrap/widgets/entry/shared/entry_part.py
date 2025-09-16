@@ -6,14 +6,14 @@ from typing import Any, Optional, Self, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Scope, Stream
-# Intl formatter (auto-locale inside)
 from ttkbootstrap.localization.intl_format import FormatSpec, IntlFormatter
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.entry.style import EntryStyleBuilder
 from ttkbootstrap.types import EventHandler
 from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
+from ttkbootstrap.widgets.entry.events import EntryChangedEvent, EntryEnterEvent, EntryInputEvent
 from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
 from ttkbootstrap.widgets.entry.shared.validatable_mixin import ValidationMixin
+from ttkbootstrap.widgets.entry.style import EntryStyleBuilder
 from ttkbootstrap.widgets.entry.types import EntryOptions
 
 
@@ -32,7 +32,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         "display_format": "display_format",
         "allow_blank": "allow_blank",
         "readonly": "readonly",
-        "commit": "commit",
     }
 
     def __init__(
@@ -265,7 +264,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             self,
             handler: Optional[EventHandler] = None,
             *, scope: Scope = "widget",
-    ) -> Stream[Any] | Self:
+    ) -> Stream[EntryInputEvent] | Self:
         """Stream or chainable binding for <<Change>> (text-only)."""
         stream = self.on(Event.INPUT, scope=scope)
         if handler is None:
@@ -277,7 +276,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             self,
             handler: Optional[EventHandler] = None,
             *, scope: Scope = "widget",
-    ) -> Stream[Any] | Self:
+    ) -> Stream[EntryEnterEvent] | Self:
         """Stream or chainable binding for <Return> (emits after commit)."""
 
         def enrich(e: Any):
@@ -294,7 +293,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             self,
             handler: Optional[EventHandler] = None,
             *, scope: Scope = "widget",
-    ) -> Stream | Self:
+    ) -> Stream[EntryChangedEvent] | Self:
         """Stream or chainable binding for <<Changed>> (committed value on blur/Enter)."""
         stream = self.on(Event.CHANGED, scope=scope)
         if handler is None:

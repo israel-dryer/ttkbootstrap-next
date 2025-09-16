@@ -39,7 +39,6 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
         "display_format": "display_format",
         "allow_blank": "allow_blank",
         "readonly": "readonly",
-        "commit": "commit",
     }
 
     def __init__(
