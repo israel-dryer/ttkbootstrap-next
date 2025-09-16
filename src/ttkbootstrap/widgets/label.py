@@ -47,7 +47,6 @@ class Label(BaseWidget, IconMixin):
     widget: ttk.Label
     _configure_methods = {
         "text": "text",
-        "text_signal": "text_signal",
         "foreground": "foreground",
         "background": "background",
         "icon_position": "icon_position"

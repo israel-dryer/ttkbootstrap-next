@@ -179,6 +179,8 @@ class Event(StrEnum):
     DECREMENT = "<<Decrement>>"
     DELETE = "<<Delete>>"
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
+    NOTEBOOK_TAB_ACTIVATED = "<<NotebookTabActivated>>"
+    NOTEBOOK_TAB_DEACTIVATED = "<<NotebookTabDeactivated>>"
     INPUT_METHOD_CHANGED = "<<IMChanged>>"
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
     STATE_CHANGED = "<<StateChanged>>"

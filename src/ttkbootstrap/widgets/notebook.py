@@ -9,20 +9,13 @@ from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.layouts import Grid, Pack
 from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
 from ttkbootstrap.types import (
-    Anchor,
-    Compound,
-    CoreOptions,
-    EventHandler, Fill,
-    Gap,
-    Image,
-    Padding,
-    Sticky,
-    Widget,
+    Anchor, Compound, CoreOptions, EventHandler, Fill, Gap, Image, Padding, Sticky, Widget,
 )
 
 
+# ---------- Options ----------
+
 class NotebookOptions(CoreOptions, total=False):
-    """Options supported by the Notebook widget."""
     take_focus: bool
     width: int
     height: int
@@ -30,7 +23,6 @@ class NotebookOptions(CoreOptions, total=False):
 
 
 class NotebookTabOptions(TypedDict, total=False):
-    """Common options for configuring Notebook tabs."""
     text: str
     compound: Compound
     image: Image
@@ -39,7 +31,6 @@ class NotebookTabOptions(TypedDict, total=False):
 
 
 class GridTabOptions(NotebookTabOptions, total=False):
-    """Notebook tab options when the tab content is a Grid layout."""
     rows: Union[int, list[Union[int, str]]]
     columns: Union[int, list[Union[int, str]]]
     gap: Gap
@@ -53,7 +44,6 @@ class GridTabOptions(NotebookTabOptions, total=False):
 
 
 class PackTabOptions(NotebookTabOptions, total=False):
-    """Notebook tab options when the tab content is a Pack layout."""
     direction: Literal["horizontal", "vertical", "row", "column", "row-reverse", "column-reverse"]
     gap: int
     padding: Padding
@@ -66,192 +56,276 @@ class PackTabOptions(NotebookTabOptions, total=False):
     parent: Widget
 
 
+# ---------- Tab mixin with KEY (replaces "name") ----------
+
 class TabMixin:
     """Mixin that adds tab metadata and tab-specific options."""
     bind: Callable
     widget: Widget
 
     def __init__(self, **kwargs):
-        """
-        Initialize tab mixin.
+        # Stable developer key (optional; Notebook will auto-generate if missing)
+        self._tab_key: Optional[str] = kwargs.pop('key', None)
 
-        Extracts tab-related options (text, image, compound, state, etc.)
-        from kwargs and stores them in ``_tab_options`` for later use.
-        """
-        self._name = kwargs.pop('name', None)
-        self._tab_options = dict()
-        for key in ['underline', 'state', 'sticky', 'image', 'compound', 'text']:
-            if key in kwargs:
-                self._tab_options[key] = kwargs.pop(key)
+        # Keep ttk tab options for .add()
+        self._tab_options = {}
+        for k in ['underline', 'state', 'sticky', 'image', 'compound', 'text']:
+            if k in kwargs:
+                self._tab_options[k] = kwargs.pop(k)
 
         super().__init__(**kwargs)
 
     @property
-    def name(self):
-        """Return the name of this tab."""
-        return self._name
+    def key(self) -> Optional[str]:
+        """Stable developer key for this tab (if provided)."""
+        return self._tab_key
 
 
 class TabGrid(TabMixin, Grid):
-    """A Notebook tab whose content uses a Grid layout."""
-
-    def __init__(self, text="", *, name: str = None, **kwargs: Unpack[GridTabOptions]):
-        super().__init__(text=text, name=name, **kwargs)
+    def __init__(self, text: str = "", *, key: str | None = None, **kwargs: Unpack[GridTabOptions]):
+        super().__init__(text=text, key=key, **kwargs)
         self._on_activated = None
         self._on_deactivated = None
 
 
 class TabPack(TabMixin, Pack):
-    """A Notebook tab whose content uses a Pack layout."""
-
-    def __init__(self, text="", *, name: str = None, **kwargs: Unpack[PackTabOptions]):
-        super().__init__(text=text, name=name, **kwargs)
+    def __init__(self, text: str = "", *, key: str | None = None, **kwargs: Unpack[PackTabOptions]):
+        super().__init__(text=text, key=key, **kwargs)
 
 
+# A "tab" handle can be key (str), index (int), widget, or tk id string
 Tab = Union[str, int, TabGrid, TabPack]
 
 
-class Notebook(BaseWidget):
-    """
-    A wrapper around :class:`ttk.Notebook` with simplified tab management
-    and name-based lookup support.
-    """
+# ---------- Notebook ----------
 
+class Notebook(BaseWidget):
+    """Wrapper around ttk.Notebook with stable key-based tab identity."""
     Pack = TabPack
     Grid = TabGrid
     widget: ttk.Notebook
 
     def __init__(self, **kwargs: Unpack[NotebookOptions]):
-        """
-        Initialize a Notebook widget.
-
-        **kwargs : NotebookOptions
-            Standard notebook options such as ``take_focus``, ``width``,
-            ``height``, and ``padding``. Also accepts ``parent`` to specify
-            the parent widget.
-
-        Notes
-        -----
-        This constructor builds the ttk.Notebook with an associated
-        style builder and registers it as a managed widget within
-        ttkbootstrap.
-        """
-
         self._in_context: bool = False
-        self._name_registry: dict[str, Widget] = {}  # map name to ttk tab id
         self._style_builder = NotebookStyleBuilder()
+
+        # Key registries
+        self._key_registry: dict[str, Widget] = {}  # key -> wrapper widget
+        self._tk_to_key: dict[str, str] = {}  # tk id -> key
+        self._auto_counter: int = 0  # for auto keys: tab1, tab2, ...
 
         parent = kwargs.pop('parent', None)
         tk_options = dict(**kwargs)
         super().__init__(ttk.Notebook, tk_options, parent=parent)
 
+        # Change-tracking for enriched events
+        self._last_selected: str | None = None
+        try:
+            self._last_selected = self.widget.select()
+        except Exception:
+            self._last_selected = None
+        self._last_change_reason: Literal['user', 'api', 'hide', 'forget', 'reorder', 'unknown'] = 'unknown'
+        self._last_change_via: Literal['click', 'key', 'programmatic', 'unknown'] = 'unknown'
+
+    # ---- context ----
     def __enter__(self):
-        """Enter layout context; attach self and push as current container."""
         push_container(self)
-        self._in_context: bool = True
+        self._in_context = True
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        """Exit layout context; pop this container."""
         pop_container()
-        self._in_context: bool = False
+        self._in_context = False
 
-    def on_tab_changed(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<NotebookTabChanged>>
+    # ---- internal helpers ----
+    def _mark_api_change(self, reason: str = 'api'):
+        self._last_change_reason = reason
+        self._last_change_via = 'programmatic'
 
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.NOTEBOOK_TAB_CHANGED, scope=scope)
+    def _make_key(self, widget: Widget, explicit_key: Optional[str]) -> str:
+        """Return a unique, stable key for this tab; auto-generate if missing."""
+        key = explicit_key or getattr(widget, 'key', None)
+        if key:
+            if key in self._key_registry:
+                raise NavigationError(
+                    message=f"Duplicate tab key: {key}",
+                    hint="Tab keys must be unique per Notebook."
+                )
+            return key
+
+        # auto-generate
+        while True:
+            self._auto_counter += 1
+            key = f"tab{self._auto_counter}"
+            if key not in self._key_registry:
+                return key
+
+    def _to_tab_id(self, tab: Tab) -> str:
+        """Resolve Tab handle -> tk tab id."""
+        # wrapper widget
+        if hasattr(tab, 'tk_name'):
+            return cast(Widget, tab).tk_name  # type: ignore[arg-type]
+
+        # index
+        if isinstance(tab, int):
+            tabs = self.widget.tabs()
+            try:
+                return tabs[tab]
+            except Exception:
+                raise NavigationError(
+                    message=f"Tab index out of range: {tab}",
+                    hint=f"Valid range is 0..{len(tabs) - 1}."
+                ) from None
+
+        # key
+        if isinstance(tab, str) and tab in self._key_registry:
+            return self._key_registry[tab].tk_name
+
+        # fallback: assume tk id string (advanced use)
+        if isinstance(tab, str):
+            return tab
+
+        raise NavigationError(
+            message=f"Unsupported tab reference: {tab!r}",
+            hint="Use a tab key (str), index (int), wrapper widget, or tk id."
+        )
+
+    def _tab_ref(self, tab_id: str | None) -> dict | None:
+        """Public-friendly reference: no tk ids, just index/key/label."""
+        if not tab_id:
+            return None
+        try:
+            idx = self.widget.index(tab_id)
+        except TclError:
+            return None
+        key = self._tk_to_key.get(tab_id)
+        label = None
+        try:
+            label = self.widget.tab(tab_id, 'text')
+        except Exception:
+            pass
+        return {"index": idx, "key": key, "label": label}
+
+    # ---- enriched signals ----
+    def on_tab_activated(self, handler=None, *, scope="widget"):
+        return (self.on(Event.NOTEBOOK_TAB_ACTIVATED, scope=scope).listen(handler)
+                if handler else self.on(Event.NOTEBOOK_TAB_ACTIVATED, scope=scope))
+
+    def on_tab_deactivated(self, handler=None, *, scope="widget"):
+        return (self.on(Event.NOTEBOOK_TAB_DEACTIVATED, scope=scope).listen(handler)
+                if handler else self.on(Event.NOTEBOOK_TAB_DEACTIVATED, scope=scope))
+
+    def on_tab_changed(self, handler: Optional[EventHandler] = None, *, scope="widget") -> Stream[Any] | Self:
+        base = self.on(Event.NOTEBOOK_TAB_CHANGED, scope=scope)
+
+        def build_payload(_tk_event):
+            current_id = self.widget.select()
+            prev_id = self._last_selected
+            return {
+                "current": self._tab_ref(current_id),
+                "previous": self._tab_ref(prev_id),
+                "reason": self._last_change_reason or 'unknown',
+                "via": self._last_change_via or 'unknown',
+            }
+
+        def fire_lifecycle(payload):
+            c, p = payload["current"], payload["previous"]
+            # compare by stable key (fallback to index if key missing)
+            c_key, p_key = (c or {}).get("key"), (p or {}).get("key")
+            changed = (c_key != p_key) if (c_key or p_key) else ((c or {}).get("index") != (p or {}).get("index"))
+            if p and changed:
+                try:
+                    self.emit("<<TabDeactivated>>", data={"tab": p})
+                except Exception:
+                    pass
+            if c and changed:
+                try:
+                    self.emit("<<TabActivated>>", data={"tab": c})
+                except Exception:
+                    pass
+
+        def commit(payload):
+            # keep tk id internally for next diff
+            self._last_selected = self.widget.select()
+            self._last_change_reason = 'unknown'
+            self._last_change_via = 'unknown'
+
+        stream = base.map(build_payload).tap(fire_lifecycle).tap(commit)
         if handler is None:
             return stream
         stream.listen(handler)
         return self
 
-    def add(self, widget: Widget, *, name: str = None, **options: Unpack[NotebookTabOptions]):
-        """Add a new tab containing the given widget."""
+    # ---- tab management (key-based) ----
+    def add(self, widget: Widget, *, key: str | None = None, **options: Unpack[NotebookTabOptions]):
+        """Add a new tab containing the given widget. Accepts optional stable `key`."""
+        # ttk add
         if hasattr(widget, '_tab_options'):
-            opts = getattr(widget, '_tab_options') or dict()
-            if opts:
-                self.widget.add(widget.tk_name, **opts)
-            else:
-                self.widget.add(widget.tk_name, **options)
+            opts = getattr(widget, '_tab_options') or {}
+            self.widget.add(widget.tk_name, **(opts or options))
+        else:
+            self.widget.add(widget.tk_name, **options)
 
-        if name is not None:
-            self._name_registry[name] = widget
-        if hasattr(widget, 'name'):
-            self._name_registry[cast(str, widget.name)] = widget
+        # register key <-> widget
+        stable_key = self._make_key(widget, key)
+        self._key_registry[stable_key] = widget
+        self._tk_to_key[widget.tk_name] = stable_key
         return self
 
     def remove(self, tab: Tab):
-        """Remove a tab by widget, index, or registered name."""
-        if tab in self._name_registry:
-            widget = self._name_registry.pop(tab)
-            self.widget.forget(widget.tk_name)
-        else:
-            self.widget.forget(resolve_name(tab))
+        """Remove a tab by key, index, widget, or tk id."""
+        self._mark_api_change('forget')
+        tab_id = self._to_tab_id(tab)
+        # cleanup registries
+        key = self._tk_to_key.pop(tab_id, None)
+        if key:
+            self._key_registry.pop(key, None)
+        self.widget.forget(tab_id)
         return self
 
     def hide(self, tab: Tab):
         """Hide a tab temporarily without removing it."""
-        if tab in self._name_registry:
-            widget = self._name_registry.get(tab)
-            self.widget.hide(widget.tk_name)
-        else:
-            self.widget.hide(resolve_name(tab))
+        self._mark_api_change('hide')
+        self.widget.hide(self._to_tab_id(tab))
 
-    def tab_index(self, tab: Tab):
+    def tab_index(self, tab: Tab) -> int:
         """Return the numeric index of a given tab."""
-        if tab in self._name_registry:
-            widget = self._name_registry.get(tab)
-            self.widget.index(widget.tk_name)
-        else:
-            self.widget.index(resolve_name(tab))
+        return self.widget.index(self._to_tab_id(tab))
 
-    def tab_count(self):
+    def tab_count(self) -> int:
         """Return the total number of tabs."""
         return self.widget.index('end')
 
     def select(self, tab: Tab = None):
-        """Select a tab or return the currently selected tab id."""
+        """Select a tab (by key/index/widget/tk id) or return the current tk id."""
         if tab is not None:
-            if tab in self._name_registry:
-                widget = self._name_registry.get(tab)
-                self.widget.select(widget.tk_name)
-            else:
-                try:
-                    self.widget.select(resolve_name(tab))
-                except TclError as _:
-                    raise NavigationError(
-                        message=f"No such tab: {tab}",
-                        hint="Give the tab a `name`, specify a valid index, or pass in a widget reference.") from None
-
+            self._mark_api_change('api')
+            self.widget.select(self._to_tab_id(tab))
             return self
-        else:
-            return self.widget.select()
+        return self.widget.select()
 
     def insert(self, position: Literal['end'] | int, widget: Widget, **options: Unpack[NotebookTabOptions]):
-        """Insert a tab at the specified position."""
+        """Insert a tab at the specified position (reorder)."""
+        self._mark_api_change('reorder')
         self.widget.insert(position, widget.tk_name, **options)
 
-    def tab_at_coordinate(self, x: int, y: int):
+    def tab_at_coordinate(self, x: int, y: int) -> int:
         """Return the tab index at the given (x, y) coordinate."""
         return self.widget.index(f"@{x},{y}")
 
     def configure_tab(self, tab: Tab, option: str = None, **options: Unpack[NotebookTabOptions]):
         """Get or set tab configuration options."""
+        tab_id = self._to_tab_id(tab)
         if option is not None:
-            return self.widget.tab(resolve_name(tab), option)
-        elif options is not None:
-            self.widget.tab(resolve_name(tab), **options)
+            return self.widget.tab(tab_id, option)
+        elif options:
+            self.widget.tab(tab_id, **options)
             return self
         else:
             return self
 
-    def tab_list(self):
-        """Return a list of all tab identifiers."""
+    def tab_list(self) -> list[str]:
+        """Return a list of all tk tab identifiers (internal ids)."""
         return self.widget.tabs()
 
     def enable_keyboard_traversal(self):
@@ -260,13 +334,4 @@ class Notebook(BaseWidget):
 
     @staticmethod
     def _validate_options(options: dict):
-        """Validate layout options for child widgets."""
         pass
-
-
-def resolve_name(tab: Tab) -> str:
-    """Return the tcl/tk name if exists otherwise the tab"""
-    try:
-        return tab.tk_name
-    except AttributeError:
-        return tab

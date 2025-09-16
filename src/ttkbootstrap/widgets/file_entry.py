@@ -118,6 +118,6 @@ class FileEntry(EntryField):
 
         if result:
             self.value(result)
-            self.entry_widget.emit(Event.CHANGED, value=result, prev_value=self.entry_widget._prev_changed_value)
+            self.entry_widget.emit(Event.CHANGED, value=result, prev_value=self.entry_widget._prev_changed_value, when="tail")
             # prevent event from firing again on blur
             self.entry_widget.commit()
