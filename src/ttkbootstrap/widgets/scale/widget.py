@@ -1,41 +1,22 @@
-from typing import Any, Callable, Union, Unpack
 from tkinter import ttk
+from typing import Any, Callable, Union, Unpack
 
-from ttkbootstrap.types import Orientation, CoreOptions
+from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.style.builders.scale import ScaleStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
-
-
-# TODO see if I can bound the change event so that I am only returning the precision value.
-
-class ScaleOptions(CoreOptions, total=False):
-    """
-    Options for configuring a slider widget.
-
-    Attributes:
-        cursor: The cursor that appears when the mouse is over the widget.
-        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
-        length: The length of the progress bar in pixels.
-        orient: Indicates whether the widget should be laid or horizontally or vertically
-    """
-    cursor: str
-    take_focus: bool
-    length: int
-    orient: Orientation
+from ttkbootstrap.types import Orientation
+from ttkbootstrap.widgets.scale.style import ScaleStyleBuilder
+from ttkbootstrap.widgets.scale.types import ScaleOptions
 
 
 class Scale(BaseWidget):
     widget: ttk.Scale
     _configure_methods = {
-        "signal": "signal",
         "value": "value",
         "min_value": "min_value",
         "max_value": "max_value",
         "precision": "precision",
-        "on_change": "on_change",
     }
 
     def __init__(
