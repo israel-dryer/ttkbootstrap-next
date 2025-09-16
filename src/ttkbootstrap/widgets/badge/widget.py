@@ -1,9 +1,10 @@
-from typing import Literal, Union, Unpack
+from typing import Union, Unpack
 
-from ttkbootstrap.style.builders.badge import BadgeStyleBuilder
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.utils import merge_build_options
-from ttkbootstrap.widgets.label import Label, LabelOptions
+from ttkbootstrap.widgets import Label
+from ttkbootstrap.widgets.badge.style import BadgeStyleBuilder
+from ttkbootstrap.widgets.badge.types import BadgeOptions, BadgeVariant
 
 
 class Badge(Label):
@@ -13,8 +14,8 @@ class Badge(Label):
             self,
             text: str = "",
             color: SemanticColor = "primary",
-            variant: Union[Literal['default', 'pill', 'circle'], str] = "default",
-            **kwargs: Unpack[LabelOptions]
+            variant: Union[BadgeVariant, str] = "default",
+            **kwargs: Unpack[BadgeOptions]
     ):
         """
         Initialize a Badge widget.
