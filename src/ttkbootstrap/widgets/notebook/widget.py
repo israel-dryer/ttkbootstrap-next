@@ -28,6 +28,25 @@ class Notebook(BaseWidget):
     widget: ttk.Notebook
 
     def __init__(self, **kwargs: Unpack[NotebookOptions]):
+        """
+        Create a Notebook widget and initialize tab identity/state tracking.
+
+        Parameters
+        ----------
+        **kwargs : NotebookOptions
+            Standard ttk.Notebook options (e.g., `take_focus`, `width`, `height`, `padding`),
+            plus an optional `parent` to attach the widget to.
+
+        Notes
+        -----
+        - Builds the underlying `ttk.Notebook` and a feature-specific style builder.
+        - Sets up registries for stable tab keys:
+            * `_key_registry`: maps stable keys → wrapper widgets
+            * `_tk_to_key`: maps Tk tab ids → stable keys
+            * `_auto_counter`: counter for auto-generated keys (`tab1`, `tab2`, …)
+        - Initializes change-tracking fields (`_last_selected`, `_last_change_reason`, `_last_change_via`)
+          used to enrich `<<NotebookTabChanged>>` events with context (current/previous, reason, via).
+        """
         self._in_context: bool = False
         self._style_builder = NotebookStyleBuilder()
 
@@ -47,21 +66,24 @@ class Notebook(BaseWidget):
 
     # ---- context ----
     def __enter__(self):
+        """Enter the layout context: push this notebook as the current container."""
         push_container(self)
         self._in_context = True
         return self
 
     def __exit__(self, exc_type, exc, tb):
+        """Exit the layout context: pop this notebook from the container stack."""
         pop_container()
         self._in_context = False
 
     # ---- internal helpers ----
     def _mark_api_change(self, reason: str = ChangeReason.API):
+        """Record a programmatic change reason so the next change event can report it."""
         self._last_change_reason = reason
         self._last_change_via = ChangeMethod.PROGRAMMATIC
 
     def _make_key(self, widget: Widget, explicit_key: Optional[str]) -> str:
-        """Return a unique, stable key for this tab; auto-generate if missing."""
+        """Return a unique, stable key for a tab; auto-generate (`tabN`) if none provided."""
         key = explicit_key or getattr(widget, 'key', None)
         if key:
             if key in self._key_registry:
@@ -79,7 +101,7 @@ class Notebook(BaseWidget):
                 return key
 
     def _to_tab_id(self, tab: Tab) -> str:
-        """Resolve Tab handle -> tk tab id."""
+        """Resolve a tab reference (key/index/widget/tk-id) to a Tk tab id."""
         # wrapper widget
         if hasattr(tab, 'tk_name'):
             return cast(Widget, tab).tk_name  # type: ignore[arg-type]
@@ -109,7 +131,7 @@ class Notebook(BaseWidget):
         )
 
     def _tab_ref(self, tab_id: str | None) -> TabRef | None:
-        """Public-friendly reference: no tk ids, just index/key/label."""
+        """Return a simplified tab reference ({index,key,label}) or None if invalid."""
         ref: TabRef = {"index": None, "key": None, "label": None}
         if not tab_id:
             return None
@@ -125,6 +147,7 @@ class Notebook(BaseWidget):
     def on_tab_activated(
             self, handler=None, *, scope="widget"
     ) -> Stream[NotebookTabActivatedEvent] | Self:
+        """Bind to the per-tab activation lifecycle event; returns a Stream or self when listening."""
         if handler:
             self.on(Event.NOTEBOOK_TAB_ACTIVATED, scope=scope).listen(handler)
             return self
@@ -133,6 +156,7 @@ class Notebook(BaseWidget):
     def on_tab_deactivated(
             self, handler=None, *, scope="widget"
     ) -> Stream[NotebookTabDeactivatedEvent] | Self:
+        """Bind to the per-tab deactivation lifecycle event; returns a Stream or self when listening."""
         if handler:
             self.on(Event.NOTEBOOK_TAB_DEACTIVATED, scope=scope).listen(handler)
             return self
@@ -141,9 +165,23 @@ class Notebook(BaseWidget):
     def on_tab_changed(
             self, handler: Optional[EventHandler] = None, *, scope="widget"
     ) -> Stream[NotebookChangedEvent] | Self:
+        """
+        Bind to `<<NotebookTabChanged>>` and receive an enriched event.
+
+        The stream maps the raw `BaseEvent` into a `NotebookChangedEvent` whose
+        `.data` payload contains:
+            - `current`: TabRef | None
+            - `previous`: TabRef | None
+            - `reason`: ChangeReason
+            - `via`: ChangeMethod
+
+        Additionally emits `NOTEBOOK_TAB_DEACTIVATED` and `NOTEBOOK_TAB_ACTIVATED`
+        lifecycle events when the selected tab actually changes.
+        """
         base: Stream[BaseEvent] = self.on(Event.NOTEBOOK_TAB_CHANGED, scope=scope)
 
         def build_payload(ev: BaseEvent) -> NotebookChangedEvent:
+            """Attach the NotebookChangedData payload to the event."""
             payload: NotebookChangedData = {
                 "current": self._tab_ref(self.widget.select()),
                 "previous": self._tab_ref(self._last_selected),
@@ -154,6 +192,7 @@ class Notebook(BaseWidget):
             return cast(NotebookChangedEvent, ev)
 
         def fire_lifecycle(ev: NotebookChangedEvent) -> None:
+            """Emit per-tab lifecycle events when selection truly changes."""
             c, p = ev.data["current"], ev.data["previous"]
             c_key, p_key = (c or {}).get("key"), (p or {}).get("key")
             changed = (c_key != p_key) if (c_key or p_key) else ((c or {}).get("index") != (p or {}).get("index"))
@@ -163,6 +202,7 @@ class Notebook(BaseWidget):
                 self.emit(Event.NOTEBOOK_TAB_ACTIVATED, data={"tab": c})
 
         def commit(_ev: NotebookChangedEvent) -> None:
+            """Reset change-tracking fields after dispatching the change event."""
             self._last_selected = self.widget.select()
             self._last_change_reason = ChangeReason.UNKNOWN
             self._last_change_via = ChangeMethod.UNKNOWN
@@ -180,7 +220,7 @@ class Notebook(BaseWidget):
 
     # ---- tab management (key-based) ----
     def add(self, widget: Widget, *, key: str | None = None, **options: Unpack[NotebookTabOptions]):
-        """Add a new tab containing the given widget. Accepts optional stable `key`."""
+        """Add a widget as a new tab, register its stable key, and return self."""
         # ttk add
         if hasattr(widget, '_tab_options'):
             opts = getattr(widget, '_tab_options') or {}
@@ -195,7 +235,7 @@ class Notebook(BaseWidget):
         return self
 
     def remove(self, tab: Tab):
-        """Remove a tab by key, index, widget, or tk id."""
+        """Forget a tab (by key/index/widget/tk-id), clean registries, and return self."""
         self._mark_api_change(ChangeReason.FORGET)
         tab_id = self._to_tab_id(tab)
         # cleanup registries
@@ -206,20 +246,20 @@ class Notebook(BaseWidget):
         return self
 
     def hide(self, tab: Tab):
-        """Hide a tab temporarily without removing it."""
+        """Hide a tab without removing it; selection may change implicitly."""
         self._mark_api_change(ChangeReason.HIDE)
         self.widget.hide(self._to_tab_id(tab))
 
     def tab_index(self, tab: Tab) -> int:
-        """Return the numeric index of a given tab."""
+        """Return the current position (index) of a tab."""
         return self.widget.index(self._to_tab_id(tab))
 
     def tab_count(self) -> int:
-        """Return the total number of tabs."""
+        """Return the total number of tabs in the notebook."""
         return self.widget.index('end')
 
     def select(self, tab: Tab = None):
-        """Select a tab (by key/index/widget/tk id) or return the current tk id."""
+        """Select a tab (setter) or return the current Tk tab id (getter)."""
         if tab is not None:
             self._mark_api_change(ChangeReason.API)
             self.widget.select(self._to_tab_id(tab))
@@ -227,16 +267,16 @@ class Notebook(BaseWidget):
         return self.widget.select()
 
     def insert(self, position: Literal['end'] | int, widget: Widget, **options: Unpack[NotebookTabOptions]):
-        """Insert a tab at the specified position (reorder)."""
+        """Insert an existing tab at a new position (reorder)."""
         self._mark_api_change(ChangeReason.REORDER)
         self.widget.insert(position, widget.tk_name, **options)
 
     def tab_at_coordinate(self, x: int, y: int) -> int:
-        """Return the tab index at the given (x, y) coordinate."""
+        """Return the index of the tab under window coordinates (x, y)."""
         return self.widget.index(f"@{x},{y}")
 
     def configure_tab(self, tab: Tab, option: str = None, **options: Unpack[NotebookTabOptions]):
-        """Get or set tab configuration options."""
+        """Get or set ttk tab options for a specific tab."""
         tab_id = self._to_tab_id(tab)
         if option is not None:
             return self.widget.tab(tab_id, option)
@@ -247,13 +287,14 @@ class Notebook(BaseWidget):
             return self
 
     def tab_list(self) -> list[str]:
-        """Return a list of all tk tab identifiers (internal ids)."""
+        """Return the list of Tk tab identifiers (internal ids)."""
         return self.widget.tabs()
 
     def enable_keyboard_traversal(self):
-        """Enable keyboard navigation between tabs (Ctrl+Tab, etc.)."""
+        """Enable Ctrl+Tab/Shift+Ctrl+Tab keyboard traversal between tabs."""
         self.widget.enable_traversal()
 
     @staticmethod
     def _validate_options(options: dict):
+        """Reserved for child-layout option validation (no-op for now)."""
         pass

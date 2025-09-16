@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import Any, Literal, Optional, Self, Union, Unpack, cast
+from typing import Optional, Self, Union, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.icon import IconMixin
@@ -7,32 +7,12 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.style.builders.button import ButtonStyleBuilder
-from ttkbootstrap.style.types import ButtonVariant, SemanticColor
-from ttkbootstrap.types import AltEventHandler, Compound, CoreOptions, IconPosition, Padding
+from ttkbootstrap.style.types import SemanticColor
+from ttkbootstrap.types import AltEventHandler, Compound, IconPosition
 from ttkbootstrap.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
-
-
-class ButtonOptions(CoreOptions, total=False):
-    """
-    Defines the optional keyword arguments accepted by the `Button` widget.
-
-    Attributes:
-        default: Used to set the button that is designated as "default"; in a dialog for example.
-        take_focus: Specifies if the widget accepts focus during keyboard traversal.
-        underline: The integer index (0-based) of a character to underline in the text.
-        width: The width of the widget in pixels.
-        builder: key-value options passed to the style builder
-        padding: The padding of the widget in pixels.
-        position: Whether to use static, absolute or fixed positioning.
-    """
-    default: Literal['normal', 'active', 'disabled']
-    cursor: str
-    take_focus: bool
-    underline: int
-    width: int
-    builder: dict
-    padding: Padding
+from ttkbootstrap.widgets.button.events import ButtonInvokeEvent
+from ttkbootstrap.widgets.button.style import ButtonStyleBuilder
+from ttkbootstrap.widgets.button.types import ButtonOptions, ButtonVariant
 
 
 class Button(BaseWidget, IconMixin):
@@ -109,7 +89,7 @@ class Button(BaseWidget, IconMixin):
         """Indicates if button is in a disabled state"""
         return "disabled" in self.widget.state()
 
-    def on_invoke(self, handler: Optional[AltEventHandler] = None) -> Stream[Any] | Self:
+    def on_invoke(self, handler: Optional[AltEventHandler] = None) -> Stream[ButtonInvokeEvent] | Self:
         """Stream or chainable binding for <<Invoke>>."""
         stream = self.on(Event.INVOKE)
         if handler is None:

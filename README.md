@@ -52,13 +52,16 @@ import ttkbootstrap as ttk
 
 Then create a window using the ttk.Window(...) and .mainloop() commands.
 And add a couple buttons (b1 and b2) to create your first window!
+
 ```python
+import ttkbootstrap.widgets.button.widget
+
 root = ttk.Window(themename="superhero")
 
-b1 = ttk.Button(root, text="Submit", bootstyle="success")
+b1 = ttkbootstrap.widgets.button.widget.Button(root, text="Submit", bootstyle="success")
 b1.pack(side=LEFT, padx=5, pady=10)
 
-b2 = ttk.Button(root, text="Submit", bootstyle="info-outline")
+b2 = ttkbootstrap.widgets.button.widget.Button(root, text="Submit", bootstyle="info-outline")
 b2.pack(side=LEFT, padx=5, pady=10)
 
 root.mainloop()
