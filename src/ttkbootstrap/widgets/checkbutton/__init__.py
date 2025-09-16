@@ -1,1 +1,1 @@
-from ttkbootstrap.widgets.checkbutton.widget import Checkbutton
+from ttkbootstrap.widgets.checkbutton.widget import Checkbutton, CheckButton

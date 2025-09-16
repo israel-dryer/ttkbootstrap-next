@@ -201,3 +201,6 @@ class Progressbar(BaseWidget):
             self._signal.unsubscribe(self._on_changed_fid)
             self._on_changed_fid = None
         super().destroy()
+
+
+ProgressBar = Progressbar

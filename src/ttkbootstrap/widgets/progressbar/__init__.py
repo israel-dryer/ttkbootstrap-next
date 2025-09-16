@@ -1,1 +1,1 @@
-from ttkbootstrap.widgets.progressbar.widget import Progressbar
+from ttkbootstrap.widgets.progressbar.widget import ProgressBar, Progressbar
