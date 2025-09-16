@@ -1,15 +1,10 @@
 from tkinter import ttk
-from typing import Unpack, Literal, Union
+from typing import Unpack
 
-from ttkbootstrap.types import Orientation, CoreOptions
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.style.builders.separator import SeparatorStyleBuilder
-from ttkbootstrap.style.types import SemanticColor
-
-SeparatorColor = Union[Literal['border'], SemanticColor]
-
-
-class SeparatorOptions(CoreOptions, total=False): ...
+from ttkbootstrap.types import Orientation
+from ttkbootstrap.widgets.separator.style import SeparatorStyleBuilder
+from ttkbootstrap.widgets.separator.types import SeparatorColor, SeparatorOptions
 
 
 class Separator(BaseWidget):
