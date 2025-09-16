@@ -1,8 +1,4 @@
-from typing import Union
-from tkinter import ttk
-
-Index = Union[int, str]
-EntryLike = Union[ttk.Entry, ttk.Spinbox]
+from ttkbootstrap.widgets.entry.types import EntryLike, Index
 
 
 class EntryMixin:

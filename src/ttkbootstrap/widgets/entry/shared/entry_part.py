@@ -1,34 +1,20 @@
 from __future__ import annotations
 
 from tkinter import ttk
-from tkinter.font import Font
-from typing import Any, Callable, Optional, Self, Unpack
+from typing import Any, Optional, Self, Unpack
 
-from ttkbootstrap.interop.runtime.binding import Scope, Stream
-from ttkbootstrap.types import EventHandler, Justify, Padding, CoreOptions
-from ttkbootstrap.events import Event
-from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
-from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
-from ttkbootstrap.widgets.mixins.validatable_mixin import ValidationMixin
 from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.style.builders.entry import EntryStyleBuilder
-
+from ttkbootstrap.events import Event
+from ttkbootstrap.interop.runtime.binding import Scope, Stream
 # Intl formatter (auto-locale inside)
-from ttkbootstrap.localization.intl_format import IntlFormatter, FormatSpec
-
-
-class EntryOptions(CoreOptions, total=False):
-    cursor: str
-    font: str | Font
-    foreground: str
-    take_focus: bool
-    x_scroll_command: Callable
-    export_selection: bool
-    justify: Justify
-    show: str
-    width: int
-    padding: Padding
+from ttkbootstrap.localization.intl_format import FormatSpec, IntlFormatter
+from ttkbootstrap.signals.signal import Signal
+from ttkbootstrap.widgets.entry.style import EntryStyleBuilder
+from ttkbootstrap.types import EventHandler
+from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
+from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
+from ttkbootstrap.widgets.entry.shared.validatable_mixin import ValidationMixin
+from ttkbootstrap.widgets.entry.types import EntryOptions
 
 
 class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
@@ -45,7 +31,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         "display": "display",
         "display_format": "display_format",
         "allow_blank": "allow_blank",
-        "signal": "signal",
         "readonly": "readonly",
         "commit": "commit",
     }

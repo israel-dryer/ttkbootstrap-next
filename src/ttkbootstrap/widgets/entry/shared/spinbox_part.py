@@ -1,46 +1,17 @@
-from tkinter.font import Font
+from tkinter import ttk
 from typing import Any, Callable, Optional, Self, Unpack
 
-from tkinter import ttk
-
+from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.utils import coerce_handler_args
-from ttkbootstrap.types import Justify, Padding, CoreOptions, Number
-from ttkbootstrap.events import Event
-from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
-from ttkbootstrap.widgets.mixins.validatable_mixin import ValidationMixin
-from ttkbootstrap.core.base_widget import BaseWidget
-from ttkbootstrap.style.builders.spinbox import SpinBoxStyleBuilder
-
-
-class SpinboxOptions(CoreOptions, total=False):
-    """
-    Options for configuring a number spinner widget.
-
-    Attributes:
-        cursor: The cursor that appears when the mouse is over the widget.
-        font: The font used to render text in the entry (name or Font object).
-        foreground: The text color (e.g., "#333", "red").
-        take_focus: Indicates whether the widget accepts focus during keyboard traversal.
-        x_scroll_command: A callback used to link the entry to a horizontal scrollbar.
-        export_selection: Whether to export the selection to the clipboard (default is True).
-        justify: Text justification (left, center, or right).
-        show: The character used to mask text (e.g., "*" for passwords).
-        width: The width of the entry widget in characters.
-    """
-    cursor: str
-    font: str | Font
-    foreground: str
-    take_focus: bool
-    x_scroll_command: Callable
-    export_selection: bool
-    justify: Justify
-    show: str
-    width: int
-    padding: Padding
-    format: str
+from ttkbootstrap.types import Number
+from ttkbootstrap.utils import assert_valid_keys
+from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
+from ttkbootstrap.widgets.entry.shared.validatable_mixin import ValidationMixin
+from ttkbootstrap.widgets.entry.style import SpinBoxStyleBuilder
+from ttkbootstrap.widgets.entry.types import SpinboxOptions
 
 
 class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
@@ -68,7 +39,6 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
     _configure_methods = {
         "value": "value",
         "formatter": "formatter",
-        "signal": "signal",
         "readonly": "readonly"
     }
 
@@ -190,9 +160,11 @@ class SpinboxPart(ValidationMixin, EntryMixin, BaseWidget):
         - If `handler` is provided → bind immediately and return self (chainable).
         - If no handler → return the Stream for Rx-style composition.
         """
+
         def transform(event: Any):
             event.data.update(value=self.value())
             return event
+
         stream = self.on(Event.RETURN, scope=scope).map(transform)
         if handler is None:
             return stream

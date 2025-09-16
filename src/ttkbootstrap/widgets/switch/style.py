@@ -4,7 +4,7 @@ from ttkbootstrap.style.element import Element, ElementImage
 from ttkbootstrap.style.utils import recolor_image
 
 
-class SwitchButtonStyleBuilder(StyleBuilderBase):
+class SwitchStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__('Switch.TCheckbutton', **kwargs)

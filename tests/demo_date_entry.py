@@ -1,6 +1,6 @@
 from ttkbootstrap.app import App
 from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets.date_entry import DateEntry
+from ttkbootstrap.widgets.entry.variants.date import DateEntry
 
 with App("Demo Date Entry") as app:
     with Pack(padding=16, gap=8):

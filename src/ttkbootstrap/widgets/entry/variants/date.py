@@ -1,14 +1,9 @@
 from typing import Unpack
 
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.widgets.composites.entry_field import EntryField
-from ttkbootstrap.widgets.parts.entry_part import EntryOptions
+from ttkbootstrap.widgets import Button
+from ttkbootstrap.widgets.entry.shared.entry_field import EntryField
+from ttkbootstrap.widgets.entry.shared.entry_part import EntryOptions
 
-
-# TODO Date picker dialog
-# TODO Date format
-# TODO Date validation
-# TODO Value should be able to be a datetime object or a string
 
 class DateEntry(EntryField):
     """

@@ -1,9 +1,9 @@
 from typing import Unpack
 
 from ttkbootstrap.events import Event
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.widgets.composites.entry_field import EntryField
-from ttkbootstrap.widgets.parts.entry_part import EntryOptions
+from ttkbootstrap.widgets import Button
+from ttkbootstrap.widgets.entry.shared.entry_field import EntryField
+from ttkbootstrap.widgets.entry.shared.entry_part import EntryOptions
 
 
 class PasswordEntry(EntryField):

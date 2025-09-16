@@ -1,15 +1,15 @@
 from abc import ABC
 from typing import Any, Literal, Union
 
-from ttkbootstrap.types import Widget
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import Button
-from ttkbootstrap.widgets.parts.entry_part import EntryPart
-from ttkbootstrap.widgets.parts.number_spinner_part import SpinboxPart
-from ttkbootstrap.widgets.label import Label
-from ttkbootstrap.widgets.mixins.entry_mixin import EntryMixin
 from ttkbootstrap.style.theme import ColorTheme
+from ttkbootstrap.types import Widget
+from ttkbootstrap.widgets import Button
+from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
+from ttkbootstrap.widgets.entry.shared.entry_part import EntryPart
+from ttkbootstrap.widgets.entry.shared.spinbox_part import SpinboxPart
+from ttkbootstrap.widgets.label import Label
 
 
 class EntryField(Pack, EntryMixin, ABC):
@@ -168,10 +168,11 @@ class EntryField(Pack, EntryMixin, ABC):
             **kwargs: Additional arguments passed to the widget constructor.
         """
         variant = "suffix" if position == "right" else "prefix"
+        kwargs.update(take_focus=False)
         if position == "right":
-            instance = widget(parent=self._field, variant=variant, take_focus=False, **kwargs)
+            instance = widget(parent=self._field, variant=variant, **kwargs)
         else:
-            instance = widget(parent=self._field, variant=variant, take_focus=False, **kwargs)
+            instance = widget(parent=self._field, variant=variant, **kwargs)
         key = name or str(instance)
         self._addons[key] = instance
 

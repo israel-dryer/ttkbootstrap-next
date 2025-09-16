@@ -1,19 +1,15 @@
 from tkinter import filedialog
-from typing import Any, Literal, Optional, Self, Union, Unpack
+from typing import Any, Optional, Self, Union, Unpack
 
 from ttkbootstrap.events import Event
 from ttkbootstrap.types import EventHandler
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.widgets.composites.entry_field import EntryField
-from ttkbootstrap.widgets.parts.entry_part import EntryOptions
-
-DialogType = Literal[
-    'openfilename', 'openfile', 'directory', 'openfilenames', 'openfiles',
-    'saveasfile', 'saveasfilename'
-]
+from ttkbootstrap.widgets import Button
+from ttkbootstrap.widgets.entry.shared.entry_field import EntryField
+from ttkbootstrap.widgets.entry.shared.entry_part import EntryOptions
+from ttkbootstrap.widgets.entry.types import DialogType
 
 
-class FileEntry(EntryField):
+class PathEntry(EntryField):
     """
     An entry field with a button that opens a file or directory selection dialog.
 
@@ -51,7 +47,7 @@ class FileEntry(EntryField):
             name='file-dialog',
             text=label,
             position="left",
-            on_click=self._show_file_chooser
+            on_invoke=self._show_file_chooser
         )
 
         if on_changed:
@@ -118,6 +114,7 @@ class FileEntry(EntryField):
 
         if result:
             self.value(result)
-            self.entry_widget.emit(Event.CHANGED, value=result, prev_value=self.entry_widget._prev_changed_value, when="tail")
+            self.entry_widget.emit(
+                Event.CHANGED, value=result, prev_value=self.entry_widget._prev_changed_value, when="tail")
             # prevent event from firing again on blur
             self.entry_widget.commit()

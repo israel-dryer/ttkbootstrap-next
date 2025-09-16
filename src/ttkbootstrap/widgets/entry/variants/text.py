@@ -1,14 +1,7 @@
 from typing import Unpack
 
-from ttkbootstrap.localization.intl_format import FormatSpec
-from ttkbootstrap.widgets.composites.entry_field import EntryField
-from ttkbootstrap.widgets.parts.entry_part import EntryOptions
-
-
-class TextEntryOptions(EntryOptions, total=False):
-    required: bool
-    display_format: FormatSpec
-    allow_blank: bool
+from ttkbootstrap.widgets.entry.shared.entry_field import EntryField
+from ttkbootstrap.widgets.entry.types import TextEntryOptions
 
 
 class TextEntry(EntryField):

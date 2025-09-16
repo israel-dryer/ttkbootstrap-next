@@ -1,16 +1,12 @@
 from typing import Unpack
 
 from ttkbootstrap.events import Event
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.widgets.composites.entry_field import EntryField
-from ttkbootstrap.widgets.parts.entry_part import EntryOptions
+from ttkbootstrap.widgets import Button
+from ttkbootstrap.widgets.entry.shared.entry_field import EntryField
+from ttkbootstrap.widgets.entry.types import NumberEntryOptions
 
 
-class NumberEntryOptions(EntryOptions, total=False):
-    required: bool
-
-
-class NumberEntry(EntryField):
+class NumericEntry(EntryField):
     """
     A numeric input field with optional spin buttons for incrementing and decrementing the value.
 

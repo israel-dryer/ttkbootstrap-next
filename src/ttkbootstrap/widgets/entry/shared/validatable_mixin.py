@@ -4,8 +4,8 @@ from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.types import EventHandler
-from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 from ttkbootstrap.validation.rules import ValidationRule
+from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 
 
 class ValidationMixin(BaseWidget):
