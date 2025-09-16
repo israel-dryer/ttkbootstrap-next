@@ -9,7 +9,7 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.layouts import Grid, Pack
-from ttkbootstrap.style.builders.notebook import NotebookStyleBuilder
+from ttkbootstrap.widgets.notebook.style import NotebookStyleBuilder
 from ttkbootstrap.types import Anchor, CoreOptions, EventHandler, Fill, Gap, Padding, Sticky, Widget
 from ttkbootstrap.utils import assert_valid_keys
 
