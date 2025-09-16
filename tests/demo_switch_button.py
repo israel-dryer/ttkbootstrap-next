@@ -1,6 +1,4 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import Switch
+from ttkbootstrap import App, Pack, Switch
 
 with App("Demo Switch Button") as app:
     with Pack(padding=16, fill_items="x", gap=16):

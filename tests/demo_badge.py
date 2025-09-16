@@ -1,6 +1,4 @@
-from ttkbootstrap import App
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import Badge
+from ttkbootstrap import App, Pack, Badge
 
 with App() as app:
     with Pack(padding=16, gap=8):

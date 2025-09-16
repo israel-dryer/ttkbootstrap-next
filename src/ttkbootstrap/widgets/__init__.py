@@ -8,14 +8,17 @@ from ttkbootstrap.widgets.scrollbar import Scrollbar
 from ttkbootstrap.widgets.separator import Separator
 from ttkbootstrap.widgets.sizegrip import Sizegrip
 from ttkbootstrap.widgets.progressbar import Progressbar
+from ttkbootstrap.widgets.radiobutton import Radiobutton
 from ttkbootstrap.widgets.canvas import Canvas
 from ttkbootstrap.widgets.notebook import Notebook
 from ttkbootstrap.widgets.pagestack import PageStack
+from ttkbootstrap.widgets.list import VirtualList
 from ttkbootstrap.widgets.entry import *
 
 __all__ = [
     "Button", "Checkbutton", "Switch",
     "Label", "Badge", "Scale", "Progressbar", "Canvas",
     "Scrollbar", "Sizegrip", "Separator", "PageStack", "Notebook",
-    "TextEntry", "PathEntry", "PasswordEntry", "NumericEntry"
+    "TextEntry", "PathEntry", "PasswordEntry", "NumericEntry",
+    "DateEntry", "VirtualList", "Radiobutton"
 ]

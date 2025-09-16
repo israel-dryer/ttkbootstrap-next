@@ -1,6 +1,4 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import Button, Notebook
+from ttkbootstrap import App, Pack, Button, Notebook
 
 # Context Manager Version
 with App("Notebook Demo", geometry="500x500") as app:

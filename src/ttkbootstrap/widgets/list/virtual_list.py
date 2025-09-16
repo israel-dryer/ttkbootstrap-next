@@ -1,11 +1,11 @@
 from typing import Any, Callable, Union
 
+from ttkbootstrap.datasource.sqlite_source import DataSource
+from ttkbootstrap.events import Event
+from ttkbootstrap.layouts import Pack
 from ttkbootstrap.types import Primitive
 from ttkbootstrap.widgets import Scrollbar
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.datasource.sqlite_source import DataSource
-from ttkbootstrap.widgets.composites.list_item import ListItem
-from ttkbootstrap.events import Event
+from ttkbootstrap.widgets.list.shared.list_item import ListItem
 
 VISIBLE_ROWS = 20
 ROW_HEIGHT = 32
@@ -15,33 +15,32 @@ class VirtualList(Pack):
     def __init__(
             self,
             items: Union[DataSource, list[Primitive], list[ListItem], list[dict[str, Any]]] = None,
-            row_factory: Callable=None,
-            dragging_enabled = False,
-            deleting_enabled = False,
-            chevron_visible = False,
-            scrollbar_visible = True,
-            selection_background = 'primary',
-            selection_mode = 'none',
-            selection_controls_visible = False,
+            row_factory: Callable = None,
+            dragging_enabled=False,
+            deleting_enabled=False,
+            chevron_visible=False,
+            scrollbar_visible=True,
+            selection_background='primary',
+            selection_mode='none',
+            selection_controls_visible=False,
             **kwargs
     ):
         super().__init__(parent=kwargs.pop("parent", None), direction="horizontal")
         self._scrollbar_visible = scrollbar_visible
 
         self._options = dict(
-            dragging_enabled = dragging_enabled,
-            deleting_enabled = deleting_enabled,
-            chevron_visible = chevron_visible,
-            selection_background = selection_background,
-            selection_mode = selection_mode,
-            selection_controls_visible = selection_controls_visible
+            dragging_enabled=dragging_enabled,
+            deleting_enabled=deleting_enabled,
+            chevron_visible=chevron_visible,
+            selection_background=selection_background,
+            selection_mode=selection_mode,
+            selection_controls_visible=selection_controls_visible
         )
         self._datasource = items if isinstance(items, DataSource) else DataSource().set_data(items or [])
         self._row_factory = row_factory or self._default_row_factory
         self._rows: list[ListItem] = []
         self._start_index = 0
         self._total_rows = self._datasource.total_count()
-
 
         # Layout
         self._canvas_frame = Pack(parent=self).attach(fill="both", expand=True)

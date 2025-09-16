@@ -3,7 +3,6 @@ from typing import Literal
 from ttkbootstrap.datasource.sqlite_source import DataSource
 from ttkbootstrap.layouts import Pack
 
-SelectBy = Literal['index', 'key']
 
 class ListBox(Pack):
 

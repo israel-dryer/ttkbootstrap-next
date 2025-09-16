@@ -1,6 +1,4 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import PasswordEntry
+from ttkbootstrap import App, Pack, PasswordEntry
 
 with App("Password Entry Demo", theme="dark") as app:
     with Pack(padding=16).layout(fill="both", expand=True):

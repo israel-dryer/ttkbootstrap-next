@@ -1,6 +1,4 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import Button
+from ttkbootstrap import App, Pack, Button
 
 with App("Demo Place", geometry="400x400") as app:
     with Pack().layout(fill="both", expand=True):

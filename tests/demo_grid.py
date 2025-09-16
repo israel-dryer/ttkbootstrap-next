@@ -1,6 +1,4 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Grid
-from ttkbootstrap.widgets import Button
+from ttkbootstrap import App, Grid, Button
 
 with App("Demo Grid Layout") as app:
     with Grid(rows=[0, 1, 0], columns=[0, 1, 0], padding=8, gap=8).layout(fill='both', expand=True):

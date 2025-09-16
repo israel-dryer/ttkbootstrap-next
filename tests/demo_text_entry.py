@@ -1,7 +1,4 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.events import Event
-from ttkbootstrap.layouts import Grid
-from ttkbootstrap.widgets import Button, Label, TextEntry
+from ttkbootstrap import App, Grid, Button, Label, TextEntry, Event
 
 with App("Text Entry Demo", geometry="500x400") as app:
     with Grid(padding=16, columns=2, gap=8, sticky_items="ew").layout(fill="x"):

@@ -1,8 +1,5 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.datasource.sqlite_source import DataSource
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.widgets import Button
-from ttkbootstrap.widgets.virtual_list import VirtualList
+from ttkbootstrap import App, Pack, Button, VirtualList
+from ttkbootstrap.datasource import DataSource
 
 with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
     records = [{"id": i, "text": f"Item {i}", "caption": "Caption", "icon": "house-fill"} for i in range(500)]
@@ -14,7 +11,6 @@ with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
     Button("Light", on_invoke=lambda: app.theme.use("light"))
 
     with Pack().layout(fill='both', expand=True):
-
         VirtualList(
             items=ds,
             selection_mode="multiple",
