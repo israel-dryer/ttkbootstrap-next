@@ -1,39 +1,18 @@
 from __future__ import annotations
 
 from tkinter import ttk
-from typing import Any, Callable, Literal, Optional, Protocol, Self, Type, TypedDict, Union, Unpack
+from typing import Any, Optional, Self, Type, Union, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
 from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.layouts import Grid, Pack
-from ttkbootstrap.widgets.notebook.style import NotebookStyleBuilder
-from ttkbootstrap.types import Anchor, CoreOptions, EventHandler, Fill, Gap, Padding, Sticky, Widget
+from ttkbootstrap.types import EventHandler, Widget
 from ttkbootstrap.utils import assert_valid_keys
-
-Page = Union["GridPage", "PackPage"]
-
-
-class PageStackOptions(CoreOptions, total=False):
-    """Configuration options for the PageStack container."""
-    take_focus: bool
-    width: int
-    height: int
-    padding: Padding
-
-
-class PageOptions(TypedDict, total=False):
-    """Options that can be configured per-page within a PageStack."""
-    name: str
-    state: Literal['normal', 'disabled', 'hidden']
-    sticky: Sticky
-    padding: Padding
-
-
-class PageEventHandler(Protocol):
-    def __call__(self, event: Any) -> Any: ...
+from ttkbootstrap.widgets.pagestack.style import PageStackStyleBuilder
+from ttkbootstrap.widgets.pagestack.page import GridPage, PackPage
+from ttkbootstrap.widgets.pagestack.types import Page, PageOptions, PageStackOptions
 
 
 class PageStack(BaseWidget):
@@ -57,7 +36,7 @@ class PageStack(BaseWidget):
         self._current: Optional[str] = None
         self._history: list[tuple[str, dict]] = []
         self._index: int = -1
-        self._style_builder = NotebookStyleBuilder(variant='pages')
+        self._style_builder = PageStackStyleBuilder()
 
         parent = kwargs.pop('parent', None)
         tk_options = dict(**kwargs)
@@ -188,129 +167,5 @@ class PageStack(BaseWidget):
         assert_valid_keys(options, PageOptions, where="pagestack")
 
 
-class GridPageOptions(TypedDict, total=False):
-    """Typed options for configuring a GridPage."""
-    rows: Union[int, list[Union[int, str]]]
-    columns: Union[int, list[Union[int, str]]]
-    gap: Gap
-    padding: Padding
-    sticky_items: Sticky
-    propagate: bool
-    auto_flow: Literal['row', 'column', 'dense-row', 'dense-column', 'none']
-    surface: str
-    variant: str
-
-
-class PackPageOptions(TypedDict, total=False):
-    """Typed options for configuring a PackPage."""
-    direction: Literal["horizontal", "vertical", "row", "column", "row-reverse", "column-reverse"]
-    gap: int
-    padding: Padding
-    propagate: bool
-    expand_items: bool
-    fill_items: Fill
-    anchor_items: Anchor
-    surface: str
-    variant: str
-
-
-class PageMixin(BaseWidget):
-    """Mixin that provides page lifecycle hooks and metadata."""
-
-    def __init__(self, name: str, **kwargs):
-        """
-        Initialize the page mixin.
-
-        Args:
-            name: The unique name of the page.
-            **kwargs: Options forwarded to the base layout widget.
-        """
-        self._name = name
-        self._page_options = {}
-        super().__init__(**kwargs)
-
-    def on_page_mounted(
-            self, handler: Optional[Callable[[Any], Any]] = None,
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<PageMounted>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.PAGE_MOUNTED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
-
-    def on_page_will_mount(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<PageWillMount>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.PAGE_WILL_MOUNT, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
-
-    def on_page_unmounted(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<PageUnmounted>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.PAGE_UNMOUNTED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
-
-    @property
-    def name(self):
-        """Return the unique name of this page."""
-        return self._name
-
-    @property
-    def page_options(self):
-        """Return additional page options for insertion into a PageStack."""
-        return self._page_options
-
-
-class PackPage(PageMixin, Pack):
-    """A page within a PageStack that uses a Pack layout."""
-
-    def __init__(self, name: str, **kwargs: Unpack[PackPageOptions]):
-        """
-        Initialize a PackPage.
-
-        Args:
-            name: The unique page name.
-            **kwargs: Layout options forwarded to the Pack container.
-        """
-        super().__init__(name, **kwargs)
-
-
-class GridPage(PageMixin, Grid):
-    """A page within a PageStack that uses a Grid layout."""
-
-    def __init__(self, name: str, **kwargs: Unpack[GridPageOptions]):
-        """
-        Initialize a GridPage.
-
-        Args:
-            name: The unique page name.
-            **kwargs: Layout options forwarded to the Grid container.
-        """
-        super().__init__(name, **kwargs)
-
-
 PageStack.Pack = PackPage
 PageStack.Grid = GridPage
-
-__all__ = ["PageStack"]
