@@ -243,3 +243,6 @@ class Radiobutton(BaseWidget):
             return t(v) if callable(t) else v
         except (ValueError, TypeError, KeyError):
             return v
+
+
+RadioButton = Radiobutton
