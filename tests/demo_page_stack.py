@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Button, PageStack
+from ttkbootstrap import App, Button, Pack, PageStack
 
 with App("PageStack Demo") as app:
     with Pack().layout(fill='both', expand=True):

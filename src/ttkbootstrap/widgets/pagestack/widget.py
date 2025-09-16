@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tkinter import ttk
-from typing import Any, Optional, Self, Type, Union, Unpack
+from typing import Optional, Self, Type, Union, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
@@ -10,9 +10,10 @@ from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.types import EventHandler, Widget
 from ttkbootstrap.utils import assert_valid_keys
-from ttkbootstrap.widgets.pagestack.style import PageStackStyleBuilder
+from ttkbootstrap.widgets.pagestack.events import NavigationEvent
 from ttkbootstrap.widgets.pagestack.page import GridPage, PackPage
-from ttkbootstrap.widgets.pagestack.types import Page, PageOptions, PageStackOptions
+from ttkbootstrap.widgets.pagestack.style import PageStackStyleBuilder
+from ttkbootstrap.widgets.pagestack.types import Nav, Page, PageOptions, PageStackOptions
 
 
 class PageStack(BaseWidget):
@@ -86,11 +87,27 @@ class PageStack(BaseWidget):
         """Return the total number of pages in the stack."""
         return len(self._pages)
 
-    def navigate(self, name: str, *, data: Optional[dict] = None, replace: bool = False):
+    def navigate(
+            self,
+            name: str,
+            *,
+            data: Optional[dict] = None,
+            replace: bool = False,
+            _nav: str = Nav.PUSH,  # private: navigation kind
+            _prev: tuple[str, dict] | None = None  # private: previous snapshot (for back/forward)
+    ):
         """Navigate to the page with the given name."""
         if name not in self._pages:
             raise NavigationError(f"{name} is not a valid page.")
 
+        # Snapshot "previous" BEFORE we mutate history.
+        if _prev is None:
+            prev_name = self._current
+            prev_data = self._history[self._index][1] if self._index >= 0 else {}
+        else:
+            prev_name, prev_data = _prev
+
+        # Mutate history
         if replace and 0 <= self._index < len(self._history):
             self._history[self._index] = (name, data)
         else:
@@ -99,33 +116,52 @@ class PageStack(BaseWidget):
             self._history.append((name, data))
             self._index += 1
 
+        # Unmount previous page
         if self._current is not None:
-            self._pages[self._current].emit(Event.PAGE_UNMOUNTED)
+            self._pages[self._current].emit(Event.PAGE_UNMOUNTED, when="tail")
 
-        data = dict(data or {})
-        data['page'] = name
+        # Normalized payload (self-contained snapshot)
+        payload = dict(data or {})
+        payload.update(
+            {
+                "page": name,
+                "prev_page": prev_name,
+                "prev_data": prev_data,
+                "nav": _nav,
+                "index": self._index,
+                "length": len(self._history),
+                "can_back": self._index > 0,
+                "can_forward": self._index < len(self._history) - 1,
+            })
+
+        # Mount & notify
         page: Widget = self._pages[name]
-        page.emit(Event.PAGE_WILL_MOUNT, data=data)
+        page.emit(Event.PAGE_WILL_MOUNT, data=payload, when="tail")
         self.widget.select(page.tk_name)
         self._current = name
-        page.emit(Event.PAGE_MOUNTED, data=data)
-        self.emit(Event.PAGE_CHANGED, data=data)
+        page.emit(Event.PAGE_MOUNTED, data=payload, when="tail")
+        self.emit(Event.PAGE_CHANGED, data=payload, when="tail")
         return self
 
     def back(self):
         """Navigate to the previous page in the navigation history."""
         if self._index > 0:
+            # Snapshot prev BEFORE changing index
+            prev = (self._current, self._history[self._index][1] if self._index >= 0 else {})
             self._index -= 1
             name, data = self._history[self._index]
-            self.navigate(name, data=data, replace=True)
+            # Use replace=True to avoid pushing a new entry;
+            # pass _prev to preserve the correct "previous" snapshot.
+            self.navigate(name, data=data, replace=True, _nav=Nav.BACK, _prev=prev)
         return self
 
     def forward(self):
         """Navigate to the next page in the navigation history."""
         if self._index < len(self._history) - 1:
+            prev = (self._current, self._history[self._index][1] if self._index >= 0 else {})
             self._index += 1
             name, data = self._history[self._index]
-            self.navigate(name, data=data, replace=True)
+            self.navigate(name, data=data, replace=True, _nav=Nav.FORWARD, _prev=prev)
         return self
 
     def current(self) -> tuple[str, dict] | None:
@@ -149,7 +185,7 @@ class PageStack(BaseWidget):
 
     def on_page_changed(
             self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[NavigationEvent] | Self:
         """Stream or chainable binding for <<PageChanged>>
 
         - If `handler` is provided → bind immediately and return self (chainable).

@@ -7,6 +7,7 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.layouts import Grid, Pack
 from ttkbootstrap.types import EventHandler
+from ttkbootstrap.widgets.pagestack.events import NavigationEvent
 from ttkbootstrap.widgets.pagestack.types import GridPageOptions, PackPageOptions
 
 
@@ -27,7 +28,7 @@ class PageMixin(BaseWidget):
 
     def on_page_mounted(
             self, handler: Optional[Callable[[Any], Any]] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[NavigationEvent] | Self:
         """Stream or chainable binding for <<PageMounted>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -41,7 +42,7 @@ class PageMixin(BaseWidget):
 
     def on_page_will_mount(
             self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[NavigationEvent] | Self:
         """Stream or chainable binding for <<PageWillMount>>
 
         - If `handler` is provided → bind immediately and return self (chainable).
@@ -55,7 +56,7 @@ class PageMixin(BaseWidget):
 
     def on_page_unmounted(
             self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[Any] | Self:
+            *, scope="widget") -> Stream[NavigationEvent] | Self:
         """Stream or chainable binding for <<PageUnmounted>>
 
         - If `handler` is provided → bind immediately and return self (chainable).

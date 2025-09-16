@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Any, Literal, Protocol, TypedDict, Union
 
 from ttkbootstrap.types import Anchor, CoreOptions, Fill, Gap, Padding, Sticky
@@ -52,3 +53,20 @@ class PageEventHandler(Protocol):
 
 
 Page = Union["GridPage", "PackPage"]
+
+
+class Nav(StrEnum):
+    PUSH = "push"
+    REPLACE = "replace"
+    BACK = "back"
+    FORWARD = "forward"
+
+
+class NavigationData(TypedDict):
+    page: str
+    prev_page: str
+    prev_data: "NavigationData"
+    nav: Nav
+    length: int
+    can_back: bool
+    can_forward: bool
