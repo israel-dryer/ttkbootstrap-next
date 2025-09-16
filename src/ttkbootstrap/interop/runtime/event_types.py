@@ -1,9 +1,35 @@
 from __future__ import annotations
 
+import reprlib
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from enum import Enum
+from typing import Any, Dict, Mapping, Optional, Tuple
 
 from ttkbootstrap.interop.runtime.key_resolver import decode_mods, resolve_press_from_parts
+
+
+def _repr_data_preview(d: dict) -> str:
+    # uses python’s smart truncation, still calls _normalize first
+    return reprlib.Repr().repr(_normalize(d))
+
+
+def _normalize(x: Any) -> Any:
+    try:
+        if isinstance(x, Enum):
+            return x.value
+        if isinstance(x, Mapping):
+            return {k: _normalize(v) for k, v in x.items()}
+        if isinstance(x, (list, tuple)):
+            T = type(x)
+            return T(_normalize(v) for v in x)
+        if isinstance(x, (bytes, bytearray, memoryview)):
+            return bytes(x).decode("utf-8", "replace")
+        if isinstance(x, set):
+            return sorted(_normalize(v) for v in x)
+        return x
+    except Exception:
+        # Always fall back to a safe representation
+        return repr(x)
 
 
 @dataclass(slots=True)
@@ -15,11 +41,21 @@ class BaseEvent:
     toplevel: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {"name": self.name, "data": self.data}
+        out: Dict[str, Any] = {"name": self.name, "data": _normalize(self.data)}
         if self.target is not None: out["target"] = self.target
         if self.timestamp is not None: out["timestamp"] = self.timestamp
         if self.toplevel is not None: out["root"] = self.toplevel
         return out
+
+    def __repr__(self) -> str:
+        parts = [f"name={self.name!r}"]
+        if self.target is not None:    parts.append(f"target={self.target!r}")
+        if self.timestamp is not None: parts.append(f"timestamp={self.timestamp!r}")
+        if self.toplevel is not None:  parts.append(f"root={self.toplevel!r}")
+        parts.append(f"data={_repr_data_preview(self.data)}")
+        return f"{self.__class__.__name__}(" + ", ".join(parts) + ")"
+
+    __str__ = __repr__
 
 
 # --- keyboard / key-like ---------------------------------------------------

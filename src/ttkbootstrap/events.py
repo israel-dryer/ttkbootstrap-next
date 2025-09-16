@@ -178,9 +178,12 @@ class Event(StrEnum):
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
     DELETE = "<<Delete>>"
+
+    # Notebook Events
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
     NOTEBOOK_TAB_ACTIVATED = "<<NotebookTabActivated>>"
     NOTEBOOK_TAB_DEACTIVATED = "<<NotebookTabDeactivated>>"
+
     INPUT_METHOD_CHANGED = "<<IMChanged>>"
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
     STATE_CHANGED = "<<StateChanged>>"

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import tkinter as tk
-from typing import Any, Callable, Literal, Optional, TypedDict, Union, Tuple
+from typing import Any, Callable, Literal, Mapping, Optional, Protocol, Tuple, TypeVar, TypedDict, Union, \
+    runtime_checkable
+
 from PIL.ImageTk import PhotoImage
 
 BindScope = Literal['all', 'class', 'widget']
@@ -81,3 +83,14 @@ class LayoutOpts(GridItemOptions, PackItemOptions, PlaceItemOptions):
 
 AltEventHandler = Union[Callable[[], Any], Callable[[Any], Any]]
 EventHandler = Callable[[Any], Any]
+
+TData = TypeVar("TData", bound=Mapping[str, Any])
+
+
+@runtime_checkable
+class BaseUIEvent(Protocol[TData]):
+    name: str
+    target: str | None
+    timestamp: str | None
+    toplevel: str | None
+    data: TData
