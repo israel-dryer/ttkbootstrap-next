@@ -1,7 +1,7 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 
 
-class SizeGripStyleBuilder(StyleBuilderBase):
+class SizegripStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__('TSizegrip', **kwargs)
