@@ -1,7 +1,7 @@
 from ttkbootstrap.style.builders.base import StyleBuilderBase
 
 
-class LabelFrameStyleBuilder(StyleBuilderBase):
+class LabelframeStyleBuilder(StyleBuilderBase):
 
     def __init__(self, **kwargs):
         super().__init__("TLabelframe", **kwargs)
