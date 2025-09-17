@@ -173,13 +173,19 @@ class Event(StrEnum):
     SELECTED = "<<Selected>>"
     DESELECTED = "<<Deselected>>"
     COMBOBOX_SELECTED = "<<ComboboxSelected>>"
-    RADIO_SELECTED = SELECTED
-    RADIO_DESELECTED = DESELECTED
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
     DELETE = "<<Delete>>"
 
-    # Notebook Events
+    # --------------------------------------------------------------------- #
+    # Radiobutton
+    # --------------------------------------------------------------------- #
+    RADIO_SELECTED = SELECTED
+    RADIO_DESELECTED = DESELECTED
+
+    # --------------------------------------------------------------------- #
+    # Notebook
+    # --------------------------------------------------------------------- #
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
     NOTEBOOK_TAB_ACTIVATED = "<<NotebookTabActivated>>"
     NOTEBOOK_TAB_DEACTIVATED = "<<NotebookTabDeactivated>>"
@@ -188,6 +194,11 @@ class Event(StrEnum):
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
     STATE_CHANGED = "<<StateChanged>>"
     TOGGLE = "<<Toggle>>"
+
+    # --------------------------------------------------------------------- #
+    # Fieldset
+    # --------------------------------------------------------------------- #
+    GROUP_TOGGLED = '<<GroupToggled>>'
 
     # --------------------------------------------------------------------- #
     # Validation

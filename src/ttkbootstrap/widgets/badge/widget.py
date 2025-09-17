@@ -2,7 +2,7 @@ from typing import Union, Unpack
 
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.utils import merge_build_options
-from ttkbootstrap.widgets import Label
+from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.badge.style import BadgeStyleBuilder
 from ttkbootstrap.widgets.badge.types import BadgeOptions, BadgeVariant
 
