@@ -1,6 +1,4 @@
-from ttkbootstrap.style import (
-    StyleBuilderBase, Element, ElementImage
-)
+from ttkbootstrap.style import (Element, ElementImage, StyleBuilderBase)
 from ttkbootstrap.style.utils import recolor_image
 
 
@@ -22,7 +20,23 @@ class FrameStyleBuilder(StyleBuilderBase):
     def build_default_style(self):
         ttk_style = self.resolve_name()
         background = self.theme.color(self.surface())
-        self.configure(ttk_style, background=background)
+        border_token = self.options('border')
+
+        if border_token is True:
+            border_color = self.theme.border(background)
+        elif border_token in (False, None):
+            border_color = background
+        else:
+            border_color = self.theme.color(border_token)
+
+        self.configure(
+            ttk_style,
+            background=background,
+            relief='raised',
+            bordercolor=border_color,
+            darkcolor=background,
+            lightcolor=background,
+        )
 
     def build_list_style(self):
         ttk_style = self.resolve_name()
