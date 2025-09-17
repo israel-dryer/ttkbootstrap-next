@@ -1,7 +1,7 @@
 from tkinter.font import nametofont
 
 from ttkbootstrap.icons import BootstrapIcon
-from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
+from ttkbootstrap.style import Element, ElementImage, StyleBuilderBase, recolor_image
 
 _images = []
 
@@ -208,7 +208,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
     def build_field_addon_style(self):
         theme = self.theme
         ttk_style = self.resolve_name()
-        surface_token = "background"
+        surface_token = self.surface()
         variant = self.options('variant')
 
         surface = theme.color(surface_token)
@@ -339,9 +339,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
 
     def build_icon_assets(self, icon: dict):
         variant = self.options('variant')
-        if variant == 'solid':
-            self.build_solid_icon_assets(icon)
-        elif variant == 'outline':
+        if variant == 'outline':
             self.build_outline_icon_assets(icon)
         elif variant == 'ghost':
             self.build_ghost_icon_assets(icon)
@@ -349,6 +347,10 @@ class ButtonStyleBuilder(StyleBuilderBase):
             self.build_addon_icon_assets(icon)
         elif variant == 'list':
             self.build_list_icon_assets(icon)
+        elif variant == 'text':
+            self.build_text_icon_assets(icon)
+        else:
+            self.build_solid_icon_assets(icon)
 
     def build_text_icon_assets(self, icon):
         surface = self.theme.color(self.surface())
