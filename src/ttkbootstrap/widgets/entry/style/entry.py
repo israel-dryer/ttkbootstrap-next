@@ -8,7 +8,8 @@ class EntryStyleBuilder(StyleBuilderBase):
 
     def register_style(self):
         ttk_style = self.resolve_name()
-        surface = self.theme.color(self.surface())
+        surface=self.theme.color("background") # always use the theme background
+        #surface = self.theme.color(self.surface())
         disabled_bg = self.theme.disabled('background')
         disabled_fg = self.theme.disabled('text')
         foreground = self.theme.on_color(surface)
