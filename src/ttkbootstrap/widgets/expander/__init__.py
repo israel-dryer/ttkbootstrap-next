@@ -1,0 +1,1 @@
+from ttkbootstrap.widgets.expander.widget import Expander

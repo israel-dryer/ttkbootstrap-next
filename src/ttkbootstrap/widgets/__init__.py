@@ -3,7 +3,7 @@ from ttkbootstrap.widgets.button import Button
 from ttkbootstrap.widgets.canvas import Canvas
 from ttkbootstrap.widgets.checkbutton import Checkbutton
 from ttkbootstrap.widgets.entry import *
-from ttkbootstrap.widgets.fieldset import Fieldset
+from ttkbootstrap.widgets.expander import Expander
 from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.list import VirtualList
 from ttkbootstrap.widgets.notebook import Notebook
@@ -21,5 +21,5 @@ __all__ = [
     "Label", "Badge", "Scale", "Progressbar", "Canvas",
     "Scrollbar", "Sizegrip", "Separator", "PageStack", "Notebook",
     "TextEntry", "PathEntry", "PasswordEntry", "NumericEntry",
-    "DateEntry", "VirtualList", "Radiobutton", "Fieldset"
+    "DateEntry", "VirtualList", "Radiobutton", "Expander"
 ]
