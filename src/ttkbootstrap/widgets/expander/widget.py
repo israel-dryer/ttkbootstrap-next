@@ -50,8 +50,7 @@ class Expander(Grid):
 
     _content: Pack
 
-    def __init__(
-            self, title: str, *, description: str = None, collapsible=False, expanded=True,
+    def __init__(self, title: str, *, collapsible=True, expanded=True,
             expander_icon: dict[str, str] = None, **kwargs):
         """
         Create a new Fieldset.
@@ -80,7 +79,7 @@ class Expander(Grid):
         self._expander_icon = expander_icon or DEFAULT_EXPANSION_ICONS
         self._customize_header = False
 
-        super().__init__(columns=1, rows=[0, 1], **kwargs)
+        super().__init__(columns=1, rows=[0, 1], padding=1, **kwargs)
         self._initialize_widget()
 
     def _current_expander_icon(self):
@@ -92,18 +91,18 @@ class Expander(Grid):
         # widget layout
         with self:
             # header container
-            with Grid(rows=1, columns=[1, 0], padding=(8, 4)) as self._header:
+            with Grid(rows=1, columns=[1, 0], padding=8) as self._header:
                 self._header.layout(column=0, row=0, sticky="ew")
 
                 # header text container
                 with Pack(direction="horizontal") as self._header_text_container:
                     self._header_text_container.layout(sticky="ew", column=0, row=0)
-                    self._title_widget = Label(self._title, font="heading-md", anchor="w").layout(fill="x")
+                    self._title_widget = Label(self._title, font="heading-sm", anchor="w").layout(fill="x")
 
                 # toggle button
                 self._toggle_btn = Button(
                     padding=8,
-                    variant="list",
+                    variant="text",
                     take_focus=False,
                     icon=self._current_expander_icon(),
                 )
@@ -111,7 +110,7 @@ class Expander(Grid):
                 self._toggle_btn.layout(column=1, row=0)
 
             # content container
-            self._content = Pack().layout(sticky="nsew", column=0, row=1)
+            self._content = Pack(padding=16).layout(sticky="nsew", column=0, row=1)
 
         # set initial state
         if not self._collapsible:
