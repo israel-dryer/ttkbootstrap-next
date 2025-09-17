@@ -20,7 +20,10 @@ def push_container(c):
 
 
 def pop_container():
-    _context_stack.pop()
+    try:
+        _context_stack.pop()
+    except IndexError:
+        pass
 
 
 def has_current_container():
