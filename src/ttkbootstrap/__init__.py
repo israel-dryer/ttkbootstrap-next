@@ -10,7 +10,7 @@ __all__ = [
     "Label", "Badge", "Scale", "Progressbar", "Canvas",
     "Scrollbar", "Sizegrip", "Separator", "PageStack", "Notebook",
     "TextEntry", "PathEntry", "PasswordEntry", "NumericEntry",
-    "Radiobutton", "DateEntry", "VirtualList",
+    "Radiobutton", "DateEntry", "VirtualList", "Fieldset",
     # Layouts
     "Grid", "Pack"
 ]
