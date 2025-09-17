@@ -15,6 +15,7 @@ class FrameOptions(TypedDict, total=False):
         take_focus: Specifies if the frame accepts focus during keyboard traversal.
         width: The width of the frame in pixels.
         builder: key-value options passed to the style builder
+        border: The border color.
     """
     cursor: str
     height: int
@@ -24,6 +25,7 @@ class FrameOptions(TypedDict, total=False):
     builder: dict
     parent: Widget
     position: Position
+    border: str | bool
 
 
 class GridOptions(FrameOptions, total=False):

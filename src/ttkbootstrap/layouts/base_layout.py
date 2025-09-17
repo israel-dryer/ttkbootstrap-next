@@ -16,10 +16,8 @@ class BaseLayout(BaseWidget, ContainerMixin):
     def __init__(self, *, surface: str = None, variant: str = None, **kwargs: Unpack[FrameOptions]):
         self._surface_token = surface
 
-        style_options = merge_build_options(
-            kwargs.pop('builder', {}),
-            variant=variant
-        )
+        style_options = merge_build_options(kwargs.pop('builder', {}), variant=variant)
+        style_options['border'] = kwargs.pop('border', None)
 
         parent = kwargs.pop('parent', None)
         tk_options = unsnake_kwargs(kwargs)
