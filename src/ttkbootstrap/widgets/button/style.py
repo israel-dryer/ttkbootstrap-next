@@ -208,7 +208,7 @@ class ButtonStyleBuilder(StyleBuilderBase):
     def build_field_addon_style(self):
         theme = self.theme
         ttk_style = self.resolve_name()
-        surface_token = self.surface()
+        surface_token = "background"
         variant = self.options('variant')
 
         surface = theme.color(surface_token)
