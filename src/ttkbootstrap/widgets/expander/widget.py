@@ -1,10 +1,14 @@
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts.grid import Grid
 from ttkbootstrap.layouts.pack import Pack
-from ttkbootstrap.widgets.button import Button
+from ttkbootstrap.utils import tag_descendents
 from ttkbootstrap.widgets.label import Label
+from ttkbootstrap.widgets.mixins.composite_mixin import CompositeWidgetMixin
 
-DEFAULT_EXPANSION_ICONS = {"open": "chevron-up", "closed": "chevron-down"}
+DEFAULT_EXPANSION_ICONS = {
+    "open": {"name": "chevron-up", "size": 12},
+    "closed": {"name": "chevron-down", "size": 12}
+}
 
 
 class _HeaderProxy:
@@ -35,7 +39,7 @@ class _HeaderProxy:
         return getattr(header, name)
 
 
-class Expander(Grid):
+class Expander(Grid, CompositeWidgetMixin):
     """
     A titled group container with a collapsible body.
 
@@ -50,7 +54,8 @@ class Expander(Grid):
 
     _content: Pack
 
-    def __init__(self, title: str, *, collapsible=True, expanded=True,
+    def __init__(
+            self, title: str, *, collapsible=True, expanded=True,
             expander_icon: dict[str, str] = None, **kwargs):
         """
         Create a new Fieldset.
@@ -97,16 +102,14 @@ class Expander(Grid):
                 # header text container
                 with Pack(direction="horizontal") as self._header_text_container:
                     self._header_text_container.layout(sticky="ew", column=0, row=0)
-                    self._title_widget = Label(self._title, font="heading-sm", anchor="w").layout(fill="x")
+                    self._title_widget = Label(self._title, anchor="w", padding=(4, 0)).layout(fill="x")
 
                 # toggle button
-                self._toggle_btn = Button(
-                    padding=8,
-                    variant="text",
-                    take_focus=False,
-                    icon=self._current_expander_icon(),
+                self._toggle_btn = Label(
+                    padding=8, variant="text", take_focus=False,
+                    icon=self._current_expander_icon()
                 )
-                self._toggle_btn.on_invoke(self.toggle)
+                # self._toggle_btn.on(Event.CLICK1).listen(lambda *_: self.toggle())
                 self._toggle_btn.layout(column=1, row=0)
 
             # content container
@@ -115,6 +118,8 @@ class Expander(Grid):
         # set initial state
         if not self._collapsible:
             self._toggle_btn.hide()
+        else:
+            self._bind_header_tags()
 
         if not self._expanded:
             self._content.hide()
@@ -177,3 +182,9 @@ class Expander(Grid):
 
         # Notify listeners (payload reflects the state before flipping)
         self.emit(Event.GROUP_TOGGLED, expanded=self._expanded)
+
+    def _bind_header_tags(self):
+        """Bind the header and descendent widgets for toggle event."""
+        tag = str(self._header.widget.winfo_id()) + '_header'
+        tag_descendents(self._header, tag)
+        self._header.on(Event.CLICK1, scope=tag).listen(lambda *_: self.toggle())

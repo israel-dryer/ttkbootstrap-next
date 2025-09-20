@@ -6,6 +6,10 @@ with App("Fieldset Demo", geometry="600x300", theme="dark") as app:
             with ex.content:
                 Button("Push")
 
+        with Expander("This is the expander title", border=True, collapsible=False).layout(fill='both') as ex:
+            with ex.content:
+                Button("Push")
+
         with Expander("Default", border=True).layout(fill='both') as ex:
             with ex.header:
                 Checkbutton()
