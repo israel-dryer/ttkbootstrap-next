@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, Mapping, Optional, Type, Union, Any
 
-from ttkbootstrap.types import IconPosition
+from ttkbootstrap.types import IconPosition, Widget
 from ttkbootstrap.exceptions import LayoutError, UIError
 
 
@@ -247,3 +247,12 @@ def encode_event_value_data(v: Any):
     if isinstance(v, (date, time)):
         return v.isoformat()
     return str(v)
+
+
+def tag_descendents(widget: Widget, tag: str):
+    for child in widget.children.values():
+        current_tags = child.bindtags()
+        if tag not in current_tags:
+            child.bindtags([*current_tags, tag])
+        if len(child.children.values()) > 0:
+            tag_descendents(child, tag)
