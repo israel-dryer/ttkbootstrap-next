@@ -1,14 +1,29 @@
+from typing import Literal, Unpack, cast
+
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts.grid import Grid
 from ttkbootstrap.layouts.pack import Pack
+from ttkbootstrap.layouts.types import GridOptions
 from ttkbootstrap.utils import tag_descendents
 from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.mixins.composite_mixin import CompositeWidgetMixin
 
-DEFAULT_EXPANSION_ICONS = {
-    "open": {"name": "chevron-up", "size": 12},
-    "closed": {"name": "chevron-down", "size": 12}
-}
+DEFAULT_EXPANDER_OPEN_ICON = {"name": "chevron-up", "size": 12}
+DEFAULT_EXPANDER_CLOSED_ICON = {"name": "chevron-down", "size": 12}
+DEFAULT_EXPANDER_POSITION = 'after'
+
+
+class ExpanderOptions(GridOptions):
+    """Accepts layout options passed to the grid container, as well as select expander button attributes.
+
+        Attributes:
+            open_icon: A dictionary of icon options [name, size]
+            closed_icon: A dictionary of icon options [name, size]
+            button_position: Where to place the button relative to the header content. Default is 'after'.
+    """
+    open_icon: dict
+    closed_icon: dict
+    button_position: Literal['before', 'after']
 
 
 class _HeaderProxy:
@@ -56,7 +71,7 @@ class Expander(Grid, CompositeWidgetMixin):
 
     def __init__(
             self, title: str, *, collapsible=True, expanded=True,
-            expander_icon: dict[str, str] = None, **kwargs):
+            **kwargs: Unpack[ExpanderOptions]):
         """
         Create a new Fieldset.
 
@@ -70,47 +85,58 @@ class Expander(Grid, CompositeWidgetMixin):
             remains visible.
         expanded:
             Initial expansion state. If `False`, the widget starts closed..
-        expander_icon:
-            The icon set to show when the expander is open or close. A dictionary
-            of icon values {"open": "minus", "closed": "plus"}.
         **kwargs:
-            Forwarded to `Grid` (e.g., `padding`, `width`, `height`, `surface`,
-            etc.). The Fieldset itself is a 1×2 grid: row 0 is the header,
-            row 1 is the body.
+            Expander button options for expander button icon and position. Also,
+            layout options that are forwarded to `Grid` (e.g., `padding`, `width`,
+            `height`, `surface`, etc.). The Fieldset itself is a 1×2 grid: row 0
+            is the header, row 1 is the body.
         """
         self._title = title
         self._collapsible = collapsible
         self._expanded = expanded
-        self._expander_icon = expander_icon or DEFAULT_EXPANSION_ICONS
+
+        # set expander button properties
+        opts = cast(dict, kwargs)
+        self._open_icon = opts.pop('open_icon', DEFAULT_EXPANDER_OPEN_ICON)
+        self._closed_icon = opts.pop('closed_icon', DEFAULT_EXPANDER_CLOSED_ICON)
+        self._button_position = opts.pop('button_position', DEFAULT_EXPANDER_POSITION)
         self._customize_header = False
 
         super().__init__(columns=1, rows=[0, 1], padding=1, **kwargs)
         self._initialize_widget()
 
+    @property
     def _current_expander_icon(self):
-        state = "open" if self._expanded else "closed"
-        return self._expander_icon[state]
+        return self._open_icon if self._expanded else self._closed_icon
+
+    @property
+    def _header_column_weights(self):
+        if self._button_position == 'after':
+            return [1, 0]
+        else:
+            return [0, 1]
 
     def _initialize_widget(self):
         """Build the header (title/chevron) and content containers."""
         # widget layout
+        cols = self._header_column_weights
         with self:
             # header container
-            with Grid(rows=1, columns=[1, 0], padding=8) as self._header:
+            with Grid(rows=1, columns=cols, padding=8) as self._header:
                 self._header.layout(column=0, row=0, sticky="ew")
 
                 # header text container
                 with Pack(direction="horizontal") as self._header_text_container:
-                    self._header_text_container.layout(sticky="ew", column=0, row=0)
+                    self._header_text_container.layout(sticky="ew", column=cols[1], row=0)
                     self._title_widget = Label(self._title, anchor="w", padding=(4, 0)).layout(fill="x")
 
                 # toggle button
                 self._toggle_btn = Label(
                     padding=8, variant="text", take_focus=False,
-                    icon=self._current_expander_icon()
+                    icon=self._current_expander_icon
                 )
                 # self._toggle_btn.on(Event.CLICK1).listen(lambda *_: self.toggle())
-                self._toggle_btn.layout(column=1, row=0)
+                self._toggle_btn.layout(column=cols[0], row=0)
 
             # content container
             self._content = Pack(padding=16).layout(sticky="nsew", column=0, row=1)
@@ -178,7 +204,7 @@ class Expander(Grid, CompositeWidgetMixin):
 
         # Flip expansion state
         self._expanded = not self._expanded
-        self._toggle_btn.icon(self._current_expander_icon())
+        self._toggle_btn.icon(self._current_expander_icon)
 
         # Notify listeners (payload reflects the state before flipping)
         self.emit(Event.GROUP_TOGGLED, expanded=self._expanded)

@@ -2,6 +2,10 @@ from ttkbootstrap import App, Button, Checkbutton, Expander, Label, NumericEntry
 
 with App("Fieldset Demo", geometry="600x300", theme="dark") as app:
     with Pack(padding=16, gap=16).layout(fill='both', expand=True):
+        with Expander("This is the expander title", border=True, button_position='before').layout(fill='both') as ex:
+            with ex.content:
+                Button("Push")
+
         with Expander("This is the expander title", border=True).layout(fill='both') as ex:
             with ex.content:
                 Button("Push")
@@ -10,7 +14,7 @@ with App("Fieldset Demo", geometry="600x300", theme="dark") as app:
             with ex.content:
                 Button("Push")
 
-        with Expander("Default", border=True).layout(fill='both') as ex:
+        with Expander("Default", border=True, button_position='before').layout(fill='both') as ex:
             with ex.header:
                 Checkbutton()
                 Label("Custom Header Label")
