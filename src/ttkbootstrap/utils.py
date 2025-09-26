@@ -172,7 +172,7 @@ def _is_rtl() -> bool:
     return False
 
 
-def normalize_icon_position(icon_position: IconPosition, *, has_text: bool, has_icon: bool) -> Optional[str]:
+def normalize_icon_position(icon_position: str, *, has_text: bool, has_icon: bool) -> Optional[str]:
     """
     Convert `icon_position` to Tkinter's `compound` value, with smart defaults.
 
@@ -180,17 +180,8 @@ def normalize_icon_position(icon_position: IconPosition, *, has_text: bool, has_
     - auto + icon + text  -> start (LTR) / end (RTL)
     - auto + only text    -> None
     """
-    _ICON_POSITION_MAP = {
-        "start": "left",
-        "end": "right",
-        "top": "top",
-        "bottom": "bottom",
-        "center": "center",
-        None: None,
-    }
-
-    if icon_position not in (None, "auto", "start", "end", "top", "bottom", "center"):
-        raise ValueError("icon_position must be one of None|'auto'|'start'|'end'|'top'|'bottom'|'center'.")
+    if icon_position not in ('none', 'left', 'right', 'top', 'bottom', 'center', 'auto'):
+        raise ValueError("compound must be one of None|'auto'|'left'|'right'|'top'|'bottom'|'center'.")
 
     if icon_position == "auto":
         if has_icon and not has_text:
@@ -199,7 +190,7 @@ def normalize_icon_position(icon_position: IconPosition, *, has_text: bool, has_
             return "right" if _is_rtl() else "left"  # end for RTL, start for LTR
         return None
 
-    return _ICON_POSITION_MAP[icon_position]
+    return icon_position
 
 
 def merge_build_options(

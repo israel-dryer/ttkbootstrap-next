@@ -1,5 +1,5 @@
-from tkinter import StringVar, Variable, ttk
-from typing import Callable, Optional, Self, Union, Unpack, cast
+from tkinter import Variable, ttk
+from typing import Callable, Optional, Union, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.icon import IconMixin
@@ -139,7 +139,7 @@ class Button(BaseWidget, IconMixin):
             return self._text_signal()
         self._text_signal.set(value)
         self._has_text = len(value) > 0
-        if self._icon_position == "auto":
+        if self._compound == "auto":
             self._configure_compound("auto")  # force automatic adjustment
         return self
 
@@ -147,6 +147,8 @@ class Button(BaseWidget, IconMixin):
         """Get or set the button text signal."""
         if value is None:
             return self._text_signal
+        if self._text_signal:
+            self._text_signal.unsubscribe_all()
         self._text_signal = value
         self.widget.configure(textvariable=self._text_signal.var)
         return self
@@ -157,16 +159,14 @@ class Button(BaseWidget, IconMixin):
         if value is None:
             return self._text_signal
         else:
-            self._text_signal = Signal.from_variable(value)
-            self.widget.configure(textvariable=self._text_signal.var)
-            return self
+            return self._configure_text_signal(Signal.from_variable(value))
 
     def _configure_compound(self, value: IconPosition = None):
         """Get or set the position of the icon in the button"""
         if value is None:
-            return self._icon_position
+            return self._compound
         else:
-            self._icon_position = value
+            self._compound = value
             compound = normalize_icon_position(value, has_text=self._has_text, has_icon=self._has_icon)
             self.widget.configure(compound=cast(Compound, compound))
             if not self._has_text:

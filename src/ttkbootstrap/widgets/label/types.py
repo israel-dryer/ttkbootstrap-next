@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import tkinter
+
 from ttkbootstrap.types import Anchor, Compound, CoreOptions, Image, Justify, Padding
 
 
@@ -18,6 +20,7 @@ class LabelOptions(CoreOptions, total=False):
         width: The width of the widget in pixels.
         wrap_length: The maximum line length in pixels.
         builder: key-value options passed to the style builder
+        text_variable: A tkinter variable bound to the label text
     """
     anchor: Anchor
     compound: Compound
@@ -30,3 +33,4 @@ class LabelOptions(CoreOptions, total=False):
     width: int
     wrap_length: int
     builder: dict
+    text_variable: tkinter.Variable
