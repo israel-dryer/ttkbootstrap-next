@@ -1,11 +1,10 @@
-from tkinter import ttk
-from typing import Optional, Self, Union, Unpack, cast
+from tkinter import StringVar, Variable, ttk
+from typing import Callable, Optional, Self, Union, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.events import Event
-from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.interop.runtime.utils import coerce_handler_args
+from ttkbootstrap.interop.runtime.binding import Stream, Subscription
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.types import AltEventHandler, Compound, IconPosition
@@ -22,11 +21,15 @@ class Button(BaseWidget, IconMixin):
 
     widget: ttk.Button
     _configure_methods = {
-        "text": "text",
-        "icon": "icon",
-        "icon_position": "icon_position",
-        "color": "color",
-        "variant": "variant"
+        "text": "_configure_text",
+        "icon": "_configure_icon",
+        "compound": "_configure_compound",
+        "color": "_configure_color",
+        "variant": "_configure_variant",
+        "text_signal": "_configure_text_signal",
+        "text_variable": "_configure_text_variable",
+        "textvariable": "_configure_text_variable",
+        "command": "_configure_command",
     }
 
     def __init__(
@@ -36,8 +39,7 @@ class Button(BaseWidget, IconMixin):
             color: Union[SemanticColor, str] = "primary",
             variant: ButtonVariant = "solid",
             icon: str | dict = None,
-            icon_position: IconPosition = "auto",
-            on_invoke: Optional[AltEventHandler] = None,
+            command: Optional[Callable] = None,
             **kwargs: Unpack[ButtonOptions]
     ):
         """
@@ -48,15 +50,16 @@ class Button(BaseWidget, IconMixin):
             color: Optional color role.
             variant: Optional style variant.
             icon: Optional icon identifier.
-            icon_position: The position of the icon in the button.
-            on_invoke: Callback fired when the button is invoked.
+            command: Callback fired when the button is invoked.
             **kwargs: Additional Button options.
         """
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._icon = resolve_options(icon, 'name') or None
         self._has_text = bool((self._text_signal() or ""))
         self._has_icon = icon is not None
-        self._icon_position = icon_position
+        self._compound = kwargs.pop('compound', 'auto')
+        self._command = None
+        self._command_sub: Optional[Subscription] = None
 
         # style builder options
         build_options = merge_build_options(
@@ -67,8 +70,7 @@ class Button(BaseWidget, IconMixin):
         )
         self._style_builder = ButtonStyleBuilder(**build_options)
 
-        kwargs.pop('compound', None)
-        compound = normalize_icon_position(icon_position, has_text=self._has_text, has_icon=self._has_icon)
+        compound = normalize_icon_position(self._compound, has_text=self._has_text, has_icon=self._has_icon)
         parent = kwargs.pop('parent', None)
         assert_valid_keys(kwargs, ButtonOptions, where="Button")
 
@@ -79,90 +81,23 @@ class Button(BaseWidget, IconMixin):
             **kwargs
         )
         super().__init__(ttk.Button, tk_options, parent=parent)
-        if on_invoke:
-            self.on_invoke(on_invoke)
-
-    def _handle_invoke(self, *_):
-        """Trigger the <<Invoke>> event"""
-        self.emit(Event.INVOKE, when="tail")
+        if command:
+            self.on_invoke().tap(lambda _: command()).then_stop()
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
         return "disabled" in self.widget.state()
 
-    def on_invoke(self, handler: Optional[AltEventHandler] = None) -> Stream[ButtonInvokeEvent] | Self:
-        """Stream or chainable binding for <<Invoke>>."""
-        stream = self.on(Event.INVOKE)
-        if handler is None:
-            return stream
-
-        def rename_event(e):
-            e.name = 'Invoke'
-            return e
-
-        stream.map(rename_event).listen(coerce_handler_args(handler))
-        return self
-
-    def text(self, value: str = None):
-        """Get or set the button text."""
-        if value is None:
-            return self._text_signal()
-        self._text_signal.set(value)
-        self._has_text = len(value) > 0
-        if self._icon_position == "auto":
-            self.icon_position("auto")  # force automatic adjustment
-        return self
-
-    def text_signal(self, value: Signal[str] = None):
-        """Get or set the button text signal."""
-        if value is None:
-            return self._text_signal
-        self._text_signal = value
-        self.widget.configure(textvariable=self._text_signal.var)
-        return self
-
-    def icon_position(self, value: IconPosition = None):
-        """Get or set the position of the icon in the button"""
-        if value is None:
-            return self._icon_position
-        else:
-            self._icon_position = value
-            compound = normalize_icon_position(value, has_text=self._has_text, has_icon=self._has_icon)
-            self.widget.configure(compound=cast(Compound, compound))
-            if not self._has_text:
-                self._style_builder.options(icon_only=True)
-            else:
-                self._style_builder.options(icon_only=False)
-            return self
-
-    def color(self, value: str = None):
-        """Get or set the color role"""
-        if value is None:
-            return self._style_builder.options("color")
-        else:
-            self._style_builder.options(color=value)
-            self.update_style()
-            return self
-
-    def variant(self, value: str = None):
-        """Get or set the style variant."""
-        if value is None:
-            return self._style_builder.options("variant")
-        else:
-            self._style_builder.options(variant=value)
-            self.update_style()
-            return self
-
     def enable(self):
         """Enable the button."""
         self.widget.state(['normal'])
-        if self.icon():
+        if self.configure('icon'):
             self._toggle_disable_icon(False)
         return self
 
     def disable(self):
         """Disable the button."""
-        if self.icon():
+        if self.configure('icon'):
             self._toggle_disable_icon(True)
         self.state(['disabled'])
         return self
@@ -176,3 +111,84 @@ class Button(BaseWidget, IconMixin):
         super().update_style()
         if self._icon:
             self._bind_stateful_icons()
+
+    # ---- Event handlers
+
+    def on_invoke(self) -> Stream[ButtonInvokeEvent]:
+        """Convenience alias for the invoke stream"""
+        return self.on(Event.INVOKE)
+
+    def _handle_invoke(self, *_):
+        """Trigger the <<Invoke>> event"""
+        self.emit(Event.INVOKE, when="tail")
+
+    # ---- Configuration delegates -----
+
+    def _configure_command(self, value: AltEventHandler = None):
+        if value is None:
+            return self._command
+        else:
+            if self._command_sub is not None:
+                self._command_sub.unlisten()
+            self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
+            return self
+
+    def _configure_text(self, value: str = None):
+        """Get or set the button text."""
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        self._has_text = len(value) > 0
+        if self._icon_position == "auto":
+            self._configure_compound("auto")  # force automatic adjustment
+        return self
+
+    def _configure_text_signal(self, value: Signal[str] = None):
+        """Get or set the button text signal."""
+        if value is None:
+            return self._text_signal
+        self._text_signal = value
+        self.widget.configure(textvariable=self._text_signal.var)
+        return self
+
+    def _configure_text_variable(self, value: Variable = None):
+        """Get or set the text variable. Accepts a tkinter variable but
+        always returns a signal of the same type."""
+        if value is None:
+            return self._text_signal
+        else:
+            self._text_signal = Signal.from_variable(value)
+            self.widget.configure(textvariable=self._text_signal.var)
+            return self
+
+    def _configure_compound(self, value: IconPosition = None):
+        """Get or set the position of the icon in the button"""
+        if value is None:
+            return self._icon_position
+        else:
+            self._icon_position = value
+            compound = normalize_icon_position(value, has_text=self._has_text, has_icon=self._has_icon)
+            self.widget.configure(compound=cast(Compound, compound))
+            if not self._has_text:
+                self._style_builder.options(icon_only=True)
+            else:
+                self._style_builder.options(icon_only=False)
+            return self
+
+    def _configure_color(self, value: str = None):
+        """Get or set the color role"""
+        if value is None:
+            return self._style_builder.options("color")
+        else:
+            self._style_builder.options(color=value)
+            self.update_style()
+            return self
+
+    def _configure_variant(self, value: str = None):
+        """Get or set the style variant."""
+        if value is None:
+            return self._style_builder.options("variant")
+        else:
+            self._style_builder.options(variant=value)
+            self.update_style()
+            return self

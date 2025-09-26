@@ -204,7 +204,7 @@ class Expander(Grid, CompositeWidgetMixin):
 
         # Flip expansion state
         self._expanded = not self._expanded
-        self._toggle_btn.icon(self._current_expander_icon)
+        self._toggle_btn.configure(icon=self._current_expander_icon)
 
         # Notify listeners (payload reflects the state before flipping)
         self.emit(Event.GROUP_TOGGLED, expanded=self._expanded)
