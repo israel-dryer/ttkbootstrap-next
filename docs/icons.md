@@ -55,7 +55,7 @@ ttk.Button(root, text="Save", image=save_img, compound="left").pack()
 
 # Widget-integrated (preferred; requires a widget subclass with IconMixin)
 btn = ttk.Button(root, text="Favorite")
-btn.icon({"name": "heart"})  # stateful; auto colors via style/theme
+btn.configure(icon={"name": "heart"})  # stateful; auto colors via style/theme
 btn.pack()
 ```
 

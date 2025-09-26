@@ -11,7 +11,6 @@ class IconMixin:
     _icon: dict | None
     _has_icon: bool
     exists: Callable[[], bool]
-    icon_position: Callable[[str], str]
     is_disabled: Callable[[], bool]
     configure: Callable
     process_idle_tasks: Callable
@@ -44,14 +43,14 @@ class IconMixin:
             self._current_icon_image = image
             self.configure(image=image)
 
-    def icon(self, value=None):
+    def _configure_icon(self, value=None):
         """Get or set the widget icon"""
         if value is None:
             return self._icon
 
         key_value = resolve_options(value, "name")
         self._has_icon = True
-        self.icon_position("auto")
+        self.configure(compound="auto")
 
         def apply():
             if not self.exists():
