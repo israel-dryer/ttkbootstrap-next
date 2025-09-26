@@ -33,14 +33,15 @@ class _SignalTrace:
         return tuple(self._traces.keys())
 
     def add(
-        self,
-        operation: TraceOperation,
-        callback: Callable[[T], Any],
-        get_value: Callable[[], T],
+            self,
+            operation: TraceOperation,
+            callback: Callable[[T], Any],
+            get_value: Callable[[], T],
     ) -> str:
         """
         Add a new trace that calls a callback when the variable is written.
         """
+
         def traced_callback(name: str, index: str, mode: str) -> None:
             callback(get_value())
 
@@ -104,6 +105,48 @@ class Signal(Generic[T]):
                 return False
             else:
                 return ""  # str default
+
+    @classmethod
+    def from_variable(
+            cls,
+            tk_var: tk.Variable,
+            *,
+            name: str | None = None,
+            coerce: Type[T] | None = None,
+    ) -> "Signal[T]":
+        """
+        Wrap an existing tkinter Variable as a Signal.
+
+        Args:
+            tk_var: An existing tkinter.Variable instance (StringVar, IntVar, etc.).
+            name: Optional override of the Tcl variable name. Defaults to tk_var's name.
+            coerce: Optional Python type to treat the signal as (e.g., int/float/bool/str).
+                    If omitted, the type is inferred from the tk_var subclass.
+
+        Returns:
+            A Signal bound to the provided tk_var.
+        """
+        # Infer Python type from the tk variable if not explicitly provided
+        if coerce is None:
+            if isinstance(tk_var, tk.BooleanVar):
+                py_type: Type[Any] = bool
+            elif isinstance(tk_var, tk.IntVar):
+                py_type = int
+            elif isinstance(tk_var, tk.DoubleVar):
+                py_type = float
+            else:
+                py_type = str
+        else:
+            py_type = coerce
+
+        # Construct without creating a new tk.Variable
+        self = cls.__new__(cls)  # bypass __init__
+        self._name = name or getattr(tk_var, "_name", str(tk_var))
+        self._type = py_type  # type: ignore[assignment]
+        self._var = tk_var
+        self._trace = _SignalTrace(self._var)
+        self._subscribers = {}
+        return self
 
     def set(self, value: T):
         """
