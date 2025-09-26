@@ -197,11 +197,11 @@ class EntryField(Pack, EntryMixin, ABC):
 
     def _show_error(self, event: Any):
         """Display a validation error message below the input field."""
-        self._message.text(event.data['message'])
+        self._message.configure(text=event.data['message'])
         self._message.configure(foreground='danger')
         self._message.attach(fill='x', after=self._field)
 
     def _clear_error(self, _: Any):
         """Clear the validation error and reset to the original message."""
-        self._message.text(self._message_text)
+        self._message.configure(text=self._message_text)
         self._message.configure(foreground='secondary')
