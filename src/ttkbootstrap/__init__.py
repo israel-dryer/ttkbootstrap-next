@@ -1,5 +1,5 @@
 from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Pack, Grid
+from ttkbootstrap.layouts import Pack, Grid, Frame
 from ttkbootstrap.widgets import *
 from ttkbootstrap.events import Event
 
@@ -12,5 +12,5 @@ __all__ = [
     "TextEntry", "PathEntry", "PasswordEntry", "NumericEntry",
     "Radiobutton", "DateEntry", "VirtualList", "Expander",
     # Layouts
-    "Grid", "Pack"
+    "Grid", "Pack", "Frame"
 ]
