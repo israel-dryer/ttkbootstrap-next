@@ -1,31 +1,29 @@
 from tkinter import ttk
-from typing import Any, Optional, Self, Unpack
+from typing import Any, Callable, Optional, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
-from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.interop.runtime.utils import coerce_handler_args
+from ttkbootstrap.interop.runtime.binding import Stream, Subscription
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.types import AltEventHandler, EventHandler
-from ttkbootstrap.widgets.checkbutton.events import CheckbuttonChangedEvent, CheckbuttonInvokeEvent
+from ttkbootstrap.types import UIEvent, Variable
+from ttkbootstrap.widgets.checkbutton.events import CheckbuttonInvokeEvent
 from ttkbootstrap.widgets.checkbutton.style import CheckbuttonStyleBuilder
 from ttkbootstrap.widgets.checkbutton.types import CheckbuttonOptions
 
 
 class Checkbutton(BaseWidget):
-    """
-    A themed checkbutton widget with support for signals and callbacks.
-
-    Provides fluent methods for setting text, value, color, and readonly state,
-    and supports binding to `Signal` objects for reactive UI behavior.
-    """
+    """A themed checkbutton widget with support for signals and callbacks."""
 
     widget: ttk.Checkbutton
     _configure_methods = {
-        "color": "color",
-        "text": "text",
-        "readonly": "readonly",
+        "color": "_configure_color",
+        "text": "_configure_text",
+        "text_signal": "_configure_text_signal",
+        "variable": "_configure_variable",
+        "textvariable": "_configure_text_variable",
+        "text_variable": "_configure_text_variable",
+        "command": "_configure_command",
     }
 
     def __init__(
@@ -36,8 +34,7 @@ class Checkbutton(BaseWidget):
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
-            on_changed: Optional[EventHandler] = None,
-            on_invoke: Optional[AltEventHandler] = None,
+            command: Optional[Callable] = None,
             **kwargs: Unpack[CheckbuttonOptions]
     ):
         """
@@ -51,8 +48,7 @@ class Checkbutton(BaseWidget):
             on_value: The value when checked.
             off_value: The value when unchecked.
             tristate_value: The value when in the indeterminate state.
-            on_changed: Callback fired when the value signal changes.
-            on_invoke: Callback fired when the button is invoked.
+            command: Callback fired whenever the widget is invoked.
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
@@ -60,6 +56,8 @@ class Checkbutton(BaseWidget):
         self._value_signal_fid = None
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._value_signal = value if isinstance(value, Signal) else Signal(value)
+        self._command = command
+        self._command_sub: Optional[Subscription] = None
         self._prev_value = self._value_signal()
 
         parent = kwargs.pop('parent', None)
@@ -83,113 +81,22 @@ class Checkbutton(BaseWidget):
 
         # bind handlers
         self.widget.configure(command=self._handle_invoke)
-
-        if on_changed:
-            self.on_changed(on_changed)
-
-        if on_invoke:
-            self.on_invoke(on_invoke)
-
         self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
 
-    def _handle_invoke(self):
-        """Trigger the <<Invoke>> event when the button is clicked."""
-        self.emit(Event.INVOKE, checked=self.is_checked(), value=self._value_signal(), when="tail")
+        if command:
+            self._configure_command(command)
 
-    def _handle_change(self, _: Any):
-        """Trigger <<Changed>> event when value signal changes"""
-        value = self._value_signal()
-        prev_value = self._prev_value
-        on_value = self.widget.cget("onvalue")
-        self.emit(Event.CHANGED, checked=value == on_value, value=value, prev_value=prev_value)
-        self._prev_value = value
+    def is_disabled(self):
+        """Return True if the checkbutton is disabled."""
+        return 'disabled' in self.state()
 
-    def on_changed(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[CheckbuttonChangedEvent] | Self:
-        """Stream or chainable binding for <<Changed>>
+    def is_readonly(self):
+        """Return True if the checkbutton is readonly."""
+        return 'readonly' in self.state()
 
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.CHANGED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
-
-    def on_invoke(
-            self, handler: Optional[AltEventHandler] = None,
-            *, scope="widget") -> Stream[CheckbuttonInvokeEvent] | Self:
-        """Stream or chainable binding for <<Invoke>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.INVOKE, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
-
-    def color(self, value: SemanticColor = None):
-        """Get or set the color role."""
-        if value is None:
-            return self._style_builder.options('color')
-        else:
-            self._style_builder.options(color=value)
-            self.update_style()
-            return self
-
-    def text_signal(self, value: Signal[str] = None):
-        """Get or set the checkbutton text signal."""
-        if value is None:
-            return self._text_signal
-        self._text_signal = value
-        self.configure(textvariable=self._text_signal.var)
-        return self
-
-    def value_signal(self, value: Signal[str | int] = None):
-        """Get or set the signal controlling the checkbutton value."""
-        if value is None:
-            return self._value_signal
-        # change signals
-        if self._value_signal_fid:
-            self._value_signal.unsubscribe(self._value_signal_fid)
-        self._value_signal = value
-        self.configure(variable=self._value_signal.var)
-        self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
-        self._prev_value = self._value_signal()
-        return self
-
-    def text(self, value: str = None):
-        """Get or set the checkbutton text."""
-        if value is None:
-            return self._text_signal()
-        self._text_signal.set(value)
-        return self
-
-    def value(self, value: str | int = None):
-        """Get or set the checkbutton value."""
-        if value is None:
-            return self._value_signal()
-        self._value_signal.set(value)
-        return self
-
-    def readonly(self, value: bool = None):
-        """Get or set the readonly state of the checkbutton."""
-        if value is None:
-            return "readonly" in self.widget.state()
-        else:
-            states = []
-            if self.value() == self._tristate_value:
-                states.append('alternate')
-            if value:
-                states.extend(['disabled', 'readonly'])
-            else:
-                states.extend(['!disabled', '!readonly'])
-            self.widget.state(states)
-            return self
+    def is_checked(self):
+        """Return True if the current value matches the on_value."""
+        return 'selected' in self.widget.state()
 
     def disable(self):
         """Disable the checkbutton, preventing interaction."""
@@ -207,14 +114,22 @@ class Checkbutton(BaseWidget):
             self.state(['!disabled', '!readonly'])
         return self
 
+    def readonly(self, value: bool):
+        """Set the readonly state of the checkbutton."""
+        states = []
+        if self.value() == self._tristate_value:
+            states.append('alternate')
+        if value:
+            states.extend(['disabled', 'readonly'])
+        else:
+            states.extend(['!disabled', '!readonly'])
+        self.widget.state(states)
+        return self
+
     def invoke(self):
         """Trigger the checkbutton as if it were toggled."""
         self.widget.invoke()
         return self
-
-    def is_checked(self):
-        """Return True if the current value matches the on_value."""
-        return 'selected' in self.widget.state()
 
     def destroy(self):
         """Unsubscribe callbacks and destroy the widget."""
@@ -222,6 +137,91 @@ class Checkbutton(BaseWidget):
             self._value_signal.unsubscribe(self._value_signal_fid)
             self._value_signal_fid = None
         super().destroy()
+
+    def value(self, value: str | int = None):
+        """Get or set the checkbutton value."""
+        if value is None:
+            return self._value_signal()
+        self._value_signal.set(value)
+        return self
+
+    # ---- Event handlers ----
+
+    def _handle_invoke(self):
+        """Trigger the <<Invoke>> event when the button is clicked."""
+        self.emit(Event.INVOKE, checked=self.is_checked(), value=self._value_signal(), when="tail")
+
+    def _handle_change(self, _: Any):
+        """Trigger <<Changed>> event when value signal changes"""
+        value = self._value_signal()
+        prev_value = self._prev_value
+        on_value = self.widget.cget("onvalue")
+        self.emit(Event.CHANGED, checked=value == on_value, value=value, prev_value=prev_value)
+        self._prev_value = value
+
+    def on_changed(self) -> Stream[UIEvent]:
+        """Convenience alias for changed stream"""
+        return self.on(Event.CHANGED)
+
+    def on_invoke(self) -> Stream[CheckbuttonInvokeEvent]:
+        """Convenience alias for invoke stream"""
+        return self.on(Event.INVOKE)
+
+    # ---- Configuration delegates -----
+
+    def _configure_command(self, value: Callable[..., Any] = None):
+        if value is None:
+            return self._command
+        else:
+            if self._command_sub:
+                self._command_sub.unlisten()
+            self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
+            return self
+
+    def _configure_color(self, value: SemanticColor = None):
+        if value is None:
+            return self._style_builder.options('color')
+        else:
+            self._style_builder.options(color=value)
+            self.update_style()
+            return self
+
+    def _configure_text_signal(self, value: Signal[str] = None):
+        if value is None:
+            return self._text_signal
+        self._text_signal = value
+        self.configure(textvariable=self._text_signal.var)
+        return self
+
+    def _configure_value_signal(self, value: Signal[str | int] = None):
+        if value is None:
+            return self._value_signal
+        # change signals
+        if self._value_signal_fid:
+            self._value_signal.unsubscribe(self._value_signal_fid)
+        self._value_signal = value
+        self.configure(variable=self._value_signal.var)
+        self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
+        self._prev_value = self._value_signal()
+        return self
+
+    def _configure_text(self, value: str = None):
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        return self
+
+    def _configure_text_variable(self, value: Variable = None):
+        if value is None:
+            return self._text_signal
+        else:
+            return self._configure_text_signal(Signal.from_variable(value))
+
+    def _configure_variable(self, value: Variable = None):
+        if value is None:
+            return self._value_signal
+        else:
+            return self._configure_value_signal(Signal.from_variable(value))
 
 
 CheckButton = Checkbutton

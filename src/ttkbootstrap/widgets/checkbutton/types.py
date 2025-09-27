@@ -1,3 +1,4 @@
+from tkinter import Variable
 from typing import TypedDict
 
 from ttkbootstrap.types import CoreOptions
@@ -27,3 +28,5 @@ class CheckbuttonOptions(CoreOptions, total=False):
     take_focus: bool
     underline: int
     width: int
+    variable: Variable
+    text_variable: Variable

@@ -159,19 +159,19 @@ class Event(StrEnum):
     # Virtual events (semantic / high-level)
     # --------------------------------------------------------------------- #
     INPUT = "<<Input>>"
-    CHANGED = "<<Changed>>"
-    CHANGE_START = "<<ChangeStart>>"
-    CHANGE_END = "<<ChangeEnd>>"
-    MODIFIED = "<<Modified>>"
+    CHANGED = "<<Tkb:Changed>>"
+    CHANGE_START = "<<Tkb:ChangeStart>>"
+    CHANGE_END = "<<Tkb:ChangeEnd>>"
+    MODIFIED = "<<Tkb:Modified>>"
     THEME_CHANGED = "<<ThemeChanged>>"
-    INVOKE = "<<Invoked>>"  # use to avoid clashing with built-in <<Invoke>>
-    COMPLETE = "<<Complete>>"
+    INVOKE = "<<Tkb:Invoke>>"  # use to avoid clashing with built-in <<Invoke>>
+    COMPLETE = "<<Tkb:Complete>>"
     WINDOW_ACTIVATED = "<<Activate>>"
     WINDOW_DEACTIVATED = "<<Deactivate>>"
     MENU_SELECT = "<<MenuSelect>>"
     SELECTION = "<<Selection>>"
-    SELECTED = "<<Selected>>"
-    DESELECTED = "<<Deselected>>"
+    SELECTED = "<<Tkb:Selected>>"
+    DESELECTED = "<<Tkb:Deselected>>"
     COMBOBOX_SELECTED = "<<ComboboxSelected>>"
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"

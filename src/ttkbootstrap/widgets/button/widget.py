@@ -58,7 +58,7 @@ class Button(BaseWidget, IconMixin):
         self._has_text = bool((self._text_signal() or ""))
         self._has_icon = icon is not None
         self._compound = kwargs.pop('compound', 'auto')
-        self._command = None
+        self._command = command
         self._command_sub: Optional[Subscription] = None
 
         # style builder options
@@ -82,7 +82,7 @@ class Button(BaseWidget, IconMixin):
         )
         super().__init__(ttk.Button, tk_options, parent=parent)
         if command:
-            self.on_invoke().tap(lambda _: command()).then_stop()
+            self._configure_command(command)
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""
@@ -112,15 +112,15 @@ class Button(BaseWidget, IconMixin):
         if self._icon:
             self._bind_stateful_icons()
 
-    # ---- Event handlers
-
-    def on_invoke(self) -> Stream[ButtonInvokeEvent]:
-        """Convenience alias for the invoke stream"""
-        return self.on(Event.INVOKE)
+    # ---- Event handlers -----
 
     def _handle_invoke(self, *_):
         """Trigger the <<Invoke>> event"""
         self.emit(Event.INVOKE, when="tail")
+
+    def on_invoke(self) -> Stream[ButtonInvokeEvent]:
+        """Convenience alias for the invoke stream"""
+        return self.on(Event.INVOKE)
 
     # ---- Configuration delegates -----
 
@@ -134,7 +134,6 @@ class Button(BaseWidget, IconMixin):
             return self
 
     def _configure_text(self, value: str = None):
-        """Get or set the button text."""
         if value is None:
             return self._text_signal()
         self._text_signal.set(value)
@@ -144,7 +143,6 @@ class Button(BaseWidget, IconMixin):
         return self
 
     def _configure_text_signal(self, value: Signal[str] = None):
-        """Get or set the button text signal."""
         if value is None:
             return self._text_signal
         if self._text_signal:
@@ -154,15 +152,12 @@ class Button(BaseWidget, IconMixin):
         return self
 
     def _configure_text_variable(self, value: Variable = None):
-        """Get or set the text variable. Accepts a tkinter variable but
-        always returns a signal of the same type."""
         if value is None:
             return self._text_signal
         else:
             return self._configure_text_signal(Signal.from_variable(value))
 
     def _configure_compound(self, value: IconPosition = None):
-        """Get or set the position of the icon in the button"""
         if value is None:
             return self._compound
         else:
@@ -176,7 +171,6 @@ class Button(BaseWidget, IconMixin):
             return self
 
     def _configure_color(self, value: str = None):
-        """Get or set the color role"""
         if value is None:
             return self._style_builder.options("color")
         else:
