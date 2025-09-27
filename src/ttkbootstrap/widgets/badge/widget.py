@@ -32,11 +32,6 @@ class Badge(Label):
                 - "pill": Rounded ends.
                 - "circle": Circular shape.
         """
-        build_options = merge_build_options(
-            kwargs.pop('builder', {}),
-            color=color,
-            variant=variant
-        )
-        # override the label style builder
+        build_options = merge_build_options(kwargs.pop('builder', {}), color=color, variant=variant)
         super().__init__(text, font='label', **kwargs)
         self._style_builder = BadgeStyleBuilder(**build_options)
