@@ -17,6 +17,7 @@ class Scale(BaseWidget):
     widget: ttk.Scale
 
     _configure_methods = {
+        "color": "_configure_color",
         "min_value": "_configure_min_value",
         "max_value": "_configure_max_value",
         "precision": "_configure_precision",
