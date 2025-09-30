@@ -1,31 +1,30 @@
 from tkinter import ttk
-from typing import Any, Optional, Self, Unpack
+from typing import Any, Callable, Optional, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
-from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.interop.runtime.utils import coerce_handler_args
+from ttkbootstrap.interop.runtime.binding import Stream, Subscription
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.types import AltEventHandler, EventHandler
+from ttkbootstrap.types import Variable
 from ttkbootstrap.widgets.switch.events import SwitchChangedEvent, SwitchInvokeEvent
 from ttkbootstrap.widgets.switch.style import SwitchStyleBuilder
 from ttkbootstrap.widgets.switch.types import SwitchOptions
 
 
 class Switch(BaseWidget):
-    """
-    A themed switch widget with support for signals and callbacks.
-
-    Provides fluent methods for setting text, value, color, and readonly state,
-    and supports binding to `Signal` objects for reactive UI behavior.
-    """
+    """A themed switch widget with support for signals and callbacks."""
 
     widget: ttk.Checkbutton
     _configure_methods = {
-        "color": "color",
-        "text": "text",
-        "readonly": "readonly",
+        "color": "_configure_color",
+        "text": "_configure_text",
+        "text_signal": "_configure_text_signal",
+        "value_signal": "_configure_value_signal",
+        "variable": "_configure_variable",
+        "textvariable": "_configure_text_variable",
+        "text_variable": "_configure_text_variable",
+        "command": "_configure_command",
     }
 
     def __init__(
@@ -36,8 +35,7 @@ class Switch(BaseWidget):
             on_value: int | str = 1,
             off_value: int | str = 0,
             tristate_value: int | str = -1,
-            on_changed: Optional[EventHandler] = None,
-            on_invoke: Optional[AltEventHandler] = None,
+            command: Optional[Callable] = None,
             **kwargs: Unpack[SwitchOptions]
     ):
         """
@@ -51,8 +49,7 @@ class Switch(BaseWidget):
             on_value: The value when checked.
             off_value: The value when unchecked.
             tristate_value: The value when in the indeterminate state.
-            on_changed: Callback fired when the value signal changes.
-            on_invoke: Callback fired when the button is invoked.
+            command: Callback fired whenever the widget is invoked.
             **kwargs: Additional keyword arguments.
         """
         self._tristate_value = tristate_value
@@ -61,6 +58,8 @@ class Switch(BaseWidget):
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._value_signal = value if isinstance(value, Signal) else Signal(value)
         self._prev_value = self._value_signal()
+        self._command = command
+        self._command_sub: Optional[Subscription] = None
 
         parent = kwargs.pop('parent', None)
 
@@ -82,15 +81,71 @@ class Switch(BaseWidget):
             self.widget.invoke()
 
         # bind handlers
-        self.widget.configure(command=self._handle_invoke)
-
-        if on_changed:
-            self.on_changed(on_changed)
-
-        if on_invoke:
-            self.on_invoke(on_invoke)
+        if command:
+            self._configure_command(command)
 
         self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
+
+    def is_disabled(self):
+        """Return True if the switch is disabled."""
+        return 'disabled' in self.state()
+
+    def is_readonly(self):
+        """Return True if the switch is readonly."""
+        return 'readonly' in self.state()
+
+    def is_checked(self):
+        """Return True if the current value matches the on_value."""
+        return 'selected' in self.widget.state()
+
+    def disable(self):
+        """Disable the switch, preventing interaction."""
+        if self.value() == self._tristate_value:
+            self.widget.state(['disabled', 'alternate'])
+        else:
+            self.widget.state(['disabled'])
+        return self
+
+    def enable(self):
+        """Enable the switch so it can be interacted with."""
+        if self.value() == self._tristate_value:
+            self.state(['!disabled', '!readonly', 'alternate'])
+        else:
+            self.state(['!disabled', '!readonly'])
+        return self
+
+    def readonly(self, value: bool):
+        """Set the readonly state of the switch."""
+        states = []
+        if self.value() == self._tristate_value:
+            states.append('alternate')
+        if value:
+            states.extend(['disabled', 'readonly'])
+        else:
+            states.extend(['!disabled', '!readonly'])
+        self.widget.state(states)
+        return self
+
+    def invoke(self):
+        """Trigger the switch as if it were toggled."""
+        self.widget.invoke()
+        return self
+
+    def destroy(self):
+        """Unsubscribe callbacks and destroy the widget."""
+        if self._value_signal_fid:
+            self._value_signal.unsubscribe(self._value_signal_fid)
+            self._value_signal_fid = None
+        super().destroy()
+
+    def value(self, value: str | int = None):
+        """Get or set the switch value."""
+        if value is None:
+            return self._value_signal()
+        self._value_signal.set(value)
+        return self
+
+    # ---- Event handlers ----
 
     def _handle_invoke(self):
         """Trigger the <<Invoke>> event when the button is clicked."""
@@ -104,36 +159,26 @@ class Switch(BaseWidget):
         self.emit(Event.CHANGED, checked=value == on_value, value=value, prev_value=prev_value)
         self._prev_value = value
 
-    def on_changed(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[SwitchChangedEvent] | Self:
-        """Stream or chainable binding for <<Changed>>
+    def on_changed(self) -> Stream[SwitchChangedEvent]:
+        """Convenience alias for changed stream"""
+        return self.on(Event.CHANGED)
 
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.CHANGED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
+    def on_invoke(self) -> Stream[SwitchInvokeEvent]:
+        """Convenience alias for invoke stream"""
+        return self.on(Event.INVOKE)
 
-    def on_invoke(
-            self, handler: Optional[AltEventHandler] = None,
-            *, scope="widget") -> Stream[SwitchInvokeEvent] | Self:
-        """Stream or chainable binding for <<Invoke>>
+    # ---- Configuration delegates -----
 
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.INVOKE, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
+    def _configure_command(self, value: Callable[..., Any] = None):
+        if value is None:
+            return self._command
+        else:
+            if self._command_sub:
+                self._command_sub.unlisten()
+            self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
+            return self
 
-    def color(self, value: SemanticColor = None):
-        """Get or set the color role."""
+    def _configure_color(self, value: SemanticColor = None):
         if value is None:
             return self._style_builder.options('color')
         else:
@@ -141,16 +186,20 @@ class Switch(BaseWidget):
             self.update_style()
             return self
 
-    def text_signal(self, value: Signal[str] = None):
-        """Get or set the checkbutton text signal."""
+    def _configure_text(self, value: str = None):
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        return self
+
+    def _configure_text_signal(self, value: Signal[str] = None):
         if value is None:
             return self._text_signal
         self._text_signal = value
         self.configure(textvariable=self._text_signal.var)
         return self
 
-    def value_signal(self, value: Signal[str | int] = None):
-        """Get or set the signal controlling the checkbutton value."""
+    def _configure_value_signal(self, value: Signal[str | int] = None):
         if value is None:
             return self._value_signal
         # change signals
@@ -162,63 +211,14 @@ class Switch(BaseWidget):
         self._prev_value = self._value_signal()
         return self
 
-    def text(self, value: str = None):
-        """Get or set the checkbutton text."""
+    def _configure_text_variable(self, value: Variable = None):
         if value is None:
-            return self._text_signal()
-        self._text_signal.set(value)
-        return self
+            return self._text_signal
+        else:
+            return self._configure_text_signal(Signal.from_variable(value))
 
-    def value(self, value: str | int = None):
-        """Get or set the checkbutton value."""
+    def _configure_variable(self, value: Variable = None):
         if value is None:
-            return self._value_signal()
-        self._value_signal.set(value)
-        return self
-
-    def readonly(self, value: bool = None):
-        """Get or set the readonly state of the checkbutton."""
-        if value is None:
-            return "readonly" in self.widget.state()
+            return self._value_signal
         else:
-            states = []
-            if self.value() == self._tristate_value:
-                states.append('alternate')
-            if value:
-                states.extend(['disabled', 'readonly'])
-            else:
-                states.extend(['!disabled', '!readonly'])
-            self.widget.state(states)
-            return self
-
-    def disable(self):
-        """Disable the checkbutton, preventing interaction."""
-        if self.value() == self._tristate_value:
-            self.widget.state(['disabled', 'alternate'])
-        else:
-            self.widget.state(['disabled'])
-        return self
-
-    def enable(self):
-        """Enable the checkbutton so it can be interacted with."""
-        if self.value() == self._tristate_value:
-            self.state(['!disabled', '!readonly', 'alternate'])
-        else:
-            self.state(['!disabled', '!readonly'])
-        return self
-
-    def invoke(self):
-        """Trigger the checkbutton as if it were toggled."""
-        self.widget.invoke()
-        return self
-
-    def is_checked(self):
-        """Return True if the current value matches the on_value."""
-        return 'selected' in self.widget.state()
-
-    def destroy(self):
-        """Unsubscribe callbacks and destroy the widget."""
-        if self._value_signal_fid:
-            self._value_signal.unsubscribe(self._value_signal_fid)
-            self._value_signal_fid = None
-        super().destroy()
+            return self._configure_value_signal(Signal.from_variable(value))

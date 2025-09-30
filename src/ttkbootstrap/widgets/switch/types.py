@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from ttkbootstrap.types import CoreOptions
+from ttkbootstrap.types import CoreOptions, Variable
 
 
 class SwitchChangedData(TypedDict):
@@ -28,3 +28,4 @@ class SwitchOptions(CoreOptions, total=False):
     take_focus: bool
     underline: int
     width: int
+    variable: Variable
