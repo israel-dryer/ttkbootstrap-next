@@ -1,14 +1,13 @@
 from decimal import Decimal, ROUND_HALF_UP
 from tkinter import ttk
-from typing import Any, Optional, Self, Unpack
+from typing import Any, Callable, Optional, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
-from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.interop.runtime.utils import coerce_handler_args
+from ttkbootstrap.interop.runtime.binding import Stream, Subscription
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
-from ttkbootstrap.types import EventHandler, Orientation
+from ttkbootstrap.types import Orientation, Variable
 from ttkbootstrap.widgets.scale.events import ScaleChangedEvent
 from ttkbootstrap.widgets.scale.style import ScaleStyleBuilder
 from ttkbootstrap.widgets.scale.types import ScaleOptions
@@ -18,10 +17,11 @@ class Scale(BaseWidget):
     widget: ttk.Scale
 
     _configure_methods = {
-        "value": "value",
-        "min_value": "min_value",
-        "max_value": "max_value",
-        "precision": "precision",
+        "min_value": "_configure_min_value",
+        "max_value": "_configure_max_value",
+        "precision": "_configure_precision",
+        "variable": "_configure_variable",
+        "command": "_configure_command"
     }
 
     def __init__(
@@ -34,38 +34,35 @@ class Scale(BaseWidget):
             step: float | None = None,
             color: SemanticColor = "primary",
             orient: Orientation = "horizontal",
-            on_change: Optional[EventHandler] = None,  # convenience: binds to <<Changed>>
+            command: Optional[Callable] = None,
             **kwargs: Unpack[ScaleOptions],
     ):
-        """Create a new Scale widget bound to a Signal with event emission.
-
-        - Dtype is inferred from the Signal (Signal[int] → int mode, else float).
-        - All changes normalize via: clamp → step snap → precision → cast.
-        - Emits <<Changed>> with data {value, prev_value} when the stable value changes.
-        """
+        """Create a new Scale widget bound to a Signal with event emission."""
         self._style_builder = ScaleStyleBuilder(color=color, orient=orient)
-        self._signal = value if isinstance(value, Signal) else Signal(value)
+        self._value_signal = value if isinstance(value, Signal) else Signal(value)
         self._precision = int(precision)
         self._step = step
-        self._in_change = False  # reentrancy guard
-        self._sig_sub_id: Any = None
-        self._prev_value: int | float = 0  # baseline set after init
+        self._in_change = False
+        self._value_signal_sub: Any = None
+        self._prev_value: int | float = 0
+        self._command = command
+        self._command_sub: Optional[Subscription] = None
 
         parent = kwargs.pop("parent", None)
         tk_options = {
             "from_": min_value,
             "to": max_value,
             "orient": orient,
-            "variable": self._signal.var,  # bind Tk variable, not the Signal itself
+            "variable": self._value_signal.var,
             **kwargs,
         }
         super().__init__(ttk.Scale, tk_options, parent=parent)
 
         # Baseline after Tk options are live (so min/max are readable)
-        self._prev_value = self._normalize_value(float(self._signal()))
+        self._prev_value = self._normalize_value(float(self._value_signal()))
 
         # Subscribe to signal to enforce normalization and emit events
-        self._sig_sub_id = self._signal.subscribe(self._handle_change)
+        self._value_signal_sub = self._value_signal.subscribe(self._handle_change)
 
         # Focus on click (nice UX)
         self.on(Event.CLICK).listen(self.focus)
@@ -73,15 +70,130 @@ class Scale(BaseWidget):
         # Mouse wheel support
         self._bind_mouse_wheel()
 
-        # Optional immediate binding for convenience
-        if on_change:
-            self.on_changed(on_change)
+        if command:
+            self._configure_command(command)
 
-    # -------- dtype & normalization --------
+        self._value_signal_sub = self._value_signal.subscribe(self._handle_change)
+
+    def value(self, value: int | float = None):
+        """Get or set the current slider value (normalized)."""
+        if value is None:
+            return self._value_signal()
+        else:
+            coerced = self._coerce_for_signal(value)
+            self._value_signal.set(coerced)
+            return self
+
+    def destroy(self):
+        """Unsubscribe listeners and destroy the widget."""
+        if self._value_signal_sub is not None:
+            try:
+                self._value_signal.unsubscribe(self._value_signal_sub)
+            except Exception:
+                pass
+            self._value_signal_sub = None
+        super().destroy()
+
+    # ----- Configuration delegates -----
+
+    def _configure_command(self, value: Callable[..., Any] = None):
+        if value is None:
+            return self._command
+        else:
+            if self._command_sub:
+                self._command_sub.unlisten()
+            self._command_sub = self.on_changed().tap(lambda _: value()).then_stop()
+            return self
+
+    def _configure_color(self, value: SemanticColor = None):
+        if value is None:
+            return self._style_builder.options('color')
+        else:
+            self._style_builder.options(color=value)
+            self.update_style()
+            return self
+
+    def _configure_value_signal(self, value: Signal = None):
+        """Get or set the slider Signal."""
+        if value is None:
+            return self._value_signal
+        else:
+            if self._value_signal_sub is not None:
+                self._value_signal.unsubscribe(self._value_signal_sub)
+            self._value_signal = value
+            self.configure(variable=value.var)
+            self._prev_value = self._normalize_value(float(self._value_signal()))
+            self._value_signal_sub = self._value_signal.subscribe(self._handle_change)
+            return self
+
+    def _configure_min_value(self, value: int | float = None):
+        """Get or set the minimum value."""
+        if value is None:
+            return self.configure("from_")
+        else:
+            self.configure(from_=value)
+            self._prev_value = self._normalize_value(float(self._value_signal()))
+            return self
+
+    def _configure_max_value(self, value: int | float = None):
+        """Get or set the maximum value."""
+        if value is None:
+            return self.configure("to")
+        else:
+            self.configure(to=value)
+            self._prev_value = self._normalize_value(float(self._value_signal()))
+            return self
+
+    def _configure_precision(self, value: int = None):
+        """Get or set decimal precision (ignored in int mode)."""
+        if value is None:
+            return self._precision
+        else:
+            if not isinstance(value, int) or value < 0:
+                raise ValueError("precision must be a non-negative integer")
+            self._precision = value
+            self._prev_value = self._normalize_value(float(self._value_signal()))
+            return self
+
+    def _configure_variable(self, value: Variable = None):
+        if value is None:
+            return self._value_signal
+        else:
+            return self._configure_value_signal(Signal.from_variable(value))
+
+    # ----- Event handlers ------
+
+    def on_changed(self) -> Stream[ScaleChangedEvent]:
+        """Convenience alias for changed stream"""
+        return self.on(Event.CHANGED)
+
+    def _handle_change(self, raw_value: int | float):
+        """Normalize, snap-back if needed, and emit <<Changed>> with value/prev_value."""
+        if self._in_change:
+            return "break"
+        self._in_change = True
+        try:
+            snapped = self._normalize_value(float(raw_value))
+
+            # If normalization changed the value, write it back to the Signal (updates UI)
+            if snapped != raw_value and snapped != self._value_signal():
+                self._value_signal.set(snapped)
+
+            # Only emit when the stable value changes
+            if snapped != self._prev_value:
+                prev = self._prev_value
+                self._prev_value = snapped
+                self.emit(Event.CHANGED, value=snapped, prev_value=prev)
+
+            return "break"
+        finally:
+            self._in_change = False
+
+    # ------ Helpers -----
 
     def _signal_type(self):
         """Declared Signal type if present, else type(value)."""
-        return getattr(self._signal, "_type", type(self._signal()))
+        return getattr(self._value_signal, "_type", type(self._value_signal()))
 
     def _effective_dtype(self) -> type[int] | type[float]:
         """Infer dtype strictly from the bound Signal."""
@@ -93,8 +205,8 @@ class Scale(BaseWidget):
 
     def _normalize_value(self, v: float) -> int | float:
         """Clamp → step snap → precision → cast per inferred dtype."""
-        min_ = float(self.min_value())
-        max_ = float(self.max_value())
+        min_ = float(self._configure_min_value())
+        max_ = float(self._configure_max_value())
         dtype = self._effective_dtype()
         step = self._effective_step()
         precision = 0 if dtype is int else max(0, int(self._precision))
@@ -118,8 +230,6 @@ class Scale(BaseWidget):
 
     def _coerce_for_signal(self, val: float | int):
         return self._normalize_value(float(val))
-
-    # -------- wheel behavior --------
 
     def _bind_mouse_wheel(self) -> None:
         """Bind mouse wheel to change value (X11 uses Button-4/5; Win/mac use MouseWheel)."""
@@ -153,7 +263,7 @@ class Scale(BaseWidget):
 
     def _orientation_sign(self, scroll_up: bool) -> float:
         """Map scroll direction to +/- considering orientation and range direction."""
-        inc_dir = 1.0 if self.min_value() < self.max_value() else -1.0
+        inc_dir = 1.0 if self._configure_min_value() < self._configure_max_value() else -1.0
         if str(self.configure("orient")) == "vertical":
             return (-inc_dir) if scroll_up else (+inc_dir)
         else:
@@ -170,106 +280,3 @@ class Scale(BaseWidget):
         scroll_up = (event.num == 4)  # 4=up, 5=down
         sgn = self._orientation_sign(scroll_up)
         return self._apply_delta(sgn * step)
-
-    # -------- public API --------
-
-    def signal(self, value: Signal = None):
-        """Get or set the slider Signal."""
-        if value is None:
-            return self._signal
-        else:
-            if self._sig_sub_id is not None:
-                self._signal.unsubscribe(self._sig_sub_id)
-            self._signal = value
-            self.configure(variable=value.var)
-            self._prev_value = self._normalize_value(float(self._signal()))
-            self._sig_sub_id = self._signal.subscribe(self._handle_change)
-            return self
-
-    def value(self, value: int | float = None):
-        """Get or set the current slider value (normalized)."""
-        if value is None:
-            return self._signal()
-        else:
-            coerced = self._coerce_for_signal(value)
-            self._signal.set(coerced)
-            return self
-
-    def min_value(self, value: int | float = None):
-        """Get or set the minimum value."""
-        if value is None:
-            return self.configure("from_")
-        else:
-            self.configure(from_=value)
-            self._prev_value = self._normalize_value(float(self._signal()))
-            return self
-
-    def max_value(self, value: int | float = None):
-        """Get or set the maximum value."""
-        if value is None:
-            return self.configure("to")
-        else:
-            self.configure(to=value)
-            self._prev_value = self._normalize_value(float(self._signal()))
-            return self
-
-    def precision(self, value: int = None):
-        """Get or set decimal precision (ignored in int mode)."""
-        if value is None:
-            return self._precision
-        else:
-            if not isinstance(value, int) or value < 0:
-                raise ValueError("precision must be a non-negative integer")
-            self._precision = value
-            self._prev_value = self._normalize_value(float(self._signal()))
-            return self
-
-    # ---- Event-style API (preferred) ----
-
-    def on_changed(
-            self, handler: Optional[EventHandler] = None, *, scope: str = "widget",
-    ) -> Stream[ScaleChangedEvent] | Self:
-        """Stream or chainable binding for <<Changed>>.
-
-        - If handler is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.CHANGED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
-
-    def destroy(self):
-        """Unsubscribe listeners and destroy the widget."""
-        if self._sig_sub_id is not None:
-            try:
-                self._signal.unsubscribe(self._sig_sub_id)
-            except Exception:
-                pass
-            self._sig_sub_id = None
-        super().destroy()
-
-    # -------- internal: signal change → emit <<Changed>> --------
-
-    def _handle_change(self, raw_value: int | float):
-        """Normalize, snap-back if needed, and emit <<Changed>> with value/prev_value."""
-        if self._in_change:
-            return "break"
-        self._in_change = True
-        try:
-            snapped = self._normalize_value(float(raw_value))
-
-            # If normalization changed the value, write it back to the Signal (updates UI)
-            if snapped != raw_value and snapped != self._signal():
-                self._signal.set(snapped)
-
-            # Only emit when the stable value changes
-            if snapped != self._prev_value:
-                prev = self._prev_value
-                self._prev_value = snapped
-                self.emit(Event.CHANGED, value=snapped, prev_value=prev)
-
-            return "break"
-        finally:
-            self._in_change = False
