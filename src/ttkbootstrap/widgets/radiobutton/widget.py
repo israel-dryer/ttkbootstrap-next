@@ -1,34 +1,33 @@
 from enum import Enum
 from tkinter import ttk
-from typing import Any, Callable, Optional, Self, Union, Unpack
+from typing import Any, Callable, Optional, Union, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
-from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.interop.runtime.utils import coerce_handler_args
+from ttkbootstrap.interop.runtime.binding import Stream, Subscription
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.style.types import ForegroundColor
-from ttkbootstrap.types import AltEventHandler, EventHandler
-from ttkbootstrap.widgets.radiobutton.events import RadiobuttonDeselectedEvent, RadiobuttonInvokeEvent, \
-    RadiobuttonSelectedEvent
+from ttkbootstrap.style.types import ForegroundColor, SemanticColor
+from ttkbootstrap.types import Variable
+from ttkbootstrap.widgets.radiobutton.events import RadiobuttonDeselectedEvent, RadiobuttonSelectedEvent
 from ttkbootstrap.widgets.radiobutton.style import RadiobuttonStyleBuilder
 from ttkbootstrap.widgets.radiobutton.types import RadiobuttonOptions
 
 
 class Radiobutton(BaseWidget):
-    """
-    A themed radio button widget with support for signal binding,
+    """A themed radio button widget with support for signal binding,
     grouped selection logic, and callback interactions.
-
-    This widget supports reactive state updates using `Signal`, enabling
-    dynamic value changes and grouped control across multiple buttons.
     """
 
     widget: ttk.Radiobutton
     _configure_methods = {
-        "text": "text",
-        "value": "value",
-        "readonly": "readonly"
+        "text": "_configure_text",
+        "color": "_configure_color",
+        "variable": "_configure_variable",
+        "text_variable": "_configure_text_variable",
+        "textvariable": "_configure_text_variable",
+        "text_signal": "_configure_text_signal",
+        "value_signal": "_configure_value_signal",
+        "command": "_configure_command"
     }
 
     def __init__(
@@ -38,7 +37,7 @@ class Radiobutton(BaseWidget):
             group: Union[str, Signal] = None,
             color: ForegroundColor = "primary",
             selected: bool = False,
-            on_invoke: Callable[[AltEventHandler], Any] = None,
+            command: Optional[Callable] = None,
             variant="default",
             **kwargs: Unpack[RadiobuttonOptions]
     ):
@@ -51,12 +50,14 @@ class Radiobutton(BaseWidget):
             group: A signal name or Signal instance to group multiple buttons.
             color: A foreground color token for styling the label.
             selected: Whether this button should be initially selected.
-            on_invoke: Callback fired when the button is invoked.
+            command: Callback fired when the button is invoked.
             **kwargs: Additional keyword arguments.
         """
         self._style_builder = RadiobuttonStyleBuilder(color=color, variant=variant)
         self._text_signal = Signal(text)
         self._value_signal = None
+        self._command = command
+        self._command_sub: Optional[Subscription] = None
         self._group = group
 
         if isinstance(group, Signal):
@@ -78,120 +79,28 @@ class Radiobutton(BaseWidget):
         )
         super().__init__(ttk.Radiobutton, tk_options, parent=parent)
 
+        # set initial value
         if selected:
             self.select()
 
         # Add event handlers
         self.widget.configure(command=self._handle_invoke)
 
-        if on_invoke:
-            self.on_invoke(on_invoke)
+        if command:
+            self._configure_command(command)
 
-        self._signal_fid = self._value_signal.subscribe(self._handle_change)
-
-    def _handle_invoke(self):
-        """Trigger <<Invoke>> when the button is activated"""
-        self.emit(Event.INVOKE, selected=self.is_selected(), value=self._value_signal(), when="tail")
-
-    def _handle_change(self, _: Any):
-        """Trigger <<RadioSelected>> / <<RadioDeselected>> on group value changes."""
-        value = self._value_signal()
-        prev_value = self._prev_value
-        # Coerce widget value to signal's type before comparison
-        on_value = self._coerce_to_signal_type(self.widget.cget("value"))
-
-        if value == on_value and prev_value != on_value:
-            self.emit(Event.RADIO_SELECTED, selected=True, value=value, prev_value=prev_value, when="tail")
-        elif prev_value == on_value and value != on_value:
-            self.emit(Event.RADIO_DESELECTED, selected=False, value=value, prev_value=prev_value, when="tail")
-
-        self._prev_value = value
-
-    def text(self, value: str = None):
-        """Get or set the label text."""
-        if value is None:
-            return self._text_signal()
-        self._text_signal.set(value)
-        return self
-
-    def text_signal(self, value: Signal[str] = None):
-        """Get or set the signal for the label text."""
-        if value is None:
-            return self._text_signal
-        self._text_signal = value
-        self.configure(textvariable=self._text_signal.var)
-        return self
+        self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
 
     def is_selected(self):
         """Return True if the radiobutton is currently selected."""
         return 'selected' in self.widget.state()
 
-    def value(self, value: int | str = None):
-        """Get or set the current value of the radiobutton group."""
-        if value is None:
-            return self._value_signal()
-        self._value_signal.set(value)
-        return self
+    def is_readonly(self):
+        """Return True if the radiobutton is readonly."""
+        return 'readonly' in self.state()
 
-    def value_signal(self, value: Signal[str | int] = None):
-        """Get or set the signal controlling the radiobutton value."""
-        if value is None:
-            return self._value_signal
-        # change signals
-        if self._signal_fid:
-            self._value_signal.unsubscribe(self._signal_fid)
-        self._value_signal = value
-        self.configure(variable=self._value_signal.var)
-        self._signal_fid = self._value_signal.subscribe(self._handle_change)
-        self._prev_value = self._value_signal()
-        return self
-
-    def on_selected(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[RadiobuttonSelectedEvent] | Self:
-        """Stream or chainable binding for <<Selected>>>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.RADIO_SELECTED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
-
-    def on_deselected(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[RadiobuttonDeselectedEvent] | Self:
-        """Stream or chainable binding for <<Deselected>>>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.RADIO_DESELECTED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
-
-    def on_invoke(
-            self, handler: Optional[AltEventHandler] = None,
-            *, scope="widget") -> Stream[RadiobuttonInvokeEvent] | Self:
-        """Stream or chainable binding for <<Invoke>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.INVOKE, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(coerce_handler_args(handler))
-        return self
-
-    def readonly(self, value: bool = None):
+    def readonly(self, value: bool):
         """Get or set whether the radiobutton is readonly (disabled)."""
-        if value is None:
-            return "readonly" in self.widget.state()
         states = ['disabled', 'readonly'] if value else ['!disabled', '!readonly']
         self.widget.state(states)
         return self
@@ -222,6 +131,102 @@ class Radiobutton(BaseWidget):
             self._value_signal.unsubscribe(self._signal_fid)
             self._signal_fid = None
         super().destroy()
+
+    def value(self, value: int | str = None):
+        """Get or set the current value of the radiobutton group."""
+        if value is None:
+            return self._value_signal()
+        self._value_signal.set(value)
+        return self
+
+    # ----- Event handlers -----
+
+    def on_selected(self) -> Stream[RadiobuttonSelectedEvent]:
+        """Convenience alias for the selected stream"""
+        return self.on(Event.SELECTED)
+
+    def on_deselected(self) -> Stream[RadiobuttonDeselectedEvent]:
+        """Convenience alias for the deselected stream"""
+        return self.on(Event.RADIO_DESELECTED)
+
+    def on_invoke(self):
+        """Convenience alias for the invoke stream"""
+        return self.on(Event.INVOKE)
+
+    def _handle_invoke(self):
+        """Trigger <<Invoke>> when the button is activated"""
+        self.emit(Event.INVOKE, selected=self.is_selected(), value=self._value_signal(), when="tail")
+
+    def _handle_change(self, _: Any):
+        """Trigger <<RadioSelected>> / <<RadioDeselected>> on group value changes."""
+        value = self._value_signal()
+        prev_value = self._prev_value
+        on_value = self._coerce_to_signal_type(self.widget.cget("value"))
+
+        if value == on_value and prev_value != on_value:
+            self.emit(Event.RADIO_SELECTED, selected=True, value=value, prev_value=prev_value, when="tail")
+        elif prev_value == on_value and value != on_value:
+            self.emit(Event.RADIO_DESELECTED, selected=False, value=value, prev_value=prev_value, when="tail")
+
+        self._prev_value = value
+
+    # ----- Configuration delegates -----
+
+    def _configure_command(self, value: Callable[..., Any] = None):
+        if value is None:
+            return self._command
+        else:
+            if self._command_sub:
+                self._command_sub.unlisten()
+            self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
+            return self
+
+    def _configure_color(self, value: SemanticColor = None):
+        if value is None:
+            return self._style_builder.options('color')
+        else:
+            self._style_builder.options(color=value)
+            self.update_style()
+            return self
+
+    def _configure_text(self, value: str = None):
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        return self
+
+    def _configure_text_signal(self, value: Signal[str] = None):
+        if value is None:
+            return self._text_signal
+        self._text_signal = value
+        self.configure(textvariable=self._text_signal.var)
+        return self
+
+    def _configure_value_signal(self, value: Signal[str | int] = None):
+        if value is None:
+            return self._value_signal
+        # change signals
+        if self._signal_fid:
+            self._value_signal.unsubscribe(self._signal_fid)
+        self._value_signal = value
+        self.configure(variable=self._value_signal.var)
+        self._signal_fid = self._value_signal.subscribe(self._handle_change)
+        self._prev_value = self._value_signal()
+        return self
+
+    def _configure_text_variable(self, value: Variable = None):
+        if value is None:
+            return self._text_signal
+        else:
+            return self._configure_text_signal(Signal.from_variable(value))
+
+    def _configure_variable(self, value: Variable = None):
+        if value is None:
+            return self._value_signal
+        else:
+            return self._configure_value_signal(Signal.from_variable(value))
+
+    # ----- Helpers -----
 
     def _coerce_to_signal_type(self, v):
         # Align the radiobutton's 'value' with the group's Signal[T] type

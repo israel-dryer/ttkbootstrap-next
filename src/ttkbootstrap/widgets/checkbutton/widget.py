@@ -20,6 +20,7 @@ class Checkbutton(BaseWidget):
         "color": "_configure_color",
         "text": "_configure_text",
         "text_signal": "_configure_text_signal",
+        "value_signal": "_configure_value_signal",
         "variable": "_configure_variable",
         "textvariable": "_configure_text_variable",
         "text_variable": "_configure_text_variable",
@@ -85,6 +86,8 @@ class Checkbutton(BaseWidget):
 
         if command:
             self._configure_command(command)
+
+        self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
 
     def is_disabled(self):
         """Return True if the checkbutton is disabled."""
@@ -186,6 +189,12 @@ class Checkbutton(BaseWidget):
             self.update_style()
             return self
 
+    def _configure_text(self, value: str = None):
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        return self
+
     def _configure_text_signal(self, value: Signal[str] = None):
         if value is None:
             return self._text_signal
@@ -203,12 +212,6 @@ class Checkbutton(BaseWidget):
         self.configure(variable=self._value_signal.var)
         self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
         self._prev_value = self._value_signal()
-        return self
-
-    def _configure_text(self, value: str = None):
-        if value is None:
-            return self._text_signal()
-        self._text_signal.set(value)
         return self
 
     def _configure_text_variable(self, value: Variable = None):
