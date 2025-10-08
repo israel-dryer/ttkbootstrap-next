@@ -1,7 +1,7 @@
 import tkinter
 from typing import Literal
 
-from ttkbootstrap.types import CoreOptions, Padding, Widget
+from ttkbootstrap.types import CoreOptions, Padding
 
 
 class ButtonOptions(CoreOptions, total=False):
@@ -17,7 +17,6 @@ class ButtonOptions(CoreOptions, total=False):
         underline: The integer index (0-based) of a character to underline in the text.
         text_variable: A tkinter string variable bound to the button text.
         builder: key-value options passed to the style builder.
-        parent: The parent container of this widget.
     """
     default: Literal['normal', 'active', 'disabled']
     cursor: str
@@ -27,7 +26,6 @@ class ButtonOptions(CoreOptions, total=False):
     builder: dict
     padding: Padding
     text_variable: tkinter.StringVar
-    parent: Widget
 
 
 ButtonVariant = Literal['solid', 'outline', 'ghost', 'text', 'list']

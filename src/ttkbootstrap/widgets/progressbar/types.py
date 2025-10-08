@@ -21,7 +21,6 @@ class ProgressbarOptions(CoreOptions, total=False):
         orient: Indicates whether the widget should be laid or horizontally or vertically
         mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
         variable: The tkinter variable linked to this widget's value.
-        parent: The parent container of this widget.
     """
     cursor: str
     take_focus: bool
@@ -30,4 +29,3 @@ class ProgressbarOptions(CoreOptions, total=False):
     orient: Orientation
     mode: Literal['determinate', 'indeterminate']
     variable: Variable
-    parent: Widget
