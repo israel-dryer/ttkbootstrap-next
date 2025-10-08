@@ -100,7 +100,7 @@ class Switch(BaseWidget):
         """The signal bound to the widget value"""
         return self._value_signal
 
-    def label_signal(self):
+    def text_signal(self):
         """The signal bound to the widget label"""
         return self._text_signal
 
