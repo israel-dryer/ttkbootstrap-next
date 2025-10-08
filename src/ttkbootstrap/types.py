@@ -38,6 +38,13 @@ Gap = Spacing
 
 
 class CoreOptions(TypedDict, total=False):
+    """Optional keyword arguments accepted by all widgets.
+
+    Attributes:
+        parent: The parent container of this widget.
+        position: The `place` container position.
+        id: A unique identifier used to lookup this widget.
+    """
     parent: Widget
     position: Position
     id: str
