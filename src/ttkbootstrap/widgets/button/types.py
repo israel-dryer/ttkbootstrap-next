@@ -9,14 +9,16 @@ class ButtonOptions(CoreOptions, total=False):
     Defines the optional keyword arguments accepted by the `Button` widget.
 
     Attributes:
+        builder: Key-value options passed to the style builder.
         default: Used to set the button that is designated as "default"; in a dialog for example.
-        take_focus: Specifies if the widget accepts focus during keyboard traversal.
+        id: A unique identifier used to query this widget.
         padding: The padding of the widget in pixels.
-        position: Whether to use static, absolute or fixed positioning.
-        width: The width of the widget in pixels.
-        underline: The integer index (0-based) of a character to underline in the text.
+        parent: The parent container of this widget.
+        position: The `place` container position.
+        take_focus: Specifies if the widget accepts focus during keyboard traversal.
         text_variable: A tkinter string variable bound to the button text.
-        builder: key-value options passed to the style builder.
+        underline: The integer index (0-based) of a character to underline in the text.
+        width: The width of the widget in pixels.
     """
     default: Literal['normal', 'active', 'disabled']
     cursor: str

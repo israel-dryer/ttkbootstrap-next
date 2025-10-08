@@ -41,8 +41,7 @@ class Button(BaseWidget, IconMixin):
             command: Optional[Callable] = None,
             **kwargs: Unpack[ButtonOptions]
     ):
-        """
-        Initialize a new Button.
+        """Initialize a new Button.
 
         Args:
             text: Initial label text.
@@ -51,6 +50,19 @@ class Button(BaseWidget, IconMixin):
             icon: Optional icon identifier.
             command: Callback fired when the button is invoked.
             **kwargs: Additional Button options.
+
+        Keyword Args:
+            Attributes:
+            builder: Key-value options passed to the style builder.
+            default: Used to set the button that is designated as "default"; in a dialog for example.
+            id: A unique identifier used to query this widget.
+            padding: The padding of the widget in pixels.
+            parent: The parent container of this widget.
+            position: The `place` container position.
+            take_focus: Specifies if the widget accepts focus during keyboard traversal.
+            text_variable: A tkinter string variable bound to the button text.
+            underline: The integer index (0-based) of a character to underline in the text.
+            width: The width of the widget in pixels.
         """
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._icon = resolve_options(icon, 'name') or None

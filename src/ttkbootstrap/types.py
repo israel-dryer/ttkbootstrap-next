@@ -43,7 +43,7 @@ class CoreOptions(TypedDict, total=False):
     Attributes:
         parent: The parent container of this widget.
         position: The `place` container position.
-        id: A unique identifier used to lookup this widget.
+        id: A unique identifier used to query this widget.
     """
     parent: Widget
     position: Position

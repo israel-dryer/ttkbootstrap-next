@@ -13,9 +13,12 @@ class LabelOptions(CoreOptions, total=False):
         builder: Key-value options passed to the style builder.
         compound: Specifies the relative position of the image and text.
         cursor: Mouse cursor to display when hovering over the label.
+        id: A unique identifier used to query this widget.
         image: An image to display in the label, such as a PhotoImage, BootstrapIcon, or LucideIcon.
         justify: Specifies how the lines are laid out relative to one another with multiple lines of text.
         padding: Space around the label content.
+        parent: The parent container of this widget.
+        position: The `place` container position.
         take_focus: Specifies if the widget accepts focus during keyboard traversal.
         text_variable: A tkinter variable bound to the label text.
         underline: The integer index (0-based) of a character to underline in the text.
