@@ -2,8 +2,10 @@ from ttkbootstrap import App, Pack, Button, Progressbar
 
 with App("Demo Progressbar") as app:
     with Pack(padding=16, gap=8, fill_items="x").layout(fill="x"):
-        # Progressbar(75).start(4)
-        pb = Progressbar(50).on_complete(lambda x: print(x)).on_changed(lambda x: print(x))
-        # Progressbar(60).start(7)
-        Button("Step", on_invoke=lambda: pb.step())
+        pb1 = Progressbar(50)
+        pb1.on_complete().listen(lambda x: print(x))
+        pb2 = Progressbar(60)
+        Button("Step", command=lambda: pb1.step())
+        Button("Start", command=lambda: pb2.start())
+        Button("In State", command=lambda: print(pb2.widget.state()))
 app.run()

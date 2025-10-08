@@ -1,4 +1,4 @@
-from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
+from ttkbootstrap.style import Element, ElementImage, StyleBuilderBase, recolor_image
 
 
 class ProgressbarStyleBuilder(StyleBuilderBase):
