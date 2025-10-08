@@ -2,9 +2,9 @@ from typing import Union, Unpack
 
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.utils import merge_build_options
-from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.badge.style import BadgeStyleBuilder
 from ttkbootstrap.widgets.badge.types import BadgeOptions, BadgeVariant
+from ttkbootstrap.widgets.label import Label
 
 
 class Badge(Label):
@@ -21,16 +21,25 @@ class Badge(Label):
         Initialize a Badge widget.
 
         Args:
-            text:
-                The text displayed inside the badge.
-            color:
-                The badge color, selected from the semantic theme palette.
-                Defaults to "primary".
-            variant:
-                The badge shape variant. Choose from:
-                - "default": Standard rectangular shape.
-                - "pill": Rounded ends.
-                - "circle": Circular shape.
+            text: Text displayed inside the badge.
+            color: Semantic color token; defaults to `"primary"`.
+            variant: Badge shape variant: `"default"`, `"pill"`, or `"circle"`.
+            **kwargs: Optional keyword arguments accepted by the `Badge` widget.
+
+        Keyword Args:
+            anchor: Specifies how the information in the widget is positioned relative to the inner margins.
+            builder: Key-value options passed to the style builder.
+            cursor: Mouse cursor to display when hovering over the label.
+            id: A unique identifier used to lookup this widget.
+            justify: Specifies how the lines are laid out relative to one another with multiple lines of text.
+            padding: Space around the label content.
+            parent: The parent container of this widget.
+            position: The `place` container position.
+            take_focus: Specifies if the widget accepts focus during keyboard traversal.
+            text_variable: The tkinter variable bound to this widget label text.
+            underline: The integer index (0-based) of a character to underline in the text.
+            width: The width of the widget in pixels.
+            wrap_length: The maximum line length in pixels.
         """
         build_options = merge_build_options(kwargs.pop('builder', {}), color=color, variant=variant)
         super().__init__(text, font='label', **kwargs)
