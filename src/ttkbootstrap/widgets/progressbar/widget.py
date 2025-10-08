@@ -24,6 +24,7 @@ class Progressbar(BaseWidget):
     def __init__(
             self,
             value: float | Signal = 0.0,
+            *,
             color: SemanticColor = "primary",
             orient: Orientation = "horizontal",
             variant: Literal['default', 'striped'] = "default",
@@ -33,22 +34,20 @@ class Progressbar(BaseWidget):
 
         Args:
             value: The initial value of the progress bar.
-            color: The semantic color for the progress bar (e.g., "primary", "success", "danger").
-            orient: The orientation of the progress bar; either "horizontal" or "vertical".
-            variant: The visual style variant of the progress bar, either "default" or "striped".
-            **kwargs: Additional keyword arguments
 
         Keyword Args:
+            color: The semantic color for the progress bar (e.g., "primary", "success", "danger").
             cursor: The cursor that appears when the mouse is over the widget.
             id: A unique identifier used to query this widget.
             length: The length of the progress bar in pixels.
             maximum: The maximum value for the progress bar range.
             mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
-            orient: Indicates whether the widget should be laid or horizontally or vertically.
+            orient: The orientation of the progress bar; either "horizontal" or "vertical".
             parent: The parent container of this widget.
             position: The `place` container position.
             take_focus: Indicates whether the widget accepts focus during keyboard traversal.
             variable: The tkinter variable linked to this widget's value.
+            variant: The visual style variant of the progress bar, either "default" or "striped".
         """
         self._style_builder = ProgressbarStyleBuilder(orient=orient, color=color, variant=variant)
         self._signal = value if isinstance(value, Signal) else Signal(float(value))

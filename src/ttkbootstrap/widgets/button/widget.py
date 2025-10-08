@@ -45,16 +45,13 @@ class Button(BaseWidget, IconMixin):
 
         Args:
             text: Initial label text.
-            color: Optional color role.
-            variant: Optional style variant.
-            icon: Optional icon identifier.
-            command: Callback fired when the button is invoked.
-            **kwargs: Additional Button options.
 
         Keyword Args:
-            Attributes:
             builder: Key-value options passed to the style builder.
+            color: Optional color role.
+            command: Callback fired when the button is invoked.
             default: Used to set the button that is designated as "default"; in a dialog for example.
+            icon: Optional icon identifier.
             id: A unique identifier used to query this widget.
             padding: The padding of the widget in pixels.
             parent: The parent container of this widget.
@@ -62,6 +59,7 @@ class Button(BaseWidget, IconMixin):
             take_focus: Specifies if the widget accepts focus during keyboard traversal.
             text_variable: A tkinter string variable bound to the button text.
             underline: The integer index (0-based) of a character to underline in the text.
+            variant: Optional style variant.
             width: The width of the widget in pixels.
         """
         self._text_signal = text if isinstance(text, Signal) else Signal(text)

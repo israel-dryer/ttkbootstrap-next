@@ -41,18 +41,16 @@ class Label(BaseWidget, IconMixin):
 
         Args:
             text: The label text.
-            foreground: Optional foreground color override (e.g., "primary", "secondary-subtle").
-            background: Optional background color override (e.g., "gray-200", "layer-2").
-            font: The font token to use (default is "body").
-            variant: The visual variant of the label
-            icon: The icon to display
-            **kwargs: Additional Label options.
 
         Keyword Args:
             anchor: Specifies how the information in the widget is positioned relative to the inner margins.
+            background: Optional background color override (e.g., "gray-200", "layer-2").
             builder: Key-value options passed to the style builder.
             compound: Specifies the relative position of the image and text.
             cursor: Mouse cursor to display when hovering over the label.
+            font: The font token to use (default is "body").
+            foreground: Optional foreground color override (e.g., "primary", "secondary-subtle").
+            icon: The icon to display.
             id: A unique identifier used to query this widget.
             image: An image to display in the label, such as a PhotoImage, BootstrapIcon, or LucideIcon.
             justify: Specifies how the lines are laid out relative to one another with multiple lines of text.
@@ -62,6 +60,7 @@ class Label(BaseWidget, IconMixin):
             take_focus: Specifies if the widget accepts focus during keyboard traversal.
             text_variable: A tkinter variable bound to the label text.
             underline: The integer index (0-based) of a character to underline in the text.
+            variant: The visual variant of the label.
             width: The width of the widget in pixels.
             wrap_length: The maximum line length in pixels.
         """

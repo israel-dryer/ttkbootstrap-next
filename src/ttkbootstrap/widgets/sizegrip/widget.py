@@ -23,7 +23,6 @@ class Sizegrip(BaseWidget):
 
         Args:
             color: The color token to apply to the sizegrip element.
-            **kwargs: Additional ttk.Sizegrip configuration options.
 
         Keyword Args:
             cursor: Mouse cursor to display when hovering over the widget.

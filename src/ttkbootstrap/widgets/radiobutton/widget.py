@@ -34,6 +34,7 @@ class Radiobutton(BaseWidget):
             text: str = "",
             value: str | int = 0,
             group: Union[str, Signal] = None,
+            *,
             color: ForegroundColor = "primary",
             selected: bool = False,
             command: Optional[Callable] = None,
@@ -47,16 +48,15 @@ class Radiobutton(BaseWidget):
             text: The display text for the radiobutton label.
             value: The value this radiobutton represents when selected.
             group: A signal name or Signal instance to group multiple buttons.
-            color: A foreground color token for styling the label.
-            selected: Whether this button should be initially selected.
-            command: Callback fired when the button is invoked.
-            **kwargs: Additional keyword arguments.
 
         Keyword Args:
+            color: A foreground color token for styling the label.
+            command: Callback fired when the button is invoked.
             cursor: Mouse cursor to display when hovering over the widget.
             id: A unique identifier used to query this widget.
             parent: The parent container of this widget.
             position: The `place` container position.
+            selected: Whether this button should be initially selected.
             take_focus: Specifies if the widget accepts focus during keyboard traversal.
             text_variable: The tkinter text variable bound to the widget label.
             underline: The integer index (0-based) of a character to underline in the text.

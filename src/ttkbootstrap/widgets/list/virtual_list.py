@@ -4,7 +4,7 @@ from ttkbootstrap.datasource.sqlite_source import DataSource
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.types import Primitive
-from ttkbootstrap.widgets import Scrollbar
+from ttkbootstrap.widgets.scrollbar import Scrollbar
 from ttkbootstrap.widgets.list.shared.list_item import ListItem
 
 VISIBLE_ROWS = 20
