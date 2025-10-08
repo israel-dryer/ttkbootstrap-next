@@ -29,7 +29,12 @@ class Separator(BaseWidget):
         Args:
             color: The separator color token (e.g., "border", "primary").
             orient: Orientation of the separator ("horizontal" or "vertical").
-            kwargs: Other widget options.
+            **kwargs: Other widget options.
+
+        Keyword Args:
+            parent: The parent container of this widget.
+            position: The `place` container position.
+            id: A unique identifier used to query this widget.
         """
         self._style_builder = SeparatorStyleBuilder(color=color, orient=orient)
         parent = kwargs.pop('parent', None)
