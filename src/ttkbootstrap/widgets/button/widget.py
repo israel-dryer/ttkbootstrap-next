@@ -95,7 +95,6 @@ class Button(BaseWidget, IconMixin):
         if command:
             self._configure_command(command)
 
-    @property
     def signal(self):
         """The signal bound to the button text"""
         return self._text_signal

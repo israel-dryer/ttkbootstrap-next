@@ -94,7 +94,6 @@ class Label(BaseWidget, IconMixin):
         )
         super().__init__(ttk.Label, tk_options, parent=parent)
 
-    @property
     def signal(self):
         """The signal bound to the label text"""
         return self._text_signal
