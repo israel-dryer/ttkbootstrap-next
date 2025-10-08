@@ -26,9 +26,8 @@ class Button(BaseWidget, IconMixin):
         "compound": "_configure_compound",
         "color": "_configure_color",
         "variant": "_configure_variant",
-        "text_signal": "_configure_text_signal",
+        "signal": "_configure_text_signal",
         "text_variable": "_configure_text_variable",
-        "textvariable": "_configure_text_variable",
         "command": "_configure_command",
     }
 
@@ -83,6 +82,11 @@ class Button(BaseWidget, IconMixin):
         super().__init__(ttk.Button, tk_options, parent=parent)
         if command:
             self._configure_command(command)
+
+    @property
+    def signal(self):
+        """The signal bound to the button text"""
+        return self._text_signal
 
     def is_disabled(self):
         """Indicates if button is in a disabled state"""

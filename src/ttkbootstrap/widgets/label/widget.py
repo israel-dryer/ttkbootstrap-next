@@ -23,7 +23,7 @@ class Label(BaseWidget, IconMixin):
         "background": "_configure_background",
         "compound": "_configure_compound",
         "text_variable": "_configure_text_variable",
-        "textvariable": "_configure_text_variable",
+        "signal": "_configure_text_signal",
     }
 
     def __init__(
@@ -37,8 +37,7 @@ class Label(BaseWidget, IconMixin):
             icon: str | dict = None,
             **kwargs: Unpack[LabelOptions]
     ):
-        """
-        Initialize a themed label.
+        """Initialize a themed label.
 
         Args:
             text: The label text.
@@ -48,6 +47,20 @@ class Label(BaseWidget, IconMixin):
             variant: The visual variant of the label
             icon: The icon to display
             **kwargs: Additional Label options.
+
+        Keyword Args:
+            anchor: Specifies how the information in the widget is positioned relative to the inner margins.
+            builder: Key-value options passed to the style builder.
+            compound: Specifies the relative position of the image and text.
+            cursor: Mouse cursor to display when hovering over the label.
+            image: An image to display in the label, such as a PhotoImage, BootstrapIcon, or LucideIcon.
+            justify: Specifies how the lines are laid out relative to one another with multiple lines of text.
+            padding: Space around the label content.
+            take_focus: Specifies if the widget accepts focus during keyboard traversal.
+            text_variable: A tkinter variable bound to the label text.
+            underline: The integer index (0-based) of a character to underline in the text.
+            width: The width of the widget in pixels.
+            wrap_length: The maximum line length in pixels.
         """
         self._text_signal = text if isinstance(text, Signal) else Signal(text)
         self._icon = resolve_options(icon, 'name') if icon else None
@@ -78,8 +91,13 @@ class Label(BaseWidget, IconMixin):
         )
         super().__init__(ttk.Label, tk_options, parent=parent)
 
+    @property
+    def signal(self):
+        """The signal bound to the label text"""
+        return self._text_signal
+
     def update_style(self):
-        """Update the widget style and bind stateful icons"""
+        """INTERNAL --- Update the widget style and bind stateful icons"""
         super().update_style()
         if self._icon:
             self._bind_stateful_icons()
@@ -108,15 +126,12 @@ class Label(BaseWidget, IconMixin):
         return self
 
     def _configure_text_variable(self, value: Variable = None):
-        """Get or set the text variable. Accepts a tkinter variable but
-        always returns a signal of the same type."""
         if value is None:
             return self._text_signal
         else:
             return self._configure_text_signal(Signal.from_variable(value))
 
     def _configure_foreground(self, value: ForegroundColor = None):
-        """Get or set the label text color."""
         if value is None:
             return self._style_builder.options('foreground')
         else:
@@ -125,7 +140,6 @@ class Label(BaseWidget, IconMixin):
             return self
 
     def _configure_background(self, value: SurfaceColor = None):
-        """Get or set the label background color."""
         if value is None:
             return self._style_builder.options('background')
         else:
@@ -134,7 +148,6 @@ class Label(BaseWidget, IconMixin):
             return self
 
     def _configure_compound(self, value: IconPosition = None):
-        """Get or set the position of the icon in the label"""
         if value is None:
             return self._compound
         else:
