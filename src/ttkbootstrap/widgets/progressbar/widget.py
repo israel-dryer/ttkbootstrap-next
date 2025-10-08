@@ -37,6 +37,18 @@ class Progressbar(BaseWidget):
             orient: The orientation of the progress bar; either "horizontal" or "vertical".
             variant: The visual style variant of the progress bar, either "default" or "striped".
             **kwargs: Additional keyword arguments
+
+        Keyword Args:
+            cursor: The cursor that appears when the mouse is over the widget.
+            id: A unique identifier used to query this widget.
+            length: The length of the progress bar in pixels.
+            maximum: The maximum value for the progress bar range.
+            mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
+            orient: Indicates whether the widget should be laid or horizontally or vertically.
+            parent: The parent container of this widget.
+            position: The `place` container position.
+            take_focus: Indicates whether the widget accepts focus during keyboard traversal.
+            variable: The tkinter variable linked to this widget's value.
         """
         self._style_builder = ProgressbarStyleBuilder(orient=orient, color=color, variant=variant)
         self._signal = value if isinstance(value, Signal) else Signal(float(value))
@@ -54,6 +66,10 @@ class Progressbar(BaseWidget):
         )
         super().__init__(ttk.Progressbar, tk_options, parent=parent)
         self._on_changed_fid = self._signal.subscribe(self._handle_changed)
+
+    def signal(self):
+        """The signal bound to the widget value"""
+        return self._signal
 
     def value(self, value: int | float = None):
         """Get or set the current progress value."""
