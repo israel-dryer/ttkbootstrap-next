@@ -22,11 +22,10 @@ class Radiobutton(BaseWidget):
     _configure_methods = {
         "text": "_configure_text",
         "color": "_configure_color",
+        "signal": "_configure_value_signal",
         "variable": "_configure_variable",
         "text_variable": "_configure_text_variable",
-        "textvariable": "_configure_text_variable",
         "text_signal": "_configure_text_signal",
-        "value_signal": "_configure_value_signal",
         "command": "_configure_command"
     }
 
@@ -52,6 +51,17 @@ class Radiobutton(BaseWidget):
             selected: Whether this button should be initially selected.
             command: Callback fired when the button is invoked.
             **kwargs: Additional keyword arguments.
+
+        Keyword Args:
+            cursor: Mouse cursor to display when hovering over the widget.
+            id: A unique identifier used to query this widget.
+            parent: The parent container of this widget.
+            position: The `place` container position.
+            take_focus: Specifies if the widget accepts focus during keyboard traversal.
+            text_variable: The tkinter text variable bound to the widget label.
+            underline: The integer index (0-based) of a character to underline in the text.
+            variable: The tkinter variable bound to the widget value.
+            width: The width of the widget in pixels.
         """
         self._style_builder = RadiobuttonStyleBuilder(color=color, variant=variant)
         self._text_signal = Signal(text)
@@ -90,6 +100,14 @@ class Radiobutton(BaseWidget):
             self._configure_command(command)
 
         self._value_signal_fid = self._value_signal.subscribe(self._handle_change)
+
+    def signal(self):
+        """The signal bound to the widget value"""
+        return self._value_signal
+
+    def text_signal(self):
+        """The signal bound to the widget label"""
+        return self._text_signal
 
     def is_selected(self):
         """Return True if the radiobutton is currently selected."""
