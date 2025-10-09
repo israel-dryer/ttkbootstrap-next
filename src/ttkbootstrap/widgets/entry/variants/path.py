@@ -1,8 +1,7 @@
 from tkinter import filedialog
-from typing import Any, Optional, Self, Union, Unpack
+from typing import Any, Self, Union, Unpack
 
 from ttkbootstrap.events import Event
-from ttkbootstrap.types import EventHandler
 from ttkbootstrap.widgets import Button
 from ttkbootstrap.widgets.entry.shared.entry_field import EntryField
 from ttkbootstrap.widgets.entry.shared.entry_part import EntryOptions
@@ -15,16 +14,6 @@ class PathEntry(EntryField):
 
     This widget extends `EntryField` to allow users to browse files or folders using
     native Tkinter dialogs. The selected path(s) are inserted into the entry field.
-    An optional `on_change` callback can be triggered when a new file is selected.
-
-    Args:
-        parent: The parent widget.
-        value: Initial value shown in the input field. Defaults to "No file chosen".
-        label: Text to display on the button. Defaults to "Choose File".
-        dialog_type: Type of dialog to display (e.g., 'openfilename', 'directory').
-        dialog_options: Additional options passed to the file dialog (e.g., filetypes).
-        on_changed: Callback fired when the file path is selected.
-        **kwargs: Additional keyword arguments passed to the EntryPart.
     """
 
     def __init__(
@@ -33,9 +22,36 @@ class PathEntry(EntryField):
             label: str = "Choose File",
             dialog_type: DialogType = "openfilename",
             dialog_options: dict[str, Any] = None,
-            on_changed: Optional[EventHandler] = None,
             **kwargs: Unpack[EntryOptions]
     ):
+        """Initialize a PathEntry widget
+
+        Args:
+            value: Initial value shown in the input field. Defaults to "No file chosen".
+            label: Text to display on the button. Defaults to "Choose File".
+            dialog_type: Type of dialog to display (e.g., 'openfilename', 'directory').
+            dialog_options: Additional options passed to the file dialog (e.g., filetypes).
+
+        Keyword Args:
+            allow_blank: If True, empty text commits to `None`
+            cursor: Mouse cursor when hovering.
+            display_format: Intl format spec for parsing/formatting (date/number, etc.).
+            export_selection: Whether selection is exported to the clipboard.
+            font: Font used to render text.
+            foreground: Text (foreground) color.
+            initial_focus: If true, this widget will receive focus on display.
+            justify: Text alignment within the entry.
+            kind: The input type, either "entry" or "spinbox".
+            label: The label text shown above the input field.
+            message: The caption or helper message shown below the input field.
+            padding: Inner padding around the content.
+            show: Mask character to display (e.g., '•').
+            take_focus: Whether the widget can receive focus.
+            text_variable: Variable bound to the entry text.
+            value: The initial value of the input field.
+            width: Widget width in characters.
+            x_scroll_command: Callback to connect a horizontal scrollbar.
+        """
         self._dialog_type = dialog_type
         self._dialog_options = dialog_options or {}
         self._dialog_result = None
@@ -47,11 +63,8 @@ class PathEntry(EntryField):
             name='file-dialog',
             text=label,
             position="left",
-            on_invoke=self._show_file_chooser
+            command=self._show_file_chooser
         )
-
-        if on_changed:
-            self.on_changed(on_changed)
 
     @property
     def file_dialog_button(self) -> Button:
