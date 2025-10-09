@@ -7,7 +7,7 @@ with App("Text Entry Demo", geometry="600x400") as app:
         te.on_input().listen(lambda x: print(x))
         te.on_enter().listen(lambda x: print(x))
         te.on_changed().listen(lambda x: print(x))
-        TextEntry("July 15, 2025", label="Birthday", display_format="shortDate")
+        TextEntry("July 15, 2025", label="Birthday", value_format="shortDate")
         occupation = TextEntry(label="Email", required=True).layout(columnspan=2)
         occupation.insert_addon(Label, text="@", position="left")
         Button("Submit", icon="moon").on_invoke().listen(lambda _: app.theme.use("dark"))

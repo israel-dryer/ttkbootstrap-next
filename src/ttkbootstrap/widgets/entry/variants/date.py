@@ -12,7 +12,7 @@ class DateEntry(EntryField):
     be used to trigger a date picker (integration to be implemented externally).
     The calendar button can be shown or hidden dynamically.
 
-    Use the `display_format` option to set the date format:
+    Use the `value_format` option to set the date format:
         - longDate
         - shortDate
         - monthAndDate
@@ -43,13 +43,13 @@ class DateEntry(EntryField):
         Keyword Args:
             allow_blank: If True, empty text commits to `None`
             cursor: Mouse cursor when hovering.
-            display_format: Intl format spec for parsing/formatting (date/number, etc.).
+            value_format: Intl format spec for parsing/formatting (date/number, etc.).
             export_selection: Whether selection is exported to the clipboard.
             font: Font used to render text.
             foreground: Text (foreground) color.
             initial_focus: If true, this widget will receive focus on display.
             justify: Text alignment within the entry.
-            kind: The input type, either "entry" or "spinbox".
+            kind: The input type, either "entry" or "manualnumeric".
             label: The label text shown above the input field.
             message: The caption or helper message shown below the input field.
             padding: Inner padding around the content.

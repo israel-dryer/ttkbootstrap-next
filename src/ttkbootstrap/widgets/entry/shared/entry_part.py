@@ -31,7 +31,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         "text": "text",
         "readonly": "readonly",
         "signal": "_configure_signal",
-        "display_format": "_configure_display_format",
+        "value_format": "_configure_value_format",
         "allow_blank": "_configure_allow_blank",
         "text_variable": "_configure_text_variable",
     }
@@ -40,7 +40,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             self,
             value: Any | Signal = "",
             *,
-            display_format: Optional[FormatSpec] = None,
+            value_format: Optional[FormatSpec] = None,
             allow_blank: bool = True,
             initial_focus: bool = False,
             **kwargs: Unpack[EntryOptions],
@@ -48,21 +48,22 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         """Create an Entry with decoupled text vs value semantics."""
         self._style_builder = EntryStyleBuilder()
 
-        # Intl engine (auto-detects locale)
-        self._fmt = IntlFormatter()
-        self._display_format = display_format
+        # Intl engine (allow per-widget locale)
+        locale_arg = kwargs.pop("locale", None)
+        self._fmt = IntlFormatter(locale=locale_arg)
+        self._value_format = value_format
         self._allow_blank = allow_blank
 
         # Initialize display + parsed value
         if isinstance(value, Signal):
             initial_display = value()
-            initial_value = self._parse_or_none(initial_display) if display_format is not None else (
+            initial_value = self._parse_or_none(initial_display) if value_format is not None else (
                     initial_display or None
             )
             self._signal = value
         elif isinstance(value, str):
             initial_display = value
-            initial_value = self._parse_or_none(initial_display) if display_format is not None else (
+            initial_value = self._parse_or_none(initial_display) if value_format is not None else (
                     initial_display or None
             )
             self._signal = Signal(initial_display)
@@ -73,7 +74,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
                 initial_display = ""
             else:
                 initial_display = (
-                    str(value) if self._display_format is None else self._fmt.format(value, self._display_format)
+                    str(value) if self._value_format is None else self._fmt.format(value, self._value_format)
                 )
             self._signal = Signal(initial_display)
 
@@ -83,11 +84,12 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         # Normalize initial display if we already have a parsed value
         if self._value is not None:
             self._signal.set(
-                str(self._value) if self._display_format is None else self._fmt.format(
-                    self._value, self._display_format)
+                str(self._value) if self._value_format is None else self._fmt.format(
+                    self._value, self._value_format)
             )
 
         parent = kwargs.pop("parent", None)
+        # `locale` is consumed above and must not be passed to Tk
         assert_valid_keys(kwargs, EntryOptions, where="EntryPart")
         tk_options = dict(textvariable=self._signal.var, **kwargs)
         super().__init__(ttk.Entry, tk_options, parent=parent)
@@ -162,7 +164,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             self._value = None if self._allow_blank else self._value
         else:
             try:
-                self._value = s if self._display_format is None else self._fmt.parse(s, self._display_format)
+                self._value = s if self._value_format is None else self._fmt.parse(s, self._value_format)
             except ValueError:
                 # Keep prior value on parse failure
                 return
@@ -171,8 +173,8 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         if self._value is None:
             new_text = ""
         else:
-            new_text = str(self._value) if self._display_format is None else self._fmt.format(
-                self._value, self._display_format)
+            new_text = str(self._value) if self._value_format is None else self._fmt.format(
+                self._value, self._value_format)
 
         if new_text != self._signal():
             # Temporarily silence CHANGE while normalizing text
@@ -188,15 +190,15 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
 
     # ---- Configuration delegates -----
 
-    def _configure_display_format(self, spec: Optional[FormatSpec] = None):
+    def _configure_value_format(self, spec: Optional[FormatSpec] = None):
         """Get or set the Intl format spec (None = no Intl parsing/formatting)."""
         if spec is None:
-            return self._display_format
-        self._display_format = spec
+            return self._value_format
+        self._value_format = spec
         if self._value is not None:
             self._signal.set(
-                str(self._value) if self._display_format is None else self._fmt.format(
-                    self._value, self._display_format)
+                str(self._value) if self._value_format is None else self._fmt.format(
+                    self._value, self._value_format)
             )
         return self
 
@@ -286,8 +288,8 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         if not s2:
             return None
         try:
-            if self._display_format is None:
+            if self._value_format is None:
                 return s2
-            return self._fmt.parse(s2, self._display_format)
+            return self._fmt.parse(s2, self._value_format)
         except ValueError:
             return None

@@ -217,8 +217,7 @@ class IntlFormatter:
         if opt["type"] == "largeNumber":
             return self._format_large_number(x, opt.get("precision"))
 
-        pattern = self._build_pattern_from_options(opt) if opt["type"] in ("decimal", "fixedPoint",
-                                                                           "currency") else None
+        pattern = self._build_pattern_from_options(opt) if opt["type"] in ("decimal", "fixedPoint") else None
 
         if opt["type"] in ("decimal", "fixedPoint"):
             return format_decimal(x, format=pattern, locale=self.locale)
@@ -233,7 +232,15 @@ class IntlFormatter:
 
         if opt["type"] == "currency":
             curr = opt.get("currency") or "USD"
-            return format_currency(x, curr, format=pattern, locale=self.locale)
+            prec = opt.get("precision")
+            if prec is None:
+                # Use locale default currency pattern (includes symbol & spacing)
+                return format_currency(x, curr, locale=self.locale)
+            # Build a currency pattern with required precision; symbol first is a sane default
+            p = max(0, int(prec))
+            frac = "" if p == 0 else ("." + "0" * p)
+            currency_pattern = f"¤#,##0{frac}"
+            return format_currency(x, curr, format=currency_pattern, locale=self.locale)
 
         if opt["type"] == "exponential":
             return format_scientific(x, locale=self.locale)

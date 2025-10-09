@@ -8,13 +8,12 @@ from ttkbootstrap.types import Widget
 from ttkbootstrap.widgets import Button
 from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
 from ttkbootstrap.widgets.entry.shared.entry_part import EntryPart
-from ttkbootstrap.widgets.entry.shared.spinbox_part import SpinboxPart
 from ttkbootstrap.widgets.label import Label
 
 
 class EntryField(Pack, EntryMixin, ABC):
     """
-    A composite widget combining a label, entry/spinbox input, optional addons, and message text.
+    A composite widget combining a label, entry input (or numeric variant), optional addons, and message text.
 
     This widget provides a structured form input with optional label and validation message areas.
     It supports both text and number inputs, and includes methods for enabling/disabling input,
@@ -39,7 +38,7 @@ class EntryField(Pack, EntryMixin, ABC):
             font: Font used to render text.
             foreground: Text (foreground) color.
             justify: Text alignment within the entry.
-            kind: The input type, either "entry" or "spinbox".
+            kind: The input type, either "entry" or "manualnumeric".
             label: The label text shown above the input field.
             message: The caption or helper message shown below the input field.
             padding: Inner padding around the content.
@@ -65,8 +64,9 @@ class EntryField(Pack, EntryMixin, ABC):
         self._field = Pack(parent=self, variant="field", padding=6, direction='horizontal')
         self._field.layout(fill='x', expand=True)
 
-        if kind == "spinbox":
-            self._entry = SpinboxPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
+        if kind in ("manualnumeric", "spinbox"):
+            from ttkbootstrap.widgets.entry.shared.manual_numeric_part import ManualNumericPart
+            self._entry = ManualNumericPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
         else:
             self._entry = EntryPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
 
@@ -97,7 +97,7 @@ class EntryField(Pack, EntryMixin, ABC):
 
         # ---- Entry State
         self.value = self._entry.value
-        self.signal = self._entry.signal
+        self.signal = self._entry._configure_signal
 
         # ---- Entry Validation
         self.add_validation_rule = self._entry.add_validation_rule
@@ -121,7 +121,7 @@ class EntryField(Pack, EntryMixin, ABC):
 
     @property
     def entry_widget(self):
-        """Return the entry or spinbox widget."""
+        """Return the concrete entry widget."""
         return self._entry
 
     @property

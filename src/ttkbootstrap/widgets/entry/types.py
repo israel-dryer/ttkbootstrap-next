@@ -40,6 +40,8 @@ class EntryOptions(CoreOptions, total=False):
     text_variable: StringVar
     width: int
     x_scroll_command: Callable
+    # Formatting/locale
+    locale: str
 
 
 class EntryFieldOptions(EntryOptions, total=False):
@@ -48,31 +50,35 @@ class EntryFieldOptions(EntryOptions, total=False):
     Attributes:
         allow_blank: If True, empty text commits to `None`
         cursor: Mouse cursor when hovering.
-        display_format: Intl format spec for parsing/formatting (date/number, etc.).
+        value_format: Intl format spec for parsing/formatting (date/number, etc.).
         export_selection: Whether selection is exported to the clipboard.
         font: Font used to render text.
         foreground: Text (foreground) color.
+        id: str
         initial_focus: If true, this widget will receive focus on display.
         justify: Text alignment within the entry.
-        kind: The input type, either "entry" or "spinbox".
+        kind: The input type, either "entry" or "manualnumeric".
         label: The label text shown above the input field.
         message: The caption or helper message shown below the input field.
+        parent: Widget
         padding: Inner padding around the content.
+        position: Position
         show: Mask character to display (e.g., '*').
         take_focus: Whether the widget can receive focus.
         text_variable: Variable bound to the entry text.
         value: The initial value of the input field.
         width: Widget width in characters.
         x_scroll_command: Callback to connect a horizontal scrollbar.
+        locale: Locale tag for Intl formatting (e.g., "en_US", "de_DE").
     """
     allow_blank: bool
     initial_focus: bool
-    display_format: FormatSpec
+    value_format: FormatSpec
     value: str | int | float
     label: str
     message: str
     required: bool
-    kind: Literal['entry', 'spinbox']
+    kind: Literal['entry', 'manualnumeric']
 
 
 class TextEntryOptions(EntryOptions, total=False):
@@ -80,11 +86,11 @@ class TextEntryOptions(EntryOptions, total=False):
 
     Attributes:
         allow_blank: Whether an empty value is considered valid.
-        display_format: Format specification used to render/parse the value.
+        value_format: Format specification used to render/parse the value.
         required: If True, the field must be non-empty to validate.
     """
     allow_blank: bool
-    display_format: FormatSpec
+    value_format: FormatSpec
     required: bool
 
 
@@ -92,22 +98,33 @@ class NumberEntryOptions(EntryOptions, total=False):
     """Additional options for numeric Entry widgets.
 
     Attributes:
-        allow_blank: Whether an empty value is considered valid.
-        display_format: Format specification for rendering/parsing numbers.
+        allow_blank: Whether an empty value is valid; if True, empty text commits to `None`.
+        cursor: Mouse cursor when hovering.
+        value_format: Intl format spec for parsing/formatting (date/number, etc.).
+        export_selection: Whether selection is exported to the clipboard.
+        font: Font used to render text.
+        foreground: Text (foreground) color.
         increment: Step amount applied when adjusting the value.
-        initial_focus: If True, the widget requests focus when created/shown.
+        initial_focus: If True, the widget requests focus when shown.
+        justify: Text alignment within the entry.
         max_value: Maximum allowed value (inclusive).
         min_value: Minimum allowed value (inclusive).
-        on_enter: Event handler fired when the user presses Enter/Return.
-        on_input: Event handler fired as the user edits the value.
+        padding: Inner padding around the content.
         required: If True, the field must be non-empty to validate.
+        show: Mask character to display (e.g., '*').
+        take_focus: Whether the widget can receive focus.
+        text_variable: Variable bound to the entry text.
+        width: Widget width in characters.
         wrap: If True, values exceeding bounds wrap around.
+        x_scroll_command: Callback to connect a horizontal scrollbar.
     """
     allow_blank: bool
-    display_format: FormatSpec
+    value_format: FormatSpec
     increment: Number
     initial_focus: bool
+    label: str
     max_value: Number
+    message: str
     min_value: Number
     on_enter: EventHandler
     on_input: EventHandler
