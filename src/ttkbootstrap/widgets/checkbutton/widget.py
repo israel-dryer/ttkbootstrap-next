@@ -24,6 +24,7 @@ class Checkbutton(BaseWidget):
         "variable": "_configure_variable",
         "text_variable": "_configure_text_variable",
         "command": "_configure_command",
+        "value": "value"
     }
 
     def __init__(

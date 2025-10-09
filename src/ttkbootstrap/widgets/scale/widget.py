@@ -140,7 +140,7 @@ class Scale(BaseWidget):
             self.update_style()
             return self
 
-    def _configure_value_signal(self, value: Signal = None):
+    def _configure_signal(self, value: Signal = None):
         """Get or set the slider Signal."""
         if value is None:
             return self._value_signal
