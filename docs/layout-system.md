@@ -39,9 +39,12 @@ If you don’t specify a method, the mixin tries to infer it:
 The library keeps a tiny **container stack** so you can write:
 
 ```python
+from ttkbootstrap import Grid, Label, Button
+
 with Grid(rows=..., columns=...) as grid:
-    Label(...).layout_grid(row=0, column=0)  # only described here
-    Button(...).layout_grid(row=0, column=1)
+    Label(...).layout(row=0, column=0)  # only described here
+    Button(...).layout(row=0, column=1)
+
 # on __exit__, the container flushes and mounts queued children
 ```
 
@@ -120,9 +123,9 @@ the mixin sets sensible defaults (`fill='both', expand=True`) and packs it, so t
 
 ```python
 with Grid(columns=[1, 1, 1], gap=8, padding=12, sticky_items="nsew") as g:
-    Label(text="A").layout_grid()  # auto-placed
-    Label(text="B").layout_grid(columnspan=2)  # spans; dense packing fills holes
-    Button(text="OK").layout_grid()
+    Label(text="A").layout()  # auto-placed
+    Label(text="B").layout(columnspan=2)  # spans; dense packing fills holes
+    Button(text="OK").layout()
 ```
 
 (Children are queued and mounted when the context exits.)
@@ -131,9 +134,9 @@ with Grid(columns=[1, 1, 1], gap=8, padding=12, sticky_items="nsew") as g:
 
 ```python
 with Pack(direction="vertical", gap=12, expand_items=True, fill_items="x") as p:
-    Label(text="Title").layout_pack(marginy=8)
+    Label(text="Title").layout(marginy=8)
     Entry().layout_pack()
-    Button(text="Save").layout_pack(anchor="e")  # overrides the default anchor
+    Button(text="Save").layout(anchor="e")  # overrides the default anchor
 ```
 
 (Gap applied only between siblings after the first; margins merged with padding.)
@@ -142,8 +145,8 @@ with Pack(direction="vertical", gap=12, expand_items=True, fill_items="x") as p:
 
 ```python
 with Grid(padding=16) as g:
-    Canvas(width=300, height=200).layout_grid(row=0, column=0)
-    Label(text="Overlay").layout_place(x="50%", y="50%", anchor="center")
+    Canvas(width=300, height=200).layout(row=0, column=0)
+    Label(text="Overlay").layout(x="50%", y="50%", anchor="center")
 ```
 
 (Place uses `%` → `relx/rely`, honors `xoffset/yoffset`, and places **in** the container surface.)
