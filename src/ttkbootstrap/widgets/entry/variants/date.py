@@ -35,9 +35,9 @@ class DateEntry(EntryField):
         """Initialize a DateEntry widget
 
         Args:
-            value (str, optional): The initial date value as a string.
-            label (str, optional): Optional label text above the input field.
-            message (str, optional): Optional helper or validation message below the input.
+            value: The initial date value as a string.
+            label: Optional label text above the input field.
+            message: Optional helper or validation message below the input.
             show_picker_button: Whether to show the calendar icon button.
 
         Keyword Args:
