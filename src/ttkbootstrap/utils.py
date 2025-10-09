@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Iterable, Mapping, Optional, Type, Union, Any
 
-from ttkbootstrap.types import IconPosition, Widget
+from typing import Any, Iterable, Mapping, Optional, Type, Union
+
 from ttkbootstrap.exceptions import LayoutError, UIError
+from ttkbootstrap.types import Widget
 
 
 def clamp(value, min_val, max_val):
@@ -180,9 +181,6 @@ def normalize_icon_position(icon_position: str, *, has_text: bool, has_icon: boo
     - auto + icon + text  -> start (LTR) / end (RTL)
     - auto + only text    -> None
     """
-    if icon_position not in ('none', 'left', 'right', 'top', 'bottom', 'center', 'auto'):
-        raise ValueError("compound must be one of None|'auto'|'left'|'right'|'top'|'bottom'|'center'.")
-
     if icon_position == "auto":
         if has_icon and not has_text:
             return "image"
