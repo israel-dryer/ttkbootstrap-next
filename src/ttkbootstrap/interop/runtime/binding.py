@@ -530,7 +530,23 @@ class BindingMixin:
 
         if sequence.startswith("<<") and sequence.endswith(">>") and payload:
             import json
-            self.widget.event_generate(sequence, data=json.dumps(payload), when=when)
+            import datetime as _dt
+            import enum as _enum
+
+            def _default(o):
+                # Serialize common non-JSON types used in UI payloads
+                if isinstance(o, (_dt.date, _dt.datetime, _dt.time)):
+                    return o.isoformat()
+                if isinstance(o, _enum.Enum):
+                    return getattr(o, "value", o.name)
+                if isinstance(o, set):
+                    return list(o)
+                # Last resort string representation to avoid hard failures in UI callbacks
+                return str(o)
+
+            self.widget.event_generate(
+                sequence, data=json.dumps(payload, default=_default), when=when
+            )
         else:
             self.widget.event_generate(sequence, when=when)
 

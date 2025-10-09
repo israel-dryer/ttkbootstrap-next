@@ -19,27 +19,37 @@ class EntryField(Pack, EntryMixin, ABC):
     This widget provides a structured form input with optional label and validation message areas.
     It supports both text and number inputs, and includes methods for enabling/disabling input,
     adding prefix/suffix addons, and toggling readonly mode.
-
-    Args:
-        parent: The parent container for the EntryField.
-        value: The initial value of the input field.
-        label: The label text shown above the input field.
-        message: The caption or helper message shown below the input field.
-        kind: The input type, either "entry" (default) or "spinbox".
-        required: Whether the field is required.
-        **kwargs: Additional keyword arguments passed to the input widget.
     """
 
     def __init__(
             self,
+            *,
             value: str | int | float = None,
             label: str = None,
             message: str = None,
-            *,
             required: bool = False,
             kind: str = "entry",
             **kwargs,
     ):
+        """Initialize an Entry Field widget.
+
+        Keyword Args:
+            cursor: Mouse cursor when hovering.
+            export_selection: Whether selection is exported to the clipboard.
+            font: Font used to render text.
+            foreground: Text (foreground) color.
+            justify: Text alignment within the entry.
+            kind: The input type, either "entry" or "spinbox".
+            label: The label text shown above the input field.
+            message: The caption or helper message shown below the input field.
+            padding: Inner padding around the content.
+            show: Mask character to display (e.g., '*').
+            take_focus: Whether the widget can receive focus.
+            text_variable: Variable bound to the entry text.
+            value: The initial value of the input field.
+            width: Widget width in characters.
+            x_scroll_command: Callback to connect a horizontal scrollbar.
+        """
         super().__init__(direction="vertical")
 
         # standard composite state

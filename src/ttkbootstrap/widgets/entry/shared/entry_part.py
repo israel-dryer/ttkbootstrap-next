@@ -5,10 +5,10 @@ from typing import Any, Optional, Self, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
-from ttkbootstrap.interop.runtime.binding import Scope, Stream
+from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.localization.intl_format import FormatSpec, IntlFormatter
 from ttkbootstrap.signals.signal import Signal
-from ttkbootstrap.types import EventHandler
+from ttkbootstrap.types import Variable
 from ttkbootstrap.utils import assert_valid_keys, encode_event_value_data
 from ttkbootstrap.widgets.entry.events import EntryChangedEvent, EntryEnterEvent, EntryInputEvent
 from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
@@ -28,31 +28,24 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
 
     _configure_methods = {
         "value": "value",
-        "display": "display",
-        "display_format": "display_format",
-        "allow_blank": "allow_blank",
+        "text": "text",
         "readonly": "readonly",
+        "signal": "_configure_signal",
+        "display_format": "_configure_display_format",
+        "allow_blank": "_configure_allow_blank",
+        "text_variable": "_configure_text_variable",
     }
 
     def __init__(
             self,
             value: Any | Signal = "",
             *,
-            display_format: Optional[FormatSpec] = None,  # None ⇒ no Intl parse/format
+            display_format: Optional[FormatSpec] = None,
             allow_blank: bool = True,
-            on_input: EventHandler = None,  # fires with text only (every edit)
-            on_enter: EventHandler = None,
             initial_focus: bool = False,
             **kwargs: Unpack[EntryOptions],
     ):
-        """
-        Create an Entry with decoupled text vs value semantics.
-
-        - `display_format`: Intl format spec for parsing/formatting (date/number, etc.).
-        - `allow_blank`: if True, empty text commits to `None`.
-        - `on_input`: subscribe to text-level edits (no parse).
-        - `on_enter`: callback for Return key (after commit).
-        """
+        """Create an Entry with decoupled text vs value semantics."""
         self._style_builder = EntryStyleBuilder()
 
         # Intl engine (auto-detects locale)
@@ -110,27 +103,35 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self.on(Event.BLUR).listen(lambda _: (self.commit(), self._check_if_changed()))
         self.on(Event.RETURN).tap(lambda _: (self.commit(), self._check_if_changed())).then_stop()
 
-        # External callbacks
-        if on_input:
-            self.on_input().listen(on_input)
-        if on_enter:
-            self.on_enter().listen(on_enter)
-
         if initial_focus:
             self.focus()
+
+    _NOARG = object()
 
     # ---------------------------
     # Public API
     # ---------------------------
 
-    def display(self, text: Optional[str] = None):
+    def signal(self):
+        """The signal bound to the widget value"""
+        return self._signal
+
+    def text(self, text: Optional[str] = None):
         """Get or set the raw display text. Setting does not auto-commit."""
         if text is None:
             return self._signal()
         self._signal.set(text)
         return self
 
-    _NOARG = object()
+    def destroy(self) -> None:
+        """Clean up subscriptions and destroy the widget."""
+        if getattr(self, "_on_input_fid", None):
+            try:
+                self._signal.unsubscribe(self._on_input_fid)
+            except Exception:
+                pass
+            self._on_input_fid = None
+        super().destroy()
 
     def value(self, value: Any = _NOARG):
         """
@@ -185,7 +186,9 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             if fid:
                 self._on_input_fid = self._signal.subscribe(self._handle_change)
 
-    def display_format(self, spec: Optional[FormatSpec] = None):
+    # ---- Configuration delegates -----
+
+    def _configure_display_format(self, spec: Optional[FormatSpec] = None):
         """Get or set the Intl format spec (None = no Intl parsing/formatting)."""
         if spec is None:
             return self._display_format
@@ -197,19 +200,14 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             )
         return self
 
-    def allow_blank(self, flag: Optional[bool] = None):
+    def _configure_allow_blank(self, flag: Optional[bool] = None):
         """Get or set whether empty display maps to None on commit."""
         if flag is None:
             return self._allow_blank
         self._allow_blank = bool(flag)
         return self
 
-    # Legacy helpers (display-level semantics)
-    def value_text(self) -> str:
-        """Return current display text (string)."""
-        return self._signal()
-
-    def signal(self, value: Signal[str | int] = None):
+    def _configure_signal(self, value: Signal[str | int] = None):
         """Get or replace the underlying display Signal (StringVar-backed)."""
         if value is None:
             return self._signal
@@ -230,9 +228,13 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._prev_change_text = self._signal()
         return self
 
-    # ---------------------------
-    # Events
-    # ---------------------------
+    def _configure_text_variable(self, value: Variable = None):
+        if value is None:
+            return self._signal
+        else:
+            return self._configure_signal(Signal.from_variable(value))
+
+    # ---- Event handlers -----
 
     def _store_prev_value(self, _: Any) -> None:
         self._prev_changed_value = self._value
@@ -260,50 +262,24 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             )
             self._prev_changed_value = self._value
 
-    def on_input(
-            self,
-            handler: Optional[EventHandler] = None,
-            *, scope: Scope = "widget",
-    ) -> Stream[EntryInputEvent] | Self:
-        """Stream or chainable binding for <<Change>> (text-only)."""
-        stream = self.on(Event.INPUT, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
+    def on_input(self) -> Stream[EntryInputEvent] | Self:
+        """Convenience alias for input stream"""
+        return self.on(Event.INPUT)
 
-    def on_enter(
-            self,
-            handler: Optional[EventHandler] = None,
-            *, scope: Scope = "widget",
-    ) -> Stream[EntryEnterEvent] | Self:
-        """Stream or chainable binding for <Return> (emits after commit)."""
+    def on_enter(self) -> Stream[EntryEnterEvent]:
+        """Convenience alias for enter stream"""
 
         def enrich(e: Any):
             e.data.update({"value": encode_event_value_data(self._value), "text": self._signal()})
             return e
 
-        stream = self.on(Event.RETURN, scope=scope).map(enrich)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
+        return self.on(Event.RETURN).map(enrich)
 
-    def on_changed(
-            self,
-            handler: Optional[EventHandler] = None,
-            *, scope: Scope = "widget",
-    ) -> Stream[EntryChangedEvent] | Self:
-        """Stream or chainable binding for <<Changed>> (committed value on blur/Enter)."""
-        stream = self.on(Event.CHANGED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
+    def on_changed(self) -> Stream[EntryChangedEvent]:
+        """Convenience alias for changed stream"""
+        return self.on(Event.CHANGED)
 
-    # ---------------------------
-    # Internals / lifecycle
-    # ---------------------------
+    # ---- Internals lifecycle -----
 
     def _parse_or_none(self, s: str) -> Any:
         s2 = (s or "").strip()
@@ -315,13 +291,3 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             return self._fmt.parse(s2, self._display_format)
         except ValueError:
             return None
-
-    def destroy(self) -> None:
-        """Clean up subscriptions and destroy the widget."""
-        if getattr(self, "_on_input_fid", None):
-            try:
-                self._signal.unsubscribe(self._on_input_fid)
-            except Exception:
-                pass
-            self._on_input_fid = None
-        super().destroy()

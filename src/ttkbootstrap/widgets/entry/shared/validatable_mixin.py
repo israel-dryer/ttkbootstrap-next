@@ -1,9 +1,9 @@
-from typing import Any, Optional, Self, Unpack
+from typing import Any, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.types import EventHandler
+from ttkbootstrap.types import UIEvent
 from ttkbootstrap.validation.rules import ValidationRule
 from ttkbootstrap.validation.types import RuleTriggerType, RuleType, ValidationOptions
 
@@ -17,66 +17,11 @@ class ValidationMixin(BaseWidget):
     key input, focus loss, or manual checks.
     """
 
-    # NOTE: value() returns the raw/model value (str, float, date, None, etc.)
-    # value: Callable
-    # emit: Callable
-    # on: Callable
-
     def __init__(self, *args, **kwargs):
         """Initialize the validation mixin."""
         self._rules: list[ValidationRule] = []
         super().__init__(*args, **kwargs)
         self._setup_validation_events()
-
-    def on_invalid(
-            self,
-            handler: Optional[EventHandler],
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<Invalid>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.INVALID, scope=scope)
-        if handler:
-            return stream
-        stream.listen(handler)
-        return self
-
-    def on_valid(
-            self,
-            handler: Optional[EventHandler],
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<Valid>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.VALID, scope=scope)
-        if handler:
-            return stream
-        stream.listen(handler)
-        return self
-
-    def on_validated(
-            self,
-            handler: Optional[EventHandler],
-            *, scope="widget") -> Stream[Any] | Self:
-        """Stream or chainable binding for <<Validated>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.VALIDATED, scope=scope)
-        if handler:
-            return stream
-        stream.listen(handler)
-        return self
-
-    def _setup_validation_events(self):
-        """Bind 'keyup' and 'blur' events to automatic validation checks."""
-        self.on(Event.KEYUP).debounce(50).listen(lambda _: self.validate(self.value(), "key"))
-        self.on(Event.BLUR).debounce(50).listen(lambda _: self.validate(self.value(), "blur"))
 
     def add_validation_rule(self, rule_type: RuleType, **kwargs: Unpack[ValidationOptions]):
         """Add a single validation rule."""
@@ -117,3 +62,22 @@ class ValidationMixin(BaseWidget):
             self.emit(Event.VALIDATED, **data)
 
         return ran_rule
+
+    # ----- Event handlers -----
+
+    def on_invalid(self) -> Stream[UIEvent]:
+        """Convenience alias for invalid stream"""
+        return self.on(Event.INVALID)
+
+    def on_valid(self) -> Stream[UIEvent]:
+        """Convenience alias for valid stream"""
+        return self.on(Event.VALID)
+
+    def on_validated(self) -> Stream[UIEvent]:
+        """Convenience alias for validated stream"""
+        return self.on(Event.VALIDATED)
+
+    def _setup_validation_events(self):
+        """Bind 'keyup' and 'blur' events to automatic validation checks."""
+        self.on(Event.KEYUP).debounce(50).listen(lambda _: self.validate(self.value(), "key"))
+        self.on(Event.BLUR).debounce(50).listen(lambda _: self.validate(self.value(), "blur"))

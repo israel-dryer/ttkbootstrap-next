@@ -1,12 +1,12 @@
 from ttkbootstrap.types import UIEvent
 from ttkbootstrap.widgets.entry.types import (
-    EntryChangedData, EntryEnterData, EntryInputData,
-    SpinboxChangedData, SpinboxEnterData, SpinboxInputData
+    EntryChangedEventData, EntryEnterEventData, EntryInputEventData,
+    SpinboxChangedEventData, SpinboxEnterEventData, SpinboxInputEventData
 )
 
-SpinboxChangedEvent = UIEvent[SpinboxChangedData]
-SpinboxEnterEvent = UIEvent[SpinboxEnterData]
-SpinboxInputEvent = UIEvent[SpinboxInputData]
-EntryChangedEvent = UIEvent[EntryChangedData]
-EntryEnterEvent = UIEvent[EntryEnterData]
-EntryInputEvent = UIEvent[EntryInputData]
+SpinboxChangedEvent = UIEvent[SpinboxChangedEventData]
+SpinboxEnterEvent = UIEvent[SpinboxEnterEventData]
+SpinboxInputEvent = UIEvent[SpinboxInputEventData]
+EntryChangedEvent = UIEvent[EntryChangedEventData]
+EntryEnterEvent = UIEvent[EntryEnterEventData]
+EntryInputEvent = UIEvent[EntryInputEventData]
