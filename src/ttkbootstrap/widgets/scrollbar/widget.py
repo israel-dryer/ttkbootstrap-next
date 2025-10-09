@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import Callable, Unpack
+from typing import Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.types import Orientation
@@ -16,31 +16,26 @@ class Scrollbar(BaseWidget):
     def __init__(
             self,
             orient: Orientation = "vertical",
-            on_scroll: Callable = None,
             **kwargs: Unpack[ScrollbarOptions]):
         """
         Initialize a new themed scrollbar.
 
         Args:
             orient: The widget orientation.
-            on_scroll: The `xview` or `yview` method of a scrollable widget
-            **kwargs: Additional configuration options.
+
+        Keyword Args:
+            command: The `xview` or `yview` method of a scrollable widget
+            cursor: The cursor that appears when the mouse is over the widget.
+            id: A unique identifier used to query this widget.
+            parent: The parent container of this widget.
+            position: The `place` container position.
+            take_focus: Indicates whether the widget accepts focus during keyboard traversal.
         """
-        self._on_scroll = on_scroll
         self._style_builder = ScrollbarStyleBuilder(orient=orient)
 
         parent = kwargs.pop("parent", None)
-        tk_options = dict(orient=orient, command=on_scroll, **kwargs)
+        tk_options = dict(orient=orient, **kwargs)
         super().__init__(ttk.Scrollbar, tk_options, parent=parent)
-
-    def on_scroll(self, func: Callable = None):
-        """Get or set the on_scroll callback bound to a scrollable widgets (yview, xview)"""
-        if func is None:
-            return self._on_scroll
-        else:
-            self._on_scroll = func
-            self.widget.configure(command=func)
-            return self
 
     def delta(self, x: int, y: int) -> float:
         """Return the fractional change if the scrollbar were moved by (x, y) pixels."""
