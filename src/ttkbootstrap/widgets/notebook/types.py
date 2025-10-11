@@ -21,10 +21,22 @@ class ChangeMethod(StrEnum):
 
 
 class NotebookOptions(CoreOptions, total=False):
+    """Options for configuring a Notebook widget.
+
+    Attributes:
+        take_focus: Accepts keyboard focus during traversal.
+        width: Width of the notebook in pixels.
+        height: Height of the notebook in pixels.
+        id: A unique identifier used to query this widget.
+        padding: Internal padding around the content area.
+        parent: The parent container of this widget.
+        position: The `place` container position.
+    """
     take_focus: bool
     width: int
     height: int
     padding: Padding
+
 
 
 class NotebookTabOptions(TypedDict, total=False):

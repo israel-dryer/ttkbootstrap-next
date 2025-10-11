@@ -1,5 +1,5 @@
 from tkinter import TclError, ttk
-from typing import Any, Literal, Optional, Self, Unpack, cast
+from typing import Any, Literal, Optional, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
@@ -7,7 +7,7 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.event_types import BaseEvent
-from ttkbootstrap.types import EventHandler, Widget
+from ttkbootstrap.types import Widget
 from ttkbootstrap.widgets.notebook.events import (
     NotebookChangedEvent,
     NotebookTabActivatedEvent,
@@ -31,21 +31,14 @@ class Notebook(BaseWidget):
         """
         Create a Notebook widget and initialize tab identity/state tracking.
 
-        Parameters
-        ----------
-        **kwargs : NotebookOptions
-            Standard ttk.Notebook options (e.g., `take_focus`, `width`, `height`, `padding`),
-            plus an optional `parent` to attach the widget to.
-
-        Notes
-        -----
-        - Builds the underlying `ttk.Notebook` and a feature-specific style builder.
-        - Sets up registries for stable tab keys:
-            * `_key_registry`: maps stable keys → wrapper widgets
-            * `_tk_to_key`: maps Tk tab ids → stable keys
-            * `_auto_counter`: counter for auto-generated keys (`tab1`, `tab2`, …)
-        - Initializes change-tracking fields (`_last_selected`, `_last_change_reason`, `_last_change_via`)
-          used to enrich `<<NotebookTabChanged>>` events with context (current/previous, reason, via).
+        Keyword Args:
+            take_focus: Accepts keyboard focus during traversal.
+            width: Width of the notebook in pixels.
+            height: Height of the notebook in pixels.
+            id: A unique identifier used to query this widget.
+            padding: Internal padding around the content area.
+            parent: The parent container of this widget.
+            position: The `place` container position.
         """
         self._in_context: bool = False
         self._style_builder = NotebookStyleBuilder()
@@ -144,29 +137,21 @@ class Notebook(BaseWidget):
         return ref
 
     # ---- enriched signals ----
-    def on_tab_activated(
-            self, handler=None, *, scope="widget"
-    ) -> Stream[NotebookTabActivatedEvent] | Self:
-        """Bind to the per-tab activation lifecycle event; returns a Stream or self when listening."""
-        if handler:
-            self.on(Event.NOTEBOOK_TAB_ACTIVATED, scope=scope).listen(handler)
-            return self
-        return self.on(Event.NOTEBOOK_TAB_ACTIVATED, scope=scope)
+    def on_tab_activated(self) -> Stream[NotebookTabActivatedEvent]:
+        """Convenience alias for the notebook tab activated stream"""
+        return self.on(Event.NOTEBOOK_TAB_ACTIVATED)
 
-    def on_tab_deactivated(
-            self, handler=None, *, scope="widget"
-    ) -> Stream[NotebookTabDeactivatedEvent] | Self:
-        """Bind to the per-tab deactivation lifecycle event; returns a Stream or self when listening."""
-        if handler:
-            self.on(Event.NOTEBOOK_TAB_DEACTIVATED, scope=scope).listen(handler)
-            return self
-        return self.on(Event.NOTEBOOK_TAB_DEACTIVATED, scope=scope)
+    def on_tab_deactivated(self) -> Stream[NotebookTabDeactivatedEvent]:
+        """Convenience alias for the notebook tab deactivated stream"""
+        return self.on(Event.NOTEBOOK_TAB_DEACTIVATED)
 
-    def on_tab_changed(
-            self, handler: Optional[EventHandler] = None, *, scope="widget"
-    ) -> Stream[NotebookChangedEvent] | Self:
-        """
-        Bind to `<<NotebookTabChanged>>` and receive an enriched event.
+    def on_tab_changed(self) -> Stream[NotebookChangedEvent]:
+        """Convenience alias for the notebook tab changed stream
+
+        Emits:
+            - <<TkbNotebookTabChanged>>
+            - <<TkbNotebookTabActivated>>
+            - <<TkbNotebookTabDeactivated>>
 
         The stream maps the raw `BaseEvent` into a `NotebookChangedEvent` whose
         `.data` payload contains:
@@ -174,11 +159,8 @@ class Notebook(BaseWidget):
             - `previous`: TabRef | None
             - `reason`: ChangeReason
             - `via`: ChangeMethod
-
-        Additionally emits `NOTEBOOK_TAB_DEACTIVATED` and `NOTEBOOK_TAB_ACTIVATED`
-        lifecycle events when the selected tab actually changes.
         """
-        base: Stream[BaseEvent] = self.on(Event.NOTEBOOK_TAB_CHANGED, scope=scope)
+        base: Stream[BaseEvent] = self.on(Event.NOTEBOOK_TAB_CHANGED)
 
         def build_payload(ev: BaseEvent) -> NotebookChangedEvent:
             """Attach the NotebookChangedData payload to the event."""
@@ -207,16 +189,7 @@ class Notebook(BaseWidget):
             self._last_change_reason = ChangeReason.UNKNOWN
             self._last_change_via = ChangeMethod.UNKNOWN
 
-        stream: Stream[NotebookChangedEvent] = (
-            base.map(build_payload)
-            .tap(fire_lifecycle)
-            .tap(commit)
-        )
-
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
+        return base.map(build_payload).tap(fire_lifecycle).tap(commit)
 
     # ---- tab management (key-based) ----
     def add(self, widget: Widget, *, key: str | None = None, **options: Unpack[NotebookTabOptions]):
