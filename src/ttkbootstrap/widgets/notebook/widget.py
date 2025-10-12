@@ -1,5 +1,5 @@
 from tkinter import TclError, ttk
-from typing import Any, Literal, Optional, Unpack, cast
+from typing import Literal, Optional, Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
@@ -7,7 +7,7 @@ from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
 from ttkbootstrap.interop.runtime.event_types import BaseEvent
-from ttkbootstrap.types import Widget
+from ttkbootstrap.types import UIEvent, Widget
 from ttkbootstrap.widgets.notebook.events import (
     NotebookChangedEvent,
     NotebookTabActivatedEvent,
@@ -32,12 +32,12 @@ class Notebook(BaseWidget):
         Create a Notebook widget and initialize tab identity/state tracking.
 
         Keyword Args:
-            take_focus: Accepts keyboard focus during traversal.
-            width: Width of the notebook in pixels.
             height: Height of the notebook in pixels.
             id: A unique identifier used to query this widget.
             padding: Internal padding around the content area.
             parent: The parent container of this widget.
+            take_focus: Accepts keyboard focus during traversal.
+            width: Width of the notebook in pixels.
         """
         self._in_context: bool = False
         self._style_builder = NotebookStyleBuilder()
@@ -161,7 +161,7 @@ class Notebook(BaseWidget):
         """
         base: Stream[BaseEvent] = self.on(Event.NOTEBOOK_TAB_CHANGED)
 
-        def build_payload(ev: BaseEvent) -> NotebookChangedEvent:
+        def build_payload(ev: UIEvent) -> NotebookChangedEvent:
             """Attach the NotebookChangedData payload to the event."""
             payload: NotebookChangedData = {
                 "current": self._tab_ref(self.widget.select()),
@@ -169,8 +169,8 @@ class Notebook(BaseWidget):
                 "reason": self._last_change_reason or ChangeReason.UNKNOWN,
                 "via": self._last_change_via or ChangeMethod.UNKNOWN,
             }
-            ev.data = cast(dict[str, Any], payload)
-            return cast(NotebookChangedEvent, ev)
+            ev.data = payload
+            return ev
 
         def fire_lifecycle(ev: NotebookChangedEvent) -> None:
             """Emit per-tab lifecycle events when selection truly changes."""
@@ -217,7 +217,7 @@ class Notebook(BaseWidget):
         self.widget.forget(tab_id)
         return self
 
-    def hide(self, tab: Tab):
+    def hide_tab(self, tab: Tab):
         """Hide a tab without removing it; selection may change implicitly."""
         self._mark_api_change(ChangeReason.HIDE)
         self.widget.hide(self._to_tab_id(tab))

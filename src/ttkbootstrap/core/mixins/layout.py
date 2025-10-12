@@ -144,10 +144,14 @@ class LayoutMixin:
             return self
 
         if m_eff == "widget":
-            if hasattr(container, "attach"):
-                container.attach(self, **eff_opts)
+            # Child executes by asking the parent to accept it as a “widget child”
+            if hasattr(container, "add"):
+                container.add(self, **eff_opts)
             else:
-                raise RuntimeError("Parent does not support widget-style attach.")
+                raise RuntimeError(
+                    "Parent does not support widget-style attach "
+                    "(implement add(child, **opts))."
+                )
             return self
 
         raise RuntimeError(f"Unknown layout method: {m_eff}")
