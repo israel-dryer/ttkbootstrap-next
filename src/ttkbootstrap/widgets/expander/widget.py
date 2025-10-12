@@ -5,6 +5,7 @@ from ttkbootstrap.layouts.grid import Grid
 from ttkbootstrap.layouts.pack import Pack
 from ttkbootstrap.layouts.types import GridOptions
 from ttkbootstrap.utils import tag_descendents
+from ttkbootstrap.widgets.button import Button
 from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.mixins.composite_mixin import CompositeWidgetMixin
 
@@ -13,7 +14,7 @@ DEFAULT_EXPANDER_CLOSED_ICON = {"name": "chevron-down", "size": 12}
 DEFAULT_EXPANDER_POSITION = 'after'
 
 
-class ExpanderOptions(GridOptions):
+class ExpanderOptions(GridOptions, total=False):
     """Accepts layout options passed to the grid container, as well as select expander button attributes.
 
         Attributes:
@@ -70,7 +71,7 @@ class Expander(Grid, CompositeWidgetMixin):
     _content: Pack
 
     def __init__(
-            self, title: str, *, collapsible=True, expanded=True,
+            self, title: str, collapsible=True, expanded=True,
             **kwargs: Unpack[ExpanderOptions]):
         """
         Create a new Fieldset.
@@ -122,24 +123,23 @@ class Expander(Grid, CompositeWidgetMixin):
         cols = self._header_column_weights
         with self:
             # header container
-            with Grid(rows=1, columns=cols, padding=8) as self._header:
-                self._header.layout(column=0, row=0, sticky="ew")
+            with Grid(rows=1, columns=cols, padding=4).attach() as self._header:
+                self._header.attach(column=0, row=0, sticky="ew")
 
                 # header text container
-                with Pack(direction="horizontal") as self._header_text_container:
-                    self._header_text_container.layout(sticky="ew", column=cols[1], row=0)
-                    self._title_widget = Label(self._title, anchor="w", padding=(4, 0)).layout(fill="x")
+                with Pack(direction="horizontal").attach() as self._header_text_container:
+                    self._header_text_container.attach(sticky="ew", column=cols[1], row=0)
+                    self._title_widget = Label(self._title, anchor="w", padding=(4, 0)).attach(fill="x")
 
                 # toggle button
-                self._toggle_btn = Label(
-                    padding=8, variant="text", take_focus=False,
-                    icon=self._current_expander_icon
-                )
-                # self._toggle_btn.on(Event.CLICK1).listen(lambda *_: self.toggle())
-                self._toggle_btn.layout(column=cols[0], row=0)
+                self._toggle_btn = Button(
+                    padding=8, variant="ghost", color="foreground",
+                    icon=self._current_expander_icon)
+                self._toggle_btn.attach(column=cols[0], row=0)
+                self._toggle_btn.on(Event.KEYUP_SPACE).listen(lambda x: self.toggle())
 
             # content container
-            self._content = Pack(padding=16).layout(sticky="nsew", column=0, row=1)
+            self._content = Pack(padding=16).attach(sticky="nsew", column=0, row=1)
 
         # set initial state
         if not self._collapsible:
@@ -166,7 +166,7 @@ class Expander(Grid, CompositeWidgetMixin):
             return self._title
         else:
             self._title = value
-            self._title_widget.text(value)
+            self._title_widget.configure(text=value)
         return self
 
     def collapsible(self, value: bool = None):

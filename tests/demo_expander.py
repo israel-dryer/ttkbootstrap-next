@@ -1,28 +1,28 @@
 from ttkbootstrap import App, Button, Checkbutton, Expander, Label, NumericEntry, Pack, TextEntry
 
-with App("Fieldset Demo", geometry="600x300", theme="dark") as app:
-    with Pack(padding=16, gap=16).layout(fill='both', expand=True):
-        with Expander("This is the expander title", border=True, button_position='before').layout(fill='both') as ex:
+with App("Fieldset Demo", geometry="600x300") as app:
+    with Pack(padding=16, gap=16).attach(fill='both', expand=True):
+        with Expander("This is the expander title", border=True, button_position='before').attach(fill='both') as ex:
+            with ex.content:
+                Button("Push").attach()
+
+        with Expander("This is the expander title", border=True).attach(fill='both') as ex:
+            with ex.content:
+                Button("Push").attach()
+
+        with Expander("This is the expander title", border=True, collapsible=False).attach(fill='both') as ex:
             with ex.content:
                 Button("Push")
 
-        with Expander("This is the expander title", border=True).layout(fill='both') as ex:
-            with ex.content:
-                Button("Push")
-
-        with Expander("This is the expander title", border=True, collapsible=False).layout(fill='both') as ex:
-            with ex.content:
-                Button("Push")
-
-        with Expander("Default", border=True, button_position='before').layout(fill='both') as ex:
+        with Expander("Default", border=True, button_position='before').attach(fill='both') as ex:
             with ex.header:
-                Checkbutton()
-                Label("Custom Header Label")
+                Checkbutton().attach()
+                Label("Custom Header Label").attach()
             with ex.content:
-                with Pack(fill_items='x').layout(fill='both'):
-                    TextEntry(label="First Name")
-                    TextEntry(label="Last Name")
-                    NumericEntry(label="Age")
-                    TextEntry(label="Occupation")
+                with Pack(fill_items='x').attach(fill='both'):
+                    te = TextEntry(label="First Name").attach()
+                    TextEntry(label="Last Name").attach()
+                    NumericEntry(label="Age").attach()
+                    TextEntry(label="Occupation").attach()
 
 app.run()
