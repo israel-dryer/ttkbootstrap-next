@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import tkinter as tk
 from tkinter import ttk
-from typing import Literal, Type
+from typing import Type
 
 from ttkbootstrap.core.layout_context import current_container
 from ttkbootstrap.core.mixins.layout import LayoutMixin
@@ -16,8 +16,6 @@ from ttkbootstrap.interop.runtime.schedule import Schedule
 from ttkbootstrap.interop.runtime.winfo import WidgetInfoMixin
 from ttkbootstrap.types import Widget
 from ttkbootstrap.utils import resolve_parent, unsnake_kwargs
-
-PositionType = Literal["static", "absolute", "fixed"]
 
 
 class BaseWidget(
@@ -58,15 +56,12 @@ class BaseWidget(
             The concrete Tk/ttk widget class to instantiate (e.g., `ttk.Entry`, `ttk.Button`, `tk.Toplevel`, `tk.Tk`).
         tk_widget_options:
             Keyword options passed directly to the widget constructor. Keys may be in snake_case and
-            are normalized via `unsnake_kwargs`. May also include `"position"` which is extracted
-            for layout heuristics (`"static"`, `"absolute"`, or `"fixed"`).
+            are normalized via `unsnake_kwargs`.
         parent:
             The *logical* parent used for styling/registration with layout containers. If omitted,
-            the current layout context (`current_container()`) is used. This may differ from the
-            actual Tk master when `position="fixed"` (master becomes the toplevel).
+            the current layout context (`current_container()`) is used.
         tk_layout_options:
             Options consumed by mixins and layout registration (e.g., initial layout intent).
-            If `"position"` appears here, it overrides the same key in `tk_widget_options`.
         surface:
             Optional theme surface token for this widget. If omitted, the surface is inherited from
             the logical parent (when available).
@@ -80,10 +75,7 @@ class BaseWidget(
         tk_widget_options = dict(tk_widget_options or {})
         tk_layout_options = dict(tk_layout_options or {})
 
-        # Position may be supplied in either dict; keep local for pre-mixin logic
-        position = tk_widget_options.pop("position", tk_layout_options.pop("position", "static"))
         custom_id = tk_widget_options.pop("id", None)
-        tk_layout_options.setdefault("position", position)
 
         # Determine logical parent (container for styling/registration)
         logical_parent = parent if parent is not None else current_container()
@@ -98,7 +90,7 @@ class BaseWidget(
         else:
             if logical_parent is None:
                 raise RuntimeError("No parent or container; cannot create a widget.")
-            master_ref = logical_parent.widget.winfo_toplevel() if position == "fixed" else logical_parent
+            master_ref = logical_parent
 
         # Keep references
         self._parent = logical_parent
@@ -131,9 +123,7 @@ class BaseWidget(
         if container and hasattr(container, "register_layout_child"):
             # Infer an initial layout method (same heuristics as before)
             method = None
-            if position in ("absolute", "fixed"):
-                method = "place"
-            elif str(container) == ".":
+            if str(container) == ".":
                 method = "pack"
             elif hasattr(container, "preferred_layout_method"):
                 try:

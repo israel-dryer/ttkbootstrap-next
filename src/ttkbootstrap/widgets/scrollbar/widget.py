@@ -11,7 +11,6 @@ class Scrollbar(BaseWidget):
     """A themed scrollbar widget with support for fractional movement and position."""
 
     widget: ttk.Scrollbar
-    _configure_methods = {"on_scroll": "on_scroll"}
 
     def __init__(
             self,

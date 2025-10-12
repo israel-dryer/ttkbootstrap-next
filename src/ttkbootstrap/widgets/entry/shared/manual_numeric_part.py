@@ -77,6 +77,7 @@ class ManualNumericPart(EntryPart):
                 d = 0
             if d != 0:
                 self.step(+1 if d > 0 else -1)
+
         self.on(Event.MOUSE_WHEEL).listen(on_wheel)
 
         # Wheel support (X11): button-4/5

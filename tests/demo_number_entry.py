@@ -1,7 +1,7 @@
 from ttkbootstrap import App, NumericEntry, Pack
 
 with App("Number Entry Demo") as app:
-    with Pack(padding=16, gap=8, fill_items="x"):
+    with Pack(padding=16, gap=8, fill_items="x").attach():
         # Basic float with inferred precision from increment
         NumericEntry(
             0.25,
@@ -10,7 +10,7 @@ with App("Number Entry Demo") as app:
             min_value=0.0,
             max_value=100.0,
             show_spin_buttons=False,
-        )
+        ).attach()
 
         # Fixed decimals (2) – formats on commit, steps at 0.01
         NumericEntry(
@@ -20,7 +20,7 @@ with App("Number Entry Demo") as app:
             increment=0.01,
             min_value=0,
             max_value=1000,
-        )
+        ).attach()
 
         # Decimal with thousands separator, 3 decimals (custom pattern)
         NumericEntry(
@@ -30,7 +30,7 @@ with App("Number Entry Demo") as app:
             increment=0.001,
             min_value=0,
             max_value=1000000,
-        )
+        ).attach()
 
         # Percent – show 25% for 0.25; keep 1 decimal
         NumericEntry(
@@ -40,7 +40,7 @@ with App("Number Entry Demo") as app:
             increment=0.01,
             min_value=0,
             max_value=1,
-        )
+        ).attach()
 
         # Currency – USD with 2 decimals
         NumericEntry(
@@ -50,7 +50,7 @@ with App("Number Entry Demo") as app:
             increment=0.01,
             min_value=0,
             max_value=1000000,
-        )
+        ).attach()
 
         # Currency (more locales)
         NumericEntry(
@@ -61,7 +61,7 @@ with App("Number Entry Demo") as app:
             min_value=0,
             max_value=1000000,
             locale="de_DE",
-        )
+        ).attach()
 
         NumericEntry(
             1234.56,
@@ -71,7 +71,7 @@ with App("Number Entry Demo") as app:
             min_value=0,
             max_value=1000000,
             locale="fr_FR",
-        )
+        ).attach()
 
         NumericEntry(
             1234.56,
@@ -81,7 +81,7 @@ with App("Number Entry Demo") as app:
             min_value=0,
             max_value=1000000,
             locale="ja_JP",
-        )
+        ).attach()
 
         # Scientific / exponential
         NumericEntry(
@@ -91,7 +91,7 @@ with App("Number Entry Demo") as app:
             increment=0.0000001,
             min_value=0,
             max_value=1,
-        )
+        ).attach()
 
         # Large number suffixing (auto K/M/B/T)
         NumericEntry(
@@ -101,7 +101,7 @@ with App("Number Entry Demo") as app:
             increment=100000,
             min_value=0,
             max_value=10_000_000_000,
-        )
+        ).attach()
 
         # Thousands short form
         NumericEntry(
@@ -111,6 +111,6 @@ with App("Number Entry Demo") as app:
             increment=100,
             min_value=0,
             max_value=1_000_000,
-        )
+        ).attach()
 
 app.run()

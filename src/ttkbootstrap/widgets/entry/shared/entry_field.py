@@ -57,24 +57,23 @@ class EntryField(Pack, EntryMixin, ABC):
         self._addons: dict[str, Union[Button, Label]] = {}
 
         # add top and bottom labels (conditionally attached)
-        self._label = Label((label or '') + ('*' if required else ''), parent=self, font="label").layout(fill='x')
-        self._message = Label(message, parent=self, font="caption", foreground="secondary").layout(fill='x')
+        self._label = Label((label or '') + ('*' if required else ''), parent=self, font="label")
+        self._message = Label(message, parent=self, font="caption", foreground="secondary")
 
         # field container & field
         self._field = Pack(parent=self, variant="field", padding=6, direction='horizontal')
-        self._field.layout(fill='x', expand=True)
 
         if kind in ("manualnumeric", "spinbox"):
             from ttkbootstrap.widgets.entry.shared.manual_numeric_part import ManualNumericPart
-            self._entry = ManualNumericPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
+            self._entry = ManualNumericPart(value, parent=self._field, **kwargs)
         else:
-            self._entry = EntryPart(value, parent=self._field, **kwargs).layout(fill='both', expand=True)
+            self._entry = EntryPart(value, parent=self._field, **kwargs)
 
         # Attach components
-        label and self._label.attach()
-        self._field.attach()
-        self._entry.attach()
-        self._message.attach()  # always reserve space for messages
+        label and self._label.attach(fill='x')
+        self._field.attach(fill='x', expand=True)
+        self._entry.attach(fill='both', expand=True)
+        self._message.attach(fill='x')  # always reserve space for messages
         self._entry.on(Event.INVALID).listen(self._show_error)
         self._entry.on(Event.VALID).listen(self._clear_error)
 

@@ -40,8 +40,10 @@ class GridItemOptions(TypedDict, total=False):
     columnspan: int
     sticky: Sticky
     anchor: Anchor
-    marginx: Spacing
-    marginy: Spacing
+    padx: Spacing
+    pady: Spacing
+    ipadx: int | float
+    ipady: int | float
 
 
 class PackItemOptions(TypedDict, total=False):
@@ -51,8 +53,10 @@ class PackItemOptions(TypedDict, total=False):
     anchor: Anchor
     before: Widget
     after: Widget
-    marginx: Spacing
-    marginy: Spacing
+    padx: Spacing
+    pady: Spacing
+    ipadx: int | float
+    ipady: int | float
 
 
 class PlaceItemOptions(TypedDict, total=False):
@@ -62,7 +66,6 @@ class PlaceItemOptions(TypedDict, total=False):
     height: int | float | str
     anchor: Anchor
     bordermode: Literal["inside", "outside"]
-    target: Widget
     xoffset: int
     yoffset: int
 
