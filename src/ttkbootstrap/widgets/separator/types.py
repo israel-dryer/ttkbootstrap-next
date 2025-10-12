@@ -10,7 +10,6 @@ class SeparatorOptions(CoreOptions, total=False):
     """
         Attributes:
             parent: The parent container of this widget.
-            position: The `place` container position.
             id: A unique identifier used to query this widget.
     """
     ...

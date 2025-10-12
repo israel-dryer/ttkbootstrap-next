@@ -44,7 +44,6 @@ class Progressbar(BaseWidget):
             mode: Use 'determinate' for measurable progress and 'indeterminate' for continuous animation.
             orient: The orientation of the progress bar; either "horizontal" or "vertical".
             parent: The parent container of this widget.
-            position: The `place` container position.
             take_focus: Indicates whether the widget accepts focus during keyboard traversal.
             variable: The tkinter variable linked to this widget's value.
             variant: The visual style variant of the progress bar, either "default" or "striped".

@@ -55,7 +55,6 @@ class Button(BaseWidget, IconMixin):
             id: A unique identifier used to query this widget.
             padding: The padding of the widget in pixels.
             parent: The parent container of this widget.
-            position: The `place` container position.
             take_focus: Specifies if the widget accepts focus during keyboard traversal.
             text_variable: A tkinter string variable bound to the button text.
             underline: The integer index (0-based) of a character to underline in the text.

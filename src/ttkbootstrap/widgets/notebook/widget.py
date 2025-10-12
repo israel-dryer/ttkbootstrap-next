@@ -38,7 +38,6 @@ class Notebook(BaseWidget):
             id: A unique identifier used to query this widget.
             padding: Internal padding around the content area.
             parent: The parent container of this widget.
-            position: The `place` container position.
         """
         self._in_context: bool = False
         self._style_builder = NotebookStyleBuilder()

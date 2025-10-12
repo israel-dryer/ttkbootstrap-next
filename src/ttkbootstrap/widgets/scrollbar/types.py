@@ -12,7 +12,6 @@ class ScrollbarOptions(CoreOptions, total=False):
         cursor: The cursor that appears when the mouse is over the widget.
         id: A unique identifier used to query this widget.
         parent: The parent container of this widget.
-        position: The `place` container position.
         take_focus: Indicates whether the widget accepts focus during keyboard traversal.
     """
     cursor: str

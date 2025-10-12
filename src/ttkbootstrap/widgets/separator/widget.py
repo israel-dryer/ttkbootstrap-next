@@ -33,7 +33,6 @@ class Separator(BaseWidget):
         Keyword Args:
             id: A unique identifier used to query this widget.
             parent: The parent container of this widget.
-            position: The `place` container position.
         """
         self._style_builder = SeparatorStyleBuilder(color=color, orient=orient)
         parent = kwargs.pop('parent', None)

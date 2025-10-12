@@ -13,7 +13,6 @@ class ScaleOptions(CoreOptions, total=False):
         length: The length of the progress bar in pixels.
         orient: Indicates whether the widget should be laid or horizontally or vertically.
         parent: The parent container of this widget.
-        position: The `place` container position.
         take_focus: Indicates whether the widget accepts focus during keyboard traversal.
         variable: A tkinter variable bound to the widget value.
     """

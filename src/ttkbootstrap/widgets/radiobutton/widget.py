@@ -55,7 +55,6 @@ class Radiobutton(BaseWidget):
             cursor: Mouse cursor to display when hovering over the widget.
             id: A unique identifier used to query this widget.
             parent: The parent container of this widget.
-            position: The `place` container position.
             selected: Whether this button should be initially selected.
             take_focus: Specifies if the widget accepts focus during keyboard traversal.
             text_variable: The tkinter text variable bound to the widget label.

@@ -53,7 +53,6 @@ class Switch(BaseWidget):
             off_value: The value when unchecked.
             on_value: The value when checked.
             parent: The parent container of this widget.
-            position: The `place` container position.
             take_focus: Specifies if the widget accepts focus during keyboard traversal.
             text_variable: The tkinter variable bound to the widget text.
             tristate_value: The value when in the indeterminate state.

@@ -62,7 +62,6 @@ class EntryFieldOptions(EntryOptions, total=False):
         message: The caption or helper message shown below the input field.
         parent: Widget
         padding: Inner padding around the content.
-        position: Position
         show: Mask character to display (e.g., '*').
         take_focus: Whether the widget can receive focus.
         text_variable: Variable bound to the entry text.

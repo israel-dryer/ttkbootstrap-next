@@ -17,7 +17,6 @@ class BadgeOptions(CoreOptions, total=False):
         justify: Specifies how the lines are laid out relative to one another with multiple lines of text.
         padding: Space around the label content.
         parent: The parent container of this widget.
-        position: The `place` container position.
         take_focus: Specifies if the widget accepts focus during keyboard traversal.
         text_variable: The tkinter variable bound to this widget label text.
         underline: The integer index (0-based) of a character to underline in the text.
