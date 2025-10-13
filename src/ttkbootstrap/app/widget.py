@@ -2,6 +2,7 @@ import tkinter
 from tkinter import Tk
 from typing import Any, List, Tuple, Unpack
 
+from ttkbootstrap.app.style import WindowStyleBuilder
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container, set_default_root
 from ttkbootstrap.core.mixins.container import ContainerMixin
@@ -9,9 +10,7 @@ from ttkbootstrap.exceptions.base import wrap_with_cause
 from ttkbootstrap.exceptions.error_bus import ErrorBus
 from ttkbootstrap.exceptions.tk_integration import log, normalize_tcl_error
 from ttkbootstrap.layouts.types import GridItemOptions, PackItemOptions
-from ttkbootstrap.style import Typography
-from ttkbootstrap.app.style import WindowStyleBuilder
-from ttkbootstrap.style.theme import ColorTheme
+from ttkbootstrap.style import ThemeProvider, Typography
 from ttkbootstrap.style.types import ColorMode
 from ttkbootstrap.utils import assert_valid_keys
 
@@ -51,14 +50,14 @@ class App(BaseWidget, ContainerMixin):
         # hide until ready to render
         self.widget.withdraw()
         self.widget.title(title)
-        self._theme = ColorTheme.instance(theme)
+        self._theme = ThemeProvider()
         self._theme.use(theme)
 
         # register fonts
         if use_default_fonts:
             Typography.use_fonts()
 
-        self._style_builder.register_style()
+        self._style_builder.build()
 
         # --- queue for children registered directly on App (root) ---
         self._layout_children: List[Tuple[Any, str, dict]] = []  # (child, method, opts)

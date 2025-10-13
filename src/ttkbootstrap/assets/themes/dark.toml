@@ -1,0 +1,93 @@
+name = "dark"
+mode = "dark"
+
+[palette]
+foreground = "#212529"
+background = "#ffffff"
+white = "#ffffff"
+black = "#000000"
+
+# base color for color shades
+[palette.shades]
+blue = "#0d6efd"
+indigo = "#6610f2"
+purple = "#6f42c1"
+red = "#dc3545"
+orange = "#fd7e14"
+yellow = "#ffc107"
+green = "#198754"
+teal = "#20c997"
+cyan = "#0dcaf0"
+gray = "#adb5bd"
+
+# map of color shades to semantic tokens
+[palette.semantic]
+primary = "blue"
+secondary = "gray-700"
+success = "green"
+info = "cyan"
+warning = "yellow"
+danger = "red"
+light = "gray-100"
+dark = "gray-900"
+border = "gray-300"
+
+[typography]
+
+# tokens used for the "font" parameter
+[typography.tokens]
+displayXL = { family = "Segoe UI", size = 24, weight = "bold" }
+displayLG = { family = "Segoe UI", size = 20, weight = "bold" }
+headingXL = { family = "Segoe UI", size = 16, weight = "bold" }
+headingLG = { family = "Segoe UI", size = 14, weight = "bold" }
+headingMD = { family = "Segoe UI", size = 12, weight = "bold" }
+bodyXL = { family = "SegoeUI", size = 13, weight = "normal" }
+bodyLG = { family = "SegoeUI", size = 11, weight = "normal" }
+bodySM = { family = "SegoeUI", size = 10, weight = "normal" }
+bodyMD = { family = "SegoeUI", size = 12, weight = "normal" }
+label = { family = "SegoeUI", size = 9, weight = "bold" }
+caption = { family = "SegoeUI", size = 8, weight = "normal" }
+code = { family = "Consolas", size = 10, weight = "normal" }
+
+# fallback by OS when default font fails
+[typography.fallback]
+
+[typography.fallback.system]
+windows = "Segoe UI"
+darwin = "San Francisco"
+other = "Ubuntu"
+
+[typography.fallback.monospace]
+windows = "Consolas"
+darwin = "Menlo"
+other = "DejaVu Sans Mono"
+
+# override default tk font names with typography token
+[typography.overrides]
+TkDefaultFont = "bodyLG"
+TkTextFont = "bodyMD"
+TkHeadingFont = "headingMD"
+TkFixedFont = "code"
+
+# component style overrides
+[components]
+[components.Badge]
+[components.Button]
+[components.Canvas]
+[components.Checkbutton]
+[components.Entry]
+[components.Expander]
+[components.Label]
+[components.List]
+[components.Menubutton]
+[components.Notebook]
+[components.PageStack]
+[components.Panedwindow]
+[components.Radiobutton]
+[components.Scale]
+[components.Scrollbar]
+[components.Separator]
+[components.Sizegrip]
+[components.Switch]
+[components.Tableview]
+[components.Treeview]

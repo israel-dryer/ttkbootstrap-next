@@ -51,6 +51,7 @@ exclude = ["tests*", "docs*"]
 ttkbootstrap = [
     "localization/msgs/*.msg",
     "themes/*.json",
+    "themes/*.toml",
     "assets/**/*"
 ]
 

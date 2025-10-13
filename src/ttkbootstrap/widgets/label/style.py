@@ -2,18 +2,16 @@ from tkinter import TclError
 from tkinter.font import nametofont
 
 from ttkbootstrap.icons import BootstrapIcon
-from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
+from ttkbootstrap.style import Element, ElementImage, StyleManager, recolor_image
 
 _images = []
 
 
-class LabelStyleBuilder(StyleBuilderBase):
+class LabelStyleBuilder(StyleManager):
 
     def __init__(self, **kwargs):
         super().__init__("TLabel", **kwargs)
-
-        # default style options
-        self.options.set_defaults(variant='default', select_background='primary')
+        self.options.set_defaults(variant="default", select_background="primary")
         self._stateful_icons: dict[str, BootstrapIcon] = dict()
 
     @property
@@ -21,158 +19,159 @@ class LabelStyleBuilder(StyleBuilderBase):
         return self._stateful_icons
 
     def register_style(self):
-        variant = self.options('variant')
-        if variant.endswith('fix'):
-            self.build_addon_style()
-        elif variant == 'list':
-            self.build_list_style()
-        else:
-            self.build_default_style()
+        self.build()
 
-    def build_default_style(self):
-        ttk_style = self.resolve_name()
-        surface_token = self.surface()
-        foreground_token = self.options('foreground')
-        background_token = self.options('background')
 
-        if background_token is None:
-            background = self.theme.color(surface_token)
-        else:
-            background = self.theme.color(background_token)
+@LabelStyleBuilder.register_variant("default")
+def build_default_label_style(b: LabelStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    surface_token = b.surface_token()
+    foreground_token = b.options("foreground")
+    background_token = b.options("background")
 
-        if foreground_token is None:
-            foreground = self.theme.on_color(background)
-        else:
-            try:
-                foreground = self.theme.color(foreground_token, "text")
-            except TclError:
-                foreground = self.options('foreground')
-        self.configure(ttk_style, background=background, foreground=foreground)
+    if background_token is None:
+        background = b.color(surface_token)
+    else:
+        background = b.color(background_token)
 
-    def build_addon_style(self):
-        theme = self.theme
-        ttk_style = self.resolve_name()
-        surface_token = self.surface()
+    if foreground_token is None:
+        foreground = b.on_color(background)
+    else:
+        try:
+            foreground = b.color(foreground_token, "text")
+        except TclError:
+            foreground = b.options('foreground')
+    b.style_configure(ttk_style, background=background, foreground=foreground)
 
-        surface = theme.color(surface_token)
-        border = self.theme.border(surface)
-        foreground = theme.on_color(surface)
-        normal = self.theme.disabled()
 
-        # button element images
-        normal_img = recolor_image(f'input-{self.options('variant')}', normal, border)
-        img_padding = 8
+@LabelStyleBuilder.register_variant("addon")
+def build_addon_label_style(b: LabelStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    surface_token = b.surface_token()
 
-        # button element
-        self.create_element(
-            ElementImage(
-                f'{ttk_style}.border', normal_img, sticky="nsew", border=img_padding, padding=img_padding))
+    surface = b.color(surface_token)
+    border = b.border(surface)
+    foreground = b.on_color(surface)
+    normal = b.disabled()
 
-        ttk_style = self.resolve_name()
-        self.style_layout(
-            ttk_style, Element(f"{ttk_style}.border", sticky="nsew").children(
-                [
-                    Element("Label.padding", sticky="nsew").children(
-                        [
-                            Element("Label.label", sticky="")
-                        ])
-                ]))
+    # button element images
+    normal_img = recolor_image(f'input-{b.options('variant')}', normal, border)
+    img_padding = 8
 
-        self.configure(
-            ttk_style,
-            background=surface,
-            foreground=foreground,
-            relief='flat',
-            stipple="gray12",
-            padding=0
-        )
+    # button element
+    b.style_create_element(
+        ElementImage(
+            f'{ttk_style}.border', normal_img, sticky="nsew", border=img_padding, padding=img_padding))
 
-    def build_list_style(self):
-        ttk_style = self.resolve_name()
-        theme = self.theme
-        background = theme.color(self.surface())
-        background_hover = theme.elevate(background, 1)
-        background_pressed = theme.elevate(background, 2)
-        background_selected = theme.color(self.options('select_background'))
-        background_selected_hover = theme.hover(background_selected)
-        foreground_token = self.options('foreground')
-        if foreground_token is None:
-            foreground = self.theme.on_color(background)
-        else:
-            try:
-                foreground = self.theme.color(foreground_token, "text")
-            except TclError:
-                foreground = foreground_token
+    b.style_create_layout(
+        ttk_style, Element(f"{ttk_style}.border", sticky="nsew").children(
+            [
+                Element("Label.padding", sticky="nsew").children(
+                    [
+                        Element("Label.label", sticky="")
+                    ])
+            ]))
 
-        foreground_selected = theme.on_color(background_selected)
-        self.configure(ttk_style, background=background, foreground=foreground)
-        self.map(
-            ttk_style,
-            background=[
-                ('selected hover', background_selected_hover),
-                ('selected', background_selected),
-                ('pressed', background_pressed),
-                ('hover', background_hover)],
-            foreground=[('selected', foreground_selected)]
-        )
+    b.style_configure(
+        ttk_style,
+        background=surface,
+        foreground=foreground,
+        relief='flat',
+        stipple="gray12",
+        padding=0
+    )
 
-    def build_icon_assets(self, icon: dict):
-        if icon is None: return
-        if self.options('variant') == 'list':
-            self.build_list_icon_assets(icon)
-        else:
-            self.build_default_icon_assets(icon)
 
-    def build_default_icon_assets(self, icon: dict):
-        background = self.theme.color(self.surface())
-        foreground_token = self.options('foreground')
-        if foreground_token is None:
-            foreground = self.theme.on_color(background)
-        else:
-            try:
-                foreground = self.theme.color(foreground_token, "text")
-            except TclError:
-                foreground = foreground_token
+@LabelStyleBuilder.register_variant("list")
+def build_list_label_style(b: LabelStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    background = b.color(b.surface_token())
+    background_hover = b.elevate(background, 1)
+    background_pressed = b.elevate(background, 2)
+    background_selected = b.color(b.options('select_background'))
+    background_selected_hover = b.hover(background_selected)
+    foreground_token = b.options('foreground')
+    if foreground_token is None:
+        foreground = b.on_color(background)
+    else:
+        try:
+            foreground = b.color(foreground_token, "text")
+        except TclError:
+            foreground = foreground_token
 
-        self.create_icon_asset(icon, 'normal', foreground)
-        self.create_icon_asset(icon, 'hover', foreground)
-        self.create_icon_asset(icon, 'pressed', foreground)
-        self.create_icon_asset(icon, 'focus', foreground)
-        self.create_icon_asset(icon, 'disabled', foreground)
+    foreground_selected = b.on_color(background_selected)
+    b.style_configure(ttk_style, background=background, foreground=foreground)
+    b.style_map(
+        ttk_style,
+        background=[
+            ('selected hover', background_selected_hover),
+            ('selected', background_selected),
+            ('pressed', background_pressed),
+            ('hover', background_hover)],
+        foreground=[('selected', foreground_selected)]
+    )
 
-    def create_icon_asset(self, icon: dict, state: str, color: str):
-        # create stateful icons to be mapped by the buttons event handling logic
-        options = dict(icon)
-        options.setdefault('size', self.icon_font_size())
-        options.setdefault('color', color)
-        self._stateful_icons[state] = BootstrapIcon(**options)
 
-    def build_list_icon_assets(self, icon: dict):
-        icon['size'] = 14
-        background = self.theme.color(self.surface())
-        foreground_token = self.options('foreground')
-        if foreground_token is None:
-            foreground = self.theme.on_color(background)
-        else:
-            try:
-                foreground = self.theme.color(foreground_token, "text")
-            except TclError:
-                foreground = foreground_token
+def build_icon_assets(b: LabelStyleBuilder, icon: dict):
+    if icon is None: return
+    if b.options('variant') == 'list':
+        build_list_icon_assets(b, icon)
+    else:
+        build_default_icon_assets(b, icon)
 
-        background_selected = self.theme.color(self.options('select_background'))
-        foreground_selected = self.theme.on_color(background_selected)
 
-        self.create_icon_asset(icon, 'normal', foreground)
-        self.create_icon_asset(icon, 'hover', foreground)
-        self.create_icon_asset(icon, 'pressed', foreground)
-        self.create_icon_asset(icon, 'focus', foreground)
-        self.create_icon_asset(icon, 'disabled', foreground)
-        self.create_icon_asset(icon, 'selected', foreground_selected)
+def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
+    background = b.color(b.surface_token())
+    foreground_token = b.options('foreground')
+    if foreground_token is None:
+        foreground = b.on_color(background)
+    else:
+        try:
+            foreground = b.color(foreground_token, "text")
+        except TclError:
+            foreground = foreground_token
 
-    @classmethod
-    def icon_font_size(cls) -> int:
-        """Return the icon size scaled from font size."""
-        factor = 0.9
-        fnt = nametofont('body-lg')
-        font_size = fnt.metrics('linespace')
-        return int(font_size * factor)
+    create_icon_asset(b, icon, 'normal', foreground)
+    create_icon_asset(b, icon, 'hover', foreground)
+    create_icon_asset(b, icon, 'pressed', foreground)
+    create_icon_asset(b, icon, 'focus', foreground)
+    create_icon_asset(b, icon, 'disabled', foreground)
+
+
+def create_icon_asset(b: LabelStyleBuilder, icon: dict, state: str, color: str):
+    # create stateful icons to be mapped by the buttons event handling logic
+    options = dict(icon)
+    options.setdefault('size', icon_font_size())
+    options.setdefault('color', color)
+    b.stateful_icons[state] = BootstrapIcon(**options)
+
+
+def build_list_icon_assets(b: LabelStyleBuilder, icon: dict):
+    icon['size'] = 14
+    background = b.color(b.surface_token())
+    foreground_token = b.options('foreground')
+    if foreground_token is None:
+        foreground = b.on_color(background)
+    else:
+        try:
+            foreground = b.color(foreground_token, "text")
+        except TclError:
+            foreground = foreground_token
+
+    background_selected = b.color(b.options('select_background'))
+    foreground_selected = b.on_color(background_selected)
+
+    create_icon_asset(b, icon, 'normal', foreground)
+    create_icon_asset(b, icon, 'hover', foreground)
+    create_icon_asset(b, icon, 'pressed', foreground)
+    create_icon_asset(b, icon, 'focus', foreground)
+    create_icon_asset(b, icon, 'disabled', foreground)
+    create_icon_asset(b, icon, 'selected', foreground_selected)
+
+
+def icon_font_size() -> int:
+    """Return the icon size scaled from font size."""
+    factor = 0.9
+    fnt = nametofont('body-lg')
+    font_size = fnt.metrics('linespace')
+    return int(font_size * factor)

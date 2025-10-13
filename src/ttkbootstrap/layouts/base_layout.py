@@ -64,7 +64,7 @@ class BaseLayout(BaseWidget, ContainerMixin):
             return self._surface_token
         else:
             self._surface_token = value
-            self._style_builder.surface(value)
+            self._style_builder.surface_token(value)
             return self
 
     def preferred_layout_method(self) -> str:

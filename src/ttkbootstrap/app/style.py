@@ -1,24 +1,23 @@
-from ttkbootstrap.style import StyleBuilderBase
+from tkinter import Tk
+
+from ttkbootstrap.style import StyleManager
 from ttkbootstrap.types import Widget
 
 
-class WindowStyleBuilder(StyleBuilderBase):
+class WindowStyleBuilder(StyleManager):
 
     def __init__(self, window: Widget, **kwargs):
         super().__init__("tkinter", **kwargs)
-        self._window = window
+        self._window: Tk = window
+        self.options.set_defaults(surface="background", variant="default")
 
     @property
     def window(self):
         return self._window
 
-    def surface(self, value: str = None):
-        if value is None:
-            return self._surface
-        else:
-            self._surface = value
-            return self
 
-    def register_style(self):
-        background = self.theme.color(self.surface())
-        self.window.configure(background=background)
+@WindowStyleBuilder.register_variant("default")
+def build_default_window_style(b: WindowStyleBuilder):
+    surface_token = b.options("surface")
+    background = b.color(surface_token)
+    b.window.configure(background=background)

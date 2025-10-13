@@ -203,7 +203,7 @@ class BaseWidget(
     def update_style(self):
         """Rebuild and apply the computed style when a theme/surface change occurs."""
         if hasattr(self, "_style_builder"):
-            self._style_builder.surface(self.surface_token)
+            self._style_builder.options(surface=self.surface_token)
             style_name = self._style_builder.build()
             if "tkinter" in style_name:
                 pass

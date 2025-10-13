@@ -1,101 +1,95 @@
-from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
+from ttkbootstrap.style import Element, ElementImage, StyleManager
+from ttkbootstrap.style.utils import recolor_image
 
 
-class BadgeStyleBuilder(StyleBuilderBase):
+class BadgeStyleBuilder(StyleManager):
 
     def __init__(self, **kwargs):
         super().__init__("Badge.TLabel", **kwargs)
-
-        # set default options
         self.options.set_defaults(color='primary', variant='default', select_background='primary')
 
-    def register_style(self):
-        variant = self.options('variant')
 
-        if variant == 'list':
-            self.build_list_style()
-        else:
-            self.build_default_style()
+@BadgeStyleBuilder.register_variant('default')
+@BadgeStyleBuilder.register_variant('pill')
+@BadgeStyleBuilder.register_variant('circle')
+def build_default_badge_style(b: BadgeStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    surface_token = b.options('surface')
+    color_token = b.options('color')
+    variant = b.options('variant')
 
-    def build_default_style(self):
-        theme = self.theme
-        ttk_style = self.resolve_name()
-        surface_token = self.surface()
-        variant = self.options('variant')
+    surface = b.color(surface_token)
+    normal = b.color(color_token)
+    foreground = b.on_color(normal)
 
-        surface = theme.color(surface_token)
-        normal = self.theme.color(self.options('color'))
-        foreground = theme.on_color(normal)
+    # button element images
+    normal_img = recolor_image(f'badge-{variant}', normal)
 
-        # button element images
-        normal_img = recolor_image(f'badge-{variant}', normal)
-
-        border = 8
-        padding = (8, 0)
-        if variant == 'circle':
-            padding = 3
-            border = 8
-
-        # button element
-        self.create_element(
-            ElementImage(
-                f'{ttk_style}.border', normal_img,
-                sticky="nsew", border=border, padding=padding))
-
-        ttk_style = self.resolve_name()
-        self.style_layout(
-            ttk_style, Element(f"{ttk_style}.border", sticky="").children(
-                [
-                    Element("Label.padding", sticky="nsew").children(
-                        [
-                            Element("Label.label", sticky="")
-                        ])
-                ]))
-
-        self.configure(ttk_style, background=surface, foreground=foreground, padding=0)
-
-    def build_list_style(self):
-        theme = self.theme
-        ttk_style = self.resolve_name()
-        surface_token = self.surface()
-
-        surface = theme.color(surface_token)
-        normal = self.theme.color(self.options('color'))
-        selected = self.theme.active(normal)
-        foreground = theme.on_color(normal)
-        background_hover = theme.elevate(surface, 1)
-        background_selected = theme.color(self.options('select_background'))
-        background_selected_hover = theme.hover(background_selected)
-
-        # button element images
-        normal_img = recolor_image('badge-circle', normal)
-        selected_img = recolor_image('badge-circle', selected)
-
-        border = 8
+    border = 8
+    padding = (8, 0)
+    if variant == 'circle':
         padding = 3
+        border = 8
 
-        # button element
-        self.create_element(
-            ElementImage(
-                f'{ttk_style}.border', normal_img,
-                sticky="nsew", border=border, padding=padding).state_specs(
-                [
-                    ('selected', selected_img)]))
+    # button element
+    b.style_create_element(
+        ElementImage(
+            f'{ttk_style}.border', normal_img,
+            sticky="nsew", border=border, padding=padding))
 
-        ttk_style = self.resolve_name()
-        self.style_layout(
-            ttk_style, Element(f"{ttk_style}.border", sticky="").children(
-                [
-                    Element("Label.padding", sticky="nsew").children(
-                        [
-                            Element("Label.label", sticky="")
-                        ])
-                ]))
+    b.style_create_layout(
+        ttk_style, Element(f"{ttk_style}.border", sticky="").children(
+            [
+                Element("Label.padding", sticky="nsew").children(
+                    [
+                        Element("Label.label", sticky="")
+                    ])
+            ]))
 
-        self.configure(ttk_style, background=surface, foreground=foreground, padding=0)
-        self.map(
-            ttk_style,
-            background=[
-                ('selected hover', background_selected_hover),
-                ('selected', background_selected),
-                ('hover', background_hover)])
+    b.style_configure(ttk_style, background=surface, foreground=foreground, padding=0)
+
+
+@BadgeStyleBuilder.register_variant('list')
+def build_list_badge_style(b: BadgeStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    surface_token = b.options('surface')
+
+    surface = b.color(surface_token)
+    normal = b.color(b.options('color'))
+    selected = b.active(normal)
+    foreground = b.on_color(normal)
+    background_hover = b.elevate(surface, 1)
+    background_selected = b.color(b.options('select_background'))
+    background_selected_hover = b.hover(background_selected)
+
+    # button element images
+    normal_img = recolor_image('badge-circle', normal)
+    selected_img = recolor_image('badge-circle', selected)
+
+    border = 8
+    padding = 3
+
+    # button element
+    b.style_create_element(
+        ElementImage(
+            f'{ttk_style}.border', normal_img,
+            sticky="nsew", border=border, padding=padding).state_specs(
+            [
+                ('selected', selected_img)]))
+
+    b.style_create_layout(
+        ttk_style, Element(f"{ttk_style}.border", sticky="").children(
+            [
+                Element("Label.padding", sticky="nsew").children(
+                    [
+                        Element("Label.label", sticky="")
+                    ])
+            ]))
+
+    b.style_configure(ttk_style, background=surface, foreground=foreground, padding=0)
+    b.style_map(
+        ttk_style,
+        background=[
+            ('selected hover', background_selected_hover),
+            ('selected', background_selected),
+            ('hover', background_hover)])
