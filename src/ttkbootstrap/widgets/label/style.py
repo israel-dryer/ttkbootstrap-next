@@ -18,19 +18,20 @@ class LabelStyleBuilder(StyleManager):
     def stateful_icons(self):
         return self._stateful_icons
 
-    def register_style(self):
-        self.build()
+    def build_icon_assets(self, icon: dict):
+        if icon is None: return
+        func = LabelStyleBuilder.get(f"{self.variant}-icon-builder")
+        func(self, icon)
 
 
 @LabelStyleBuilder.register_variant("default")
 def build_default_label_style(b: LabelStyleBuilder):
     ttk_style = b.resolve_ttk_name()
-    surface_token = b.surface_token()
     foreground_token = b.options("foreground")
     background_token = b.options("background")
 
     if background_token is None:
-        background = b.color(surface_token)
+        background = b.color(b.surface_token)
     else:
         background = b.color(background_token)
 
@@ -112,16 +113,11 @@ def build_list_label_style(b: LabelStyleBuilder):
     )
 
 
-def build_icon_assets(b: LabelStyleBuilder, icon: dict):
-    if icon is None: return
-    if b.options('variant') == 'list':
-        build_list_icon_assets(b, icon)
-    else:
-        build_default_icon_assets(b, icon)
+# ----- Icon builders ------
 
-
+@LabelStyleBuilder.register_variant("default-icon-builder")
 def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
-    background = b.color(b.surface_token())
+    background = b.color(b.surface_token)
     foreground_token = b.options('foreground')
     if foreground_token is None:
         foreground = b.on_color(background)
@@ -138,17 +134,10 @@ def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
     create_icon_asset(b, icon, 'disabled', foreground)
 
 
-def create_icon_asset(b: LabelStyleBuilder, icon: dict, state: str, color: str):
-    # create stateful icons to be mapped by the buttons event handling logic
-    options = dict(icon)
-    options.setdefault('size', icon_font_size())
-    options.setdefault('color', color)
-    b.stateful_icons[state] = BootstrapIcon(**options)
-
-
+@LabelStyleBuilder.register_variant("list-icon-builder")
 def build_list_icon_assets(b: LabelStyleBuilder, icon: dict):
     icon['size'] = 14
-    background = b.color(b.surface_token())
+    background = b.color(b.surface_token)
     foreground_token = b.options('foreground')
     if foreground_token is None:
         foreground = b.on_color(background)
@@ -167,6 +156,16 @@ def build_list_icon_assets(b: LabelStyleBuilder, icon: dict):
     create_icon_asset(b, icon, 'focus', foreground)
     create_icon_asset(b, icon, 'disabled', foreground)
     create_icon_asset(b, icon, 'selected', foreground_selected)
+
+
+# ------ Helpers ------
+
+def create_icon_asset(b: LabelStyleBuilder, icon: dict, state: str, color: str):
+    # create stateful icons to be mapped by the buttons event handling logic
+    options = dict(icon)
+    options.setdefault('size', icon_font_size())
+    options.setdefault('color', color)
+    b.stateful_icons[state] = BootstrapIcon(**options)
 
 
 def icon_font_size() -> int:
