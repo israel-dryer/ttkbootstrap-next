@@ -46,8 +46,8 @@ class Canvas(BaseWidget, ContainerMixin):
         super().__init__(tk.Canvas, tk_options, parent=parent)
 
         self._style_builder = CanvasStyleBuilder(self)
-        self._style_builder.register_style()
-        self._theme = self._style_builder.theme
+        self._style_builder.build()
+        self._theme = self._style_builder.provider
 
     def on_yview_change(self, func: Callable = None):
         """Get or set the scrollbar.set command"""
