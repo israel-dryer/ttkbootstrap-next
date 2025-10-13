@@ -1,19 +1,19 @@
-from ttkbootstrap.style import StyleBuilderBase
+from ttkbootstrap.style import StyleManager
 
 
-class SizegripStyleBuilder(StyleBuilderBase):
-
+class SizegripStyleBuilder(StyleManager):
     def __init__(self, **kwargs):
-        super().__init__('TSizegrip', **kwargs)
+        super().__init__("TSizegrip", **kwargs)
+        self.options.set_defaults(variant="default")
 
-    def register_style(self):
-        ttk_style = self.resolve_name()
-        background = self.theme.color(self.surface())
-        color_token = self.options('color')
-        if color_token is None:
-            foreground = self.theme.on_color(background)
-        else:
-            foreground = self.theme.color(color_token)
 
-        # TODO this needs a custom image layout for styling
-        self.configure(ttk_style, background=background, foreground=foreground)
+@SizegripStyleBuilder.register_variant("default")
+def build_default_sizegrip_style(b: SizegripStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    background = b.color(b.surface_token)
+    if b.color_token is None:
+        foreground = b.on_color(background)
+    else:
+        foreground = b.color(b.color_token)
+    b.style_configure(ttk_style, background=background, foreground=foreground)
+    # TODO update with custom image layout and style
