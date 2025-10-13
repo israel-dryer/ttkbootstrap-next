@@ -1,54 +1,55 @@
-from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
+from ttkbootstrap.style import Element, ElementImage, recolor_image, StyleManager
 
 
-class EntryStyleBuilder(StyleBuilderBase):
-
+class EntryStyleBuilder(StyleManager):
     def __init__(self, **kwargs):
-        super().__init__(f"TEntry", **kwargs)
+        super().__init__("TEntry", **kwargs)
+        self.options.set_defaults(variant="default")
 
-    def register_style(self):
-        ttk_style = self.resolve_name()
-        surface=self.theme.color("background") # always use the theme background
-        #surface = self.theme.color(self.surface())
-        disabled_bg = self.theme.disabled('background')
-        disabled_fg = self.theme.disabled('text')
-        foreground = self.theme.on_color(surface)
 
-        normal_img = recolor_image(f'input-inner', surface)
-        self.create_element(ElementImage(f'{ttk_style}.field', normal_img, sticky="nsew"))
-        self.style_layout(
-            ttk_style, Element(f'{ttk_style}.field').children(
-                [
-                    Element('Entry.padding', sticky="ew").children(
-                        [
-                            Element('Entry.textarea', sticky="nsew")
-                        ])
-                ]))
+@EntryStyleBuilder.register_variant("default")
+def build_default_entry_style(b: EntryStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    surface = b.color("background")  # always use the theme background
+    disabled_bg = b.disabled('background')
+    disabled_fg = b.disabled('text')
+    foreground = b.on_color(surface)
 
-        self.configure(
-            ttk_style,
-            relief='flat',
-            foreground=foreground,
-            background=surface,
-            fieldbackground=surface,
-            selectborderwidth=0,
-            bordercolor=surface,
-            darkcolor=surface,
-            lightcolor=surface,
-            insertcolor=foreground,
-            padding=(8, 0),
-            selectforeground=self.theme.on_color(self.theme.color('primary')),
-            selectbackground=self.theme.color('primary')
-        )
+    normal_img = recolor_image(f'input-inner', surface)
+    b.style_create_element(ElementImage(f'{ttk_style}.field', normal_img, sticky="nsew"))
+    b.style_create_layout(
+        ttk_style, Element(f'{ttk_style}.field').children(
+            [
+                Element('Entry.padding', sticky="ew").children(
+                    [
+                        Element('Entry.textarea', sticky="nsew")
+                    ])
+            ]))
 
-        self.map(
-            ttk_style,
-            background=[('disabled', disabled_bg)],
-            fieldbackground=[('disabled', disabled_bg)],
-            selectforeground=[],
-            selectbackground=[],
-            bordercolor=[('disabled', disabled_bg)],
-            darkcolor=[('disabled', disabled_bg)],
-            lightcolor=[('disabled', disabled_bg)],
-            foreground=[('disabled !readonly', disabled_fg)]
-        )
+    b.style_configure(
+        ttk_style,
+        relief='flat',
+        foreground=foreground,
+        background=surface,
+        fieldbackground=surface,
+        selectborderwidth=0,
+        bordercolor=surface,
+        darkcolor=surface,
+        lightcolor=surface,
+        insertcolor=foreground,
+        padding=(8, 0),
+        selectforeground=b.on_color(b.color('primary')),
+        selectbackground=b.color('primary')
+    )
+
+    b.style_map(
+        ttk_style,
+        background=[('disabled', disabled_bg)],
+        fieldbackground=[('disabled', disabled_bg)],
+        selectforeground=[],
+        selectbackground=[],
+        bordercolor=[('disabled', disabled_bg)],
+        darkcolor=[('disabled', disabled_bg)],
+        lightcolor=[('disabled', disabled_bg)],
+        foreground=[('disabled !readonly', disabled_fg)]
+    )
