@@ -1,25 +1,26 @@
-from ttkbootstrap.style import StyleBuilderBase, Element, ElementImage, recolor_image
+from ttkbootstrap.style import Element, ElementImage, recolor_image, StyleManager
 
 
-class SeparatorStyleBuilder(StyleBuilderBase):
+class SeparatorStyleBuilder(StyleManager):
 
     def __init__(self, **kwargs):
         super().__init__("TSeparator", **kwargs)
-        self.options.set_defaults(color='primary', orient='horizontal')
+        self.options.set_defaults(color="primary", orient="horizontal", variant="default")
 
-    def register_style(self):
-        ttk_style = self.resolve_name()
-        surface = self.theme.color(self.surface())
-        color_token = self.options('color')
-        orient = self.options('orient')
 
-        if color_token == 'border':
-            color = self.theme.border(surface)
-        else:
-            color = self.theme.color(color_token)
+@SeparatorStyleBuilder.register_variant("default")
+def build_default_separator_style(b: SeparatorStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    surface = b.color(b.surface_token)
+    orient = b.options('orient')
 
-        img = recolor_image(f'separator-{orient}', color)
-        sticky = "ew" if orient == "horizontal" else "ns"
-        self.create_element(ElementImage(f'{ttk_style}.Separator', img, border=0, sticky=sticky))
-        self.style_layout(ttk_style, Element(f'{ttk_style}.Separator', sticky=sticky))
-        self.configure(ttk_style, background=surface)
+    if b.color_token == 'border':
+        color = b.border(surface)
+    else:
+        color = b.color(b.color_token)
+
+    img = recolor_image(f'separator-{orient}', color)
+    sticky = "ew" if orient == "horizontal" else "ns"
+    b.style_create_element(ElementImage(f'{ttk_style}.Separator', img, border=0, sticky=sticky))
+    b.style_create_layout(ttk_style, Element(f'{ttk_style}.Separator', sticky=sticky))
+    b.style_configure(ttk_style, background=surface)
