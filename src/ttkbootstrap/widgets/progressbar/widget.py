@@ -113,9 +113,9 @@ class Progressbar(BaseWidget):
         if value is None:
             return self.configure('orient')
         else:
-            self._style_builder.orient(value)
+            self._style_builder.options(orient=value)
             self.configure(orient=value)
-            self._style_builder.register_style()
+            self._style_builder.build()
             return self
 
     def _configure_color(self, value: SemanticColor = None):
@@ -124,7 +124,7 @@ class Progressbar(BaseWidget):
             return self._style_builder.options('color')
         else:
             self._style_builder.options(color=value)
-            self._style_builder.register_style()
+            self._style_builder.build()
             return self
 
     def _configure_variant(self, value: Literal['default', 'striped'] = None):
@@ -133,7 +133,7 @@ class Progressbar(BaseWidget):
             return self._style_builder.options("variant")
         else:
             self._style_builder.options(variant=value)
-            self._style_builder.register_style()
+            self._style_builder.build()
             return self
 
     def _configure_signal(self, value: Signal = None):
