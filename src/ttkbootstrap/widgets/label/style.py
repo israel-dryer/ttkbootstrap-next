@@ -86,7 +86,7 @@ def build_addon_label_style(b: LabelStyleBuilder):
 @LabelStyleBuilder.register_variant("list")
 def build_list_label_style(b: LabelStyleBuilder):
     ttk_style = b.resolve_ttk_name()
-    background = b.color(b.surface_token())
+    background = b.color(b.surface_token)
     background_hover = b.elevate(background, 1)
     background_pressed = b.elevate(background, 2)
     background_selected = b.color(b.options('select_background'))
