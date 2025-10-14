@@ -184,7 +184,7 @@ class Button(BaseWidget, IconMixin):
 
     def _configure_color(self, value: str = None):
         if value is None:
-            return self._style_builder.options("color")
+            return self._style_builder.color_token
         else:
             self._style_builder.options(color=value)
             self.update_style()
@@ -193,7 +193,7 @@ class Button(BaseWidget, IconMixin):
     def _configure_variant(self, value: str = None):
         """Get or set the style variant."""
         if value is None:
-            return self._style_builder.options("variant")
+            return self._style_builder.variant
         else:
             self._style_builder.options(variant=value)
             self.update_style()
