@@ -10,7 +10,7 @@ with App("PageStack Demo") as app:
                 Button('Go to Settings', command=lambda: s.navigate('settings')).attach()
                 Button('Tab 2 - Option 2').attach()
 
-        tab1.on_page_mounted(lambda x: print(x))
-        s.on_page_changed(lambda x: print(x))
+        tab1.on_page_mounted().listen(lambda x: print(x))
+        s.on_page_changed().listen(lambda x: print(x))
 
 app.run()

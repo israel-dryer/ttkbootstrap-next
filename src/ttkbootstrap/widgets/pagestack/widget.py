@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from tkinter import ttk
-from typing import Optional, Self, Type, Union, Unpack
+from typing import Optional, Type, Union, Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.layout_context import pop_container, push_container
 from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
-from ttkbootstrap.types import EventHandler, Widget
+from ttkbootstrap.types import Widget
 from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.widgets.pagestack.events import NavigationEvent
 from ttkbootstrap.widgets.pagestack.page import GridPage, PackPage
@@ -23,7 +23,10 @@ class PageStack(BaseWidget):
     Pack: Type[PackPage]
     Grid: Type[GridPage]
 
-    _configure_methods = {"surface": "surface"}
+    _configure_methods = {
+        "surface": "_configure_surface",
+        "variant": "_configure_variant"
+    }
 
     def __init__(self, **kwargs: Unpack[PageStackOptions]):
         """
@@ -52,19 +55,19 @@ class PageStack(BaseWidget):
         """Exit layout context; pop self from the container stack."""
         pop_container()
 
-    def variant(self, value: str = None):
+    def _configure_variant(self, value: str = None):
         """Get or set the current style variant."""
         if value is None:
-            return self._style_builder.options('variant')
+            return self._style_builder.variant
         self._style_builder.options(variant=value)
         self.update_style()
         return self
 
-    def surface(self, value: str = None):
+    def _configure_surface(self, value: str = None):
         """Get or set the current surface style token."""
         if value is None:
-            return self._style_builder.surface()
-        self._style_builder.surface(value)
+            return self._style_builder.surface_token
+        self._style_builder.options(surface=value)
         self.update_style()
         return self
 
@@ -183,24 +186,23 @@ class PageStack(BaseWidget):
         """Return a list of all page identifiers."""
         return list(self._pages.keys())
 
-    def on_page_changed(
-            self, handler: Optional[EventHandler] = None,
-            *, scope="widget") -> Stream[NavigationEvent] | Self:
-        """Stream or chainable binding for <<PageChanged>>
-
-        - If `handler` is provided → bind immediately and return self (chainable).
-        - If no handler → return the Stream for Rx-style composition.
-        """
-        stream = self.on(Event.PAGE_CHANGED, scope=scope)
-        if handler is None:
-            return stream
-        stream.listen(handler)
-        return self
+    def on_page_changed(self) -> Stream[NavigationEvent]:
+        """Convenience alias for page changed stream"""
+        return self.on(Event.PAGE_CHANGED)
 
     @staticmethod
     def _validate_options(options: dict):
         """Validate page options for correctness."""
         assert_valid_keys(options, PageOptions, where="pagestack")
+
+    @staticmethod
+    def preferred_layout_method() -> str:
+        return "widget"
+
+    @staticmethod
+    def guide_layout(child, method, opts):
+        # Force widget-mode for any direct children that are PageStack pages
+        return "widget", {}  # return empty opts so no geometry slips through
 
 
 PageStack.Pack = PackPage
