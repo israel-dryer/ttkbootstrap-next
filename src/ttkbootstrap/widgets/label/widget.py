@@ -19,6 +19,7 @@ class Label(BaseWidget, IconMixin):
     widget: ttk.Label
     _configure_methods = {
         "text": "_configure_text",
+        "icon": "_configure_icon",
         "foreground": "_configure_foreground",
         "background": "_configure_background",
         "compound": "_configure_compound",
