@@ -1,139 +1,134 @@
 from ttkbootstrap.images.utils import create_transparent_image
-from ttkbootstrap.style import Element, ElementImage, StyleBuilderBase, recolor_image
+from ttkbootstrap.style import Element, ElementImage, recolor_image, StyleManager
 
 
-class RadiobuttonStyleBuilder(StyleBuilderBase):
+class RadiobuttonStyleBuilder(StyleManager):
 
     def __init__(self, **kwargs):
-
         super().__init__('TRadiobutton', **kwargs)
         self.options.set_defaults(color='primary', variant='default')
 
-    def register_style(self):
-        variant = self.options("variant")
-        if variant == 'list':
-            self.build_list_style()
-        else:
-            self.build_default_style()
 
-    def build_list_style(self):
-        ttk_style = self.resolve_name()
-        theme = self.theme
-        color_token = self.options("color")
-        background = theme.color(self.surface())
-        background_hover = theme.elevate(background, 1)
-        background_selected = theme.subtle(color_token, background)
-        foreground = theme.on_color(background)
-        normal = theme.color(color_token)
-        foreground_active = theme.on_color(normal)
-        hovered = theme.hover(normal)
-        border = theme.border(background)
+@RadiobuttonStyleBuilder.register_variant("default")
+def build_default_radiobutton_style(b: RadiobuttonStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
 
-        # checkbutton element images
-        normal_checked_img = recolor_image('radio-selected', foreground_active, normal, background_selected)
-        normal_unchecked_img = recolor_image('radio-unselected', background, border, background)
+    background = b.color(b.surface_token)
+    background_hover = b.hover(background)
+    foreground = b.on_color(background)
+    foreground_disabled = b.disabled('text')
+    normal = b.color(b.color_token)
+    foreground_active = b.on_color(normal)
+    pressed = b.active(normal)
+    hovered = b.hover(normal)
+    border = b.border(background)
+    focus = hovered
+    focus_ring = b.focus_ring(normal, background)
+    disabled = b.disabled()
 
-        hovered_checked_img = recolor_image('radio-selected', foreground_active, hovered, background_selected)
-        hovered_unchecked_img = recolor_image('radio-unselected', background_hover, border, background_hover)
+    # checkbutton element images
+    normal_checked_img = recolor_image('radio-selected', foreground_active, normal, background)
+    normal_unchecked_img = recolor_image('radio-unselected', background, border, background)
 
-        spacer_img = create_transparent_image(8, 1)
-        self.create_element(
-            ElementImage(f'{ttk_style}.spacer', spacer_img, sticky="ew"))
+    hovered_checked_img = recolor_image('radio-selected', foreground_active, hovered, background)
+    hovered_unchecked_img = recolor_image('radio-unselected', background_hover, border, background)
 
-        self.create_element(
-            ElementImage(f'{ttk_style}.indicator', normal_unchecked_img, sticky="ns", padding=3).state_specs(
-                [
-                    # Hover states
-                    ('hover selected', hovered_checked_img),
-                    ('hover !selected !alternate', hovered_unchecked_img),
+    pressed_checked_img = recolor_image('radio-selected', foreground_active, pressed, background)
+    pressed_unchecked_img = recolor_image('radio-unselected', background_hover, pressed, background)
 
-                    # Normal base states
-                    ('selected', normal_checked_img),
-                    ('!selected !alternate', normal_unchecked_img),
-                ]
-            ))
+    focus_checked_img = recolor_image('radio-selected', foreground_active, focus, focus_ring)
+    focus_unchecked_img = recolor_image('radio-unselected', background_hover, focus, focus_ring)
 
-        self.style_layout(
-            ttk_style, Element('Radiobutton.padding', sticky="nsew").children(
-                [
-                    Element(f'{ttk_style}.indicator', side="left", sticky=""),
-                    Element(f'{ttk_style}.spacer', side="left"),
-                    Element('Radiobutton.label', side="left", sticky="nsew")
-                ])
-        )
+    disabled_checked_img = recolor_image('radio-selected', disabled, foreground_disabled, background)
+    disabled_unchecked_img = recolor_image('radio-unselected', foreground_disabled, foreground_disabled, background)
 
-        self.configure(ttk_style, background=background, foreground=foreground)
-        self.map(ttk_style, background=[('selected', background_selected), ('hover', background_hover)], foreground=[])
+    spacer_img = create_transparent_image(8, 1)
+    b.style_create_element(
+        ElementImage(f'{ttk_style}.spacer', spacer_img, sticky="ew"))
 
-    def build_default_style(self):
-        ttk_style = self.resolve_name()
-        theme = self.theme
-        background = theme.color(self.surface())
-        background_hover = theme.hover(background)
-        foreground = theme.on_color(background)
-        foreground_disabled = theme.disabled('text')
-        normal = theme.color(self.options('color'))
-        foreground_active = theme.on_color(normal)
-        pressed = theme.active(normal)
-        hovered = theme.hover(normal)
-        border = theme.border(background)
-        focus = hovered
-        focus_ring = theme.focus_ring(normal, background)
-        disabled = theme.disabled()
+    b.style_create_element(
+        ElementImage(f'{ttk_style}.indicator', normal_unchecked_img, sticky="ns", padding=3).state_specs(
+            [
+                # Disabled states
+                ('disabled selected', disabled_checked_img),
+                ('disabled !selected !alternate', disabled_unchecked_img),
 
-        # checkbutton element images
-        normal_checked_img = recolor_image('radio-selected', foreground_active, normal, background)
-        normal_unchecked_img = recolor_image('radio-unselected', background, border, background)
+                # Focused states
+                ('focus selected', focus_checked_img),
+                ('focus !selected !alternate', focus_unchecked_img),
 
-        hovered_checked_img = recolor_image('radio-selected', foreground_active, hovered, background)
-        hovered_unchecked_img = recolor_image('radio-unselected', background_hover, border, background)
+                # Pressed states
+                ('pressed selected', pressed_checked_img),
+                ('pressed !selected !alternate', pressed_unchecked_img),
 
-        pressed_checked_img = recolor_image('radio-selected', foreground_active, pressed, background)
-        pressed_unchecked_img = recolor_image('radio-unselected', background_hover, pressed, background)
+                # Hover states
+                ('hover selected', hovered_checked_img),
+                ('hover !selected !alternate', hovered_unchecked_img),
 
-        focus_checked_img = recolor_image('radio-selected', foreground_active, focus, focus_ring)
-        focus_unchecked_img = recolor_image('radio-unselected', background_hover, focus, focus_ring)
+                # Normal base states
+                ('selected', normal_checked_img),
+                ('!selected !alternate', normal_unchecked_img),
+            ]
+        ))
 
-        disabled_checked_img = recolor_image('radio-selected', disabled, foreground_disabled, background)
-        disabled_unchecked_img = recolor_image('radio-unselected', foreground_disabled, foreground_disabled, background)
+    b.style_create_layout(
+        ttk_style, Element('Radiobutton.padding', sticky="nsew").children(
+            [
+                Element(f'{ttk_style}.indicator', side="left", sticky=""),
+                Element(f'{ttk_style}.spacer', side="left"),
+                Element('Radiobutton.label', side="left", sticky="nsew")
+            ])
+    )
 
-        spacer_img = create_transparent_image(8, 1)
-        self.create_element(
-            ElementImage(f'{ttk_style}.spacer', spacer_img, sticky="ew"))
+    b.style_configure(ttk_style, background=background, foreground=foreground)
+    b.style_map(ttk_style, background=[], foreground=[])
 
-        self.create_element(
-            ElementImage(f'{ttk_style}.indicator', normal_unchecked_img, sticky="ns", padding=3).state_specs(
-                [
-                    # Disabled states
-                    ('disabled selected', disabled_checked_img),
-                    ('disabled !selected !alternate', disabled_unchecked_img),
 
-                    # Focused states
-                    ('focus selected', focus_checked_img),
-                    ('focus !selected !alternate', focus_unchecked_img),
+@RadiobuttonStyleBuilder.register_variant("list")
+def build_list_radiobutton_style(b: RadiobuttonStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
 
-                    # Pressed states
-                    ('pressed selected', pressed_checked_img),
-                    ('pressed !selected !alternate', pressed_unchecked_img),
+    background = b.color(b.surface_token)
+    background_hover = b.elevate(background, 1)
+    background_selected = b.subtle(b.color_token, background)
+    foreground = b.on_color(background)
+    normal = b.color(b.color_token)
+    foreground_active = b.on_color(normal)
+    hovered = b.hover(normal)
+    border = b.border(background)
 
-                    # Hover states
-                    ('hover selected', hovered_checked_img),
-                    ('hover !selected !alternate', hovered_unchecked_img),
+    # checkbutton element images
+    normal_checked_img = recolor_image('radio-selected', foreground_active, normal, background_selected)
+    normal_unchecked_img = recolor_image('radio-unselected', background, border, background)
 
-                    # Normal base states
-                    ('selected', normal_checked_img),
-                    ('!selected !alternate', normal_unchecked_img),
-                ]
-            ))
+    hovered_checked_img = recolor_image('radio-selected', foreground_active, hovered, background_selected)
+    hovered_unchecked_img = recolor_image('radio-unselected', background_hover, border, background_hover)
 
-        self.style_layout(
-            ttk_style, Element('Radiobutton.padding', sticky="nsew").children(
-                [
-                    Element(f'{ttk_style}.indicator', side="left", sticky=""),
-                    Element(f'{ttk_style}.spacer', side="left"),
-                    Element('Radiobutton.label', side="left", sticky="nsew")
-                ])
-        )
+    spacer_img = create_transparent_image(8, 1)
+    b.style_create_element(
+        ElementImage(f'{ttk_style}.spacer', spacer_img, sticky="ew"))
 
-        self.configure(ttk_style, background=background, foreground=foreground)
-        self.map(ttk_style, background=[], foreground=[])
+    b.style_create_element(
+        ElementImage(f'{ttk_style}.indicator', normal_unchecked_img, sticky="ns", padding=3).state_specs(
+            [
+                # Hover states
+                ('hover selected', hovered_checked_img),
+                ('hover !selected !alternate', hovered_unchecked_img),
+
+                # Normal base states
+                ('selected', normal_checked_img),
+                ('!selected !alternate', normal_unchecked_img),
+            ]
+        ))
+
+    b.style_create_layout(
+        ttk_style, Element('Radiobutton.padding', sticky="nsew").children(
+            [
+                Element(f'{ttk_style}.indicator', side="left", sticky=""),
+                Element(f'{ttk_style}.spacer', side="left"),
+                Element('Radiobutton.label', side="left", sticky="nsew")
+            ])
+    )
+
+    b.style_configure(ttk_style, background=background, foreground=foreground)
+    b.style_map(ttk_style, background=[('selected', background_selected), ('hover', background_hover)], foreground=[])
