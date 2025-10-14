@@ -7,7 +7,15 @@ from ttkbootstrap.types import Anchor, CoreOptions, Fill, Gap, Padding, Sticky
 
 
 class PageStackOptions(CoreOptions, total=False):
-    """Configuration options for the PageStack container."""
+    """Configuration options for the PageStack container.
+        Attributes:
+            take_focus: Accepts keyboard focus during traversal.
+            width: Width of the notebook in pixels.
+            height: Height of the notebook in pixels.
+            id: A unique identifier used to query this widget.
+            padding: Internal padding around the content area.
+            parent: The parent container of this widget.
+    """
     take_focus: bool
     width: int
     height: int

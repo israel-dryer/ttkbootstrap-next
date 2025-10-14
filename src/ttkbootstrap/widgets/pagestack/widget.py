@@ -32,9 +32,14 @@ class PageStack(BaseWidget):
         """
         Initialize a new PageStack.
 
-        Args:
-            **kwargs: Options controlling stack configuration, including
-                width, height, padding, and whether the stack can take focus.
+        Keyword Args:
+            take_focus: Accepts keyboard focus during traversal.
+            width: Width of the notebook in pixels.
+            height: Height of the notebook in pixels.
+            id: A unique identifier used to query this widget.
+            padding: Internal padding around the content area.
+            parent: The parent container of this widget.
+
         """
         self._pages: dict[str, Widget] = {}
         self._current: Optional[str] = None
