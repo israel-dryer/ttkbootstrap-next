@@ -1,9 +1,9 @@
 from typing import Optional, TYPE_CHECKING
 
+from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets.badge import Badge
 from ttkbootstrap.widgets.label import Label
-from ttkbootstrap.events import Event
 
 if TYPE_CHECKING:
     from ttkbootstrap.widgets.button import Button
@@ -67,29 +67,60 @@ class ListItem(Pack):
         for widget in [self, self._frame_start, self._frame_end, self._frame_center]:
             self._add_composite_widget(widget)
 
+        # row-level pointer events
+        self.on(Event.ENTER).listen(self._on_enter)
+        self.on(Event.LEAVE).listen(self._on_leave)
+
     # ---- event handlers ----
 
     def _on_enter(self, _):
+        # also mark the row container for consistency
+        try:
+            self.state(['hover'])
+        except Exception:
+            pass
         for widget in self._composite_widgets:
-            widget.state(['hover'])
+            try:
+                widget.state(['hover'])
+            except Exception:
+                pass
 
     def _on_leave(self, event):
-        if event.widget != str(self):
-            self._on_enter(None)
-            return "break"
+        # robust containment check: if moving to a descendant, ignore leave
+        related = getattr(event, 'related', None)
+        try:
+            if related is not None and str(related).startswith(str(self)):
+                return "break"
+        except Exception:
+            pass
+
+        try:
+            self.state(['!hover'])
+        except Exception:
+            pass
         for widget in self._composite_widgets:
-            widget.state(['!hover'])
+            try:
+                widget.state(['!hover'])
+            except Exception:
+                pass
         return None
 
     def _on_mouse_down(self, _):
         self.focus()
+        # Let the list handle selection via emitted event
         self.select()
         for widget in self._composite_widgets:
-            widget.state(['pressed'])
+            try:
+                widget.state(['pressed'])
+            except Exception:
+                pass
 
-    def _on_mouse_up(self, event):
+    def _on_mouse_up(self, _event):
         for widget in self._composite_widgets:
-            widget.state(['!pressed'])
+            try:
+                widget.state(['!pressed'])
+            except Exception:
+                pass
 
     # ---- properties ----
 
@@ -139,13 +170,18 @@ class ListItem(Pack):
             self._deleting_enabled = value
             return self
 
-    # ---- methods ----
+    # ---- selection + data ----
 
     def select(self):
+        """
+        Emit SELECTED/DESELECTED and let VirtualList reconcile selection via DataSource.
+        """
         mode = self.selection_mode()
-        if mode == 'none': return None
+        if mode == 'none':
+            return None
 
-        if self.data['selected']:
+        is_selected = bool(self.data.get('selected', False))
+        if is_selected:
             self.parent.emit(Event.DESELECTED, data=self.data)
             return False
         else:
@@ -153,41 +189,89 @@ class ListItem(Pack):
             return True
 
     def delete(self):
-        """Unpack this widget and notify subscribers to handle delete action"""
+        """Unpack this widget and notify subscribers to handle delete action."""
         self.parent.emit(Event.DELETE, data=self.data)
         self.detach()
 
-    def _update_selection(self, selected=False):
-        if self.selection_mode() != 'none':
+    def _update_selection(self, selected: bool = False):
+        """
+        Ensure 'selected' state + the selection control icon propagate to the entire row,
+        and notify composites so their IconMixin can swap to the 'selected' image.
+        """
+        mode = self.selection_mode()
+
+        if mode != 'none':
+            # Ensure/create control or update icon
             if not self._selection_widget:
-                if self.selection_mode() == 'multiple':
-                    icon = 'check-square-fill' if selected else 'square'
-                else:
-                    icon = 'check-circle-fill' if selected else 'circle'
+                icon = (
+                    'check-square-fill' if (mode == 'multiple' and selected)
+                    else 'square' if mode == 'multiple'
+                    else ('check-circle-fill' if selected else 'circle')
+                )
                 self._selection_widget = Label(
                     parent=self._frame_start,
                     icon=icon,
                     variant='list'
                 )
                 if self._selection_controls_visible:
-                    self._selection_widget.attach(side="left", marginx=5)
+                    self._selection_widget.attach(side="left", padx=5)
                 self._add_composite_widget(self._selection_widget)
             else:
-                if self.selection_mode() == 'multiple':
-                    self._selection_widget.icon('check-square-fill' if selected else 'square')
+                if mode == 'multiple':
+                    self._selection_widget.configure(icon='check-square-fill' if selected else 'square')
                 else:
-                    self._selection_widget.icon('check-circle-fill' if selected else 'circle')
-                for widget in self._composite_widgets:
+                    self._selection_widget.configure(icon='check-circle-fill' if selected else 'circle')
+
+            # Push selected/!selected to row and composites (styling)
+            try:
+                self.state(['selected' if selected else '!selected'])
+            except Exception:
+                pass
+            for widget in self._composite_widgets:
+                try:
                     widget.state(['selected' if selected else '!selected'])
+                except Exception:
+                    pass
+
+            # ✅ Tell icon-bearing widgets to flip to their 'selected' art
+            for widget in self._composite_widgets:
+                try:
+                    widget.emit(Event.SELECTED if selected else Event.DESELECTED)
+                except Exception:
+                    pass
+
         else:
+            # Selection disabled: remove control and clear selection state
             if self._selection_widget:
-                self._selection_widget.destroy()
-        for widget in self._composite_widgets:
-            widget.emit(Event.SELECTED if selected else Event.DESELECTED)
+                try:
+                    self._selection_widget.detach()
+                except Exception:
+                    pass
+                self._composite_widgets.discard(self._selection_widget)
+                try:
+                    self._selection_widget.destroy()
+                except Exception:
+                    pass
+                self._selection_widget = None
+
+            try:
+                self.state(['!selected'])
+            except Exception:
+                pass
+            for widget in self._composite_widgets:
+                try:
+                    widget.state(['!selected'])
+                except Exception:
+                    pass
+
+            for widget in self._composite_widgets:
+                try:
+                    widget.emit(Event.DESELECTED)
+                except Exception:
+                    pass
 
     def _update_icon(self, icon=None):
         if icon is not None:
-            # add icon and widget if not already existing
             if not self._icon_widget:
                 self._icon_widget = Label(
                     parent=self._frame_start,
@@ -195,22 +279,19 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='left', marginx=6)
+                ).attach(side='left', padx=6)  # marginx -> padx
                 self._add_composite_widget(self._icon_widget)
             else:
-                # update existing icon
-                self._icon_widget.icon(icon)
+                self._icon_widget.configure(icon=icon)
         else:
-            # remove the icon widget
             if self._icon_widget:
                 self._icon_widget.detach()
-                self._composite_widgets.remove(self._icon_widget)
+                self._composite_widgets.discard(self._icon_widget)
                 self._icon_widget.destroy()
                 self._icon_widget = None
 
     def _update_title(self, text=None):
         if text is not None:
-            # add text and widget if not already existing
             if not self._title_widget:
                 self._title_widget = Label(
                     text=text,
@@ -219,22 +300,19 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(fill='x', marginx=(0, 3))
+                ).attach(fill='x', padx=(0, 3))  # marginx -> padx
                 self._add_composite_widget(self._title_widget)
             else:
-                # update existing title
-                self._title_widget.text(text)
+                self._title_widget.configure(text=text)
         else:
-            # remove the title widget
             if self._title_widget:
                 self._title_widget.detach()
-                self._composite_widgets.remove(self._title_widget)
+                self._composite_widgets.discard(self._title_widget)
                 self._title_widget.destroy()
                 self._title_widget = None
 
     def _update_text(self, text=None):
         if text is not None:
-            # add text and widget if not already existing
             if not self._text_widget:
                 self._text_widget = Label(
                     parent=self._frame_center,
@@ -242,22 +320,19 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(fill='x', marginx=(0, 3))
+                ).attach(fill='x', padx=(0, 3))
                 self._add_composite_widget(self._text_widget)
             else:
-                # update existing text
-                self._text_widget.text(text)
+                self._text_widget.configure(text=text)
         else:
-            # remove the text widget
             if self._text_widget:
                 self._text_widget.detach()
-                self._composite_widgets.remove(self._text_widget)
+                self._composite_widgets.discard(self._text_widget)
                 self._text_widget.destroy()
                 self._text_widget = None
 
     def _update_caption(self, text=None):
         if text is not None:
-            # add text and widget if not already existing
             if not self._caption_widget:
                 self._caption_widget = Label(
                     parent=self._frame_center,
@@ -268,44 +343,38 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(fill='x', marginx=(0, 3))
+                ).attach(fill='x', padx=(0, 3))  # marginx -> padx
                 self._add_composite_widget(self._caption_widget)
             else:
-                # update existing text
-                self._caption_widget.text(text)
+                self._caption_widget.configure(text=text)
         else:
-            # remove the text widget
             if self._caption_widget:
                 self._caption_widget.detach()
-                self._composite_widgets.remove(self._caption_widget)
+                self._composite_widgets.discard(self._caption_widget)
                 self._caption_widget.destroy()
                 self._caption_widget = None
 
     def _update_badge(self, text=None):
         if text is not None:
-            # add text and widget if not already existing
             if not self._badge_widget:
                 self._badge_widget = Badge(
                     parent=self._frame_end,
                     text=text,
                     variant='list',
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', marginx=6)
+                ).attach(side='right', padx=6)  # marginx -> padx
                 self._add_composite_widget(self._badge_widget)
             else:
-                # update existing text
-                self._badge_widget.text(text)
+                self._badge_widget.configure(text=text)
         else:
-            # remove the text widget
             if self._badge_widget:
                 self._badge_widget.detach()
-                self._composite_widgets.remove(self._badge_widget)
+                self._composite_widgets.discard(self._badge_widget)
                 self._badge_widget.destroy()
                 self._badge_widget = None
 
     def _update_chevron(self):
         if self._chevron_visible:
-            # add widget if not already existing
             if not self._chevron_widget:
                 from ttkbootstrap.widgets.button import Button
                 self._chevron_widget = Button(
@@ -314,19 +383,17 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', marginx=6)
+                ).attach(side='right', padx=6)  # marginx -> padx
                 self._add_composite_widget(self._chevron_widget)
         else:
-            # remove the widget
             if self._chevron_widget:
                 self._chevron_widget.detach()
-                self._composite_widgets.remove(self._chevron_widget)
+                self._composite_widgets.discard(self._chevron_widget)
                 self._chevron_widget.destroy()
                 self._chevron_widget = None
 
     def _update_delete(self):
         if self._deleting_enabled:
-            # add widget if not already existing
             if not self._delete_widget:
                 from ttkbootstrap.widgets.button import Button
                 self._delete_widget = Button(
@@ -335,20 +402,18 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', marginx=6)
+                ).attach(side='right', padx=6)  # marginx -> padx
                 self._delete_widget.on(Event.CLICK1_DOWN).listen(lambda _: self.delete())
                 self._add_composite_widget(self._delete_widget)
         else:
-            # remove the widget
             if self._delete_widget:
                 self._delete_widget.detach()
-                self._composite_widgets.remove(self._delete_widget)
+                self._composite_widgets.discard(self._delete_widget)
                 self._delete_widget.destroy()
                 self._delete_widget = None
 
     def _update_drag(self):
         if self._dragging_enabled:
-            # add widget if not already existing
             if not self._drag_widget:
                 from ttkbootstrap.widgets.button import Button
                 self._drag_widget = Button(
@@ -358,13 +423,12 @@ class ListItem(Pack):
                     cursor='double_arrow',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', marginx=6)
+                ).attach(side='right', padx=6)  # marginx -> padx
                 self._add_composite_widget(self._drag_widget)
         else:
-            # remove the widget
             if self._drag_widget:
                 self._drag_widget.detach()
-                self._composite_widgets.remove(self._drag_widget)
+                self._composite_widgets.discard(self._drag_widget)
                 self._drag_widget.destroy()
                 self._drag_widget = None
 
@@ -374,7 +438,7 @@ class ListItem(Pack):
             self.detach()
             return
 
-        # Initial state setup
+        # Initial state cache
         if not hasattr(self, '_state'):
             self._state = {}
 
@@ -384,6 +448,7 @@ class ListItem(Pack):
         # Efficient selection update
         if self._state.get("selected") != selected:
             self._update_selection(selected)
+            self._state["selected"] = selected
 
         # Direct update for high-priority visuals
         for field, updater in {
@@ -416,3 +481,14 @@ class ListItem(Pack):
         widget.on(Event.LEAVE).listen(self._on_leave)
         widget.on(Event.CLICK1_DOWN).listen(self._on_mouse_down)
         widget.on(Event.CLICK1_UP).listen(self._on_mouse_up)
+        # mirror any current pseudo-states to the new child (hover/pressed/selected)
+        try:
+            current = set(self.state())
+        except Exception:
+            current = set()
+        for s in ('hover', 'pressed', 'selected'):
+            if s in current:
+                try:
+                    widget.state([s])
+                except Exception:
+                    pass

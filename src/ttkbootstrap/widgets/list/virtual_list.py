@@ -4,8 +4,8 @@ from ttkbootstrap.datasource.sqlite_source import DataSource
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.types import Primitive
-from ttkbootstrap.widgets.scrollbar import Scrollbar
 from ttkbootstrap.widgets.list.shared.list_item import ListItem
+from ttkbootstrap.widgets.scrollbar import Scrollbar
 
 VISIBLE_ROWS = 20
 ROW_HEIGHT = 32
@@ -54,6 +54,7 @@ class VirtualList(Pack):
         # Fixed row pool
         for _ in range(VISIBLE_ROWS):
             row = self._row_factory(self._canvas_frame, **self._options)
+            # keep your original packing approach
             row.widget.pack(fill="x")
             self._rows.append(row)
 
@@ -80,11 +81,11 @@ class VirtualList(Pack):
     def _on_scroll(self, *args):
         # Keep counts fresh
         self._clamp_indices()
-        if args[0] == "moveto":
+        if args and args[0] == "moveto":
             fraction = float(args[1])
             max_start = max(0, self._total_rows - VISIBLE_ROWS)
             self._start_index = int(round(fraction * max_start))
-        elif args[0] == "scroll":
+        elif args and args[0] == "scroll":
             steps = int(args[1])  # positive or negative
             self._start_index += steps
         # Final clamp, then paint
@@ -105,7 +106,26 @@ class VirtualList(Pack):
         page_data = self._datasource.get_page_from_index(self._start_index, VISIBLE_ROWS)
 
         for i, row in enumerate(self._rows):
-            row.update_data(page_data[i] if i < len(page_data) else None)
+            rec = page_data[i] if i < len(page_data) else None
+            row.update_data(rec)
+
+            # Sync selection icon/state using datasource (fallback to record flag)
+            sel = False
+            if rec is not None:
+                rid = rec.get('id')
+                if rid is not None and hasattr(self._datasource, 'is_selected'):
+                    try:
+                        sel = bool(self._datasource.is_selected(rid))
+                    except Exception:
+                        sel = bool(rec.get('selected', False))
+                else:
+                    sel = bool(rec.get('selected', False))
+
+            # push to row (updates icon + states across composites)
+            try:
+                row._update_selection(sel)
+            except Exception:
+                pass
 
         # Scrollbar thumb (guard small/empty datasets)
         denom = max(1, self._total_rows)  # avoid div/0
