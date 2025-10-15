@@ -50,8 +50,7 @@ class App(BaseWidget, ContainerMixin):
         # hide until ready to render
         self.widget.withdraw()
         self.widget.title(title)
-        self._theme = ThemeProvider()
-        self._theme.use(theme)
+        self._theme = ThemeProvider().instance(theme)
 
         # register fonts
         if use_default_fonts:

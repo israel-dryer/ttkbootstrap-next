@@ -56,11 +56,11 @@ class ThemeProvider:
         self._colors = {}
         load_system_themes()
         self.use(name)
-        self.build_theme_colors()
 
     def use(self, name):
         self._theme = get_theme(name)
-        ThemeProvider.update_theme_styles()
+        self.build_theme_colors()
+        self.update_theme_styles()
 
     @staticmethod
     def update_theme_styles():
