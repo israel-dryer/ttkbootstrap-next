@@ -2,8 +2,8 @@ name = "dark"
 mode = "dark"
 
 [palette]
-foreground = "#212529"
-background = "#ffffff"
+foreground = "#f8f9fa"
+background = "#212529"
 white = "#ffffff"
 black = "#000000"
 
