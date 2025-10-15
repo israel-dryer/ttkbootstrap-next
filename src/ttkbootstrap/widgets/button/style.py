@@ -1,9 +1,4 @@
-from tkinter.font import Font, nametofont
-
-from ttkbootstrap.icons import BootstrapIcon
 from ttkbootstrap.style import Element, ElementImage, StyleManager, recolor_image
-
-_images = []
 
 
 class ButtonStyleBuilder(StyleManager):
@@ -17,27 +12,11 @@ class ButtonStyleBuilder(StyleManager):
             icon_only=False,
             select_background='primary'
         )
-        self._stateful_icons = dict()
-
-    @property
-    def stateful_icons(self):
-        return self._stateful_icons
-
-    def create_icon_asset(self, icon: dict, state: str, color: str):
-        # create stateful icons to be mapped by the buttons event handling logic
-        options = dict(icon)
-        options.setdefault('color', color)
-        options.setdefault('size', icon_font_size(self))
-        self.stateful_icons[state] = BootstrapIcon(**options)
-
-    def build_icon_assets(self, icon: str):
-        icon_builder = f"{self.variant}-icon-builder"
-        func = ButtonStyleBuilder.get(icon_builder)
-        func(self, icon)
 
 
 @ButtonStyleBuilder.register_variant("solid")
 def build_solid_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
 
     surface = b.color(b.surface_token)
@@ -59,7 +38,7 @@ def build_solid_button_style(b: ButtonStyleBuilder):
     focused_hovered_img = recolor_image(f'button', hovered, focused_border, focused_ring)
     focused_pressed_img = recolor_image(f'button', pressed, focused_border, focused_ring)
     disabled_img = recolor_image(f'button', disabled, disabled, surface, surface)
-    btn_padding = button_img_border(b)
+    btn_padding = button_img_border(b.options('size'))
 
     # button element
     b.style_create_element(
@@ -83,13 +62,14 @@ def build_solid_button_style(b: ButtonStyleBuilder):
         stipple="gray12",
         relief='flat',
         padding=0,
-        font=get_font(b.options('size')))
+        font=b.get_font(b.options('size')))
 
     b.style_map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[('disabled', disabled)])
 
 
 @ButtonStyleBuilder.register_variant("outline")
 def build_outline_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
 
     surface = b.color(b.surface_token)
@@ -134,7 +114,7 @@ def build_outline_button_style(b: ButtonStyleBuilder):
         relief='flat',
         stipple="gray12",
         padding=0,
-        font=get_font(b.options('size')))
+        font=b.get_font(b.options('size')))
 
     b.style_map(
         ttk_style,
@@ -147,6 +127,7 @@ def build_outline_button_style(b: ButtonStyleBuilder):
 
 @ButtonStyleBuilder.register_variant("ghost")
 def build_ghost_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
 
     surface = b.color(b.surface_token)
@@ -189,7 +170,7 @@ def build_ghost_button_style(b: ButtonStyleBuilder):
         relief='flat',
         stipple="gray12",
         padding=0,
-        font=get_font(b.options('size')))
+        font=b.get_font(b.options('size')))
 
     b.style_map(
         ttk_style,
@@ -199,6 +180,7 @@ def build_ghost_button_style(b: ButtonStyleBuilder):
 
 @ButtonStyleBuilder.register_variant("text")
 def build_text_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
 
     surface = b.color(b.surface_token)
@@ -221,13 +203,14 @@ def build_text_button_style(b: ButtonStyleBuilder):
         relief='flat',
         stipple="gray12",
         padding=0,
-        font=get_font(b.options('size')))
+        font=b.get_font(b.options('size')))
     b.style_map(ttk_style, foreground=[('disabled', foreground_disabled)], background=[])
 
 
 @ButtonStyleBuilder.register_variant("prefix")
 @ButtonStyleBuilder.register_variant("suffix")
 def build_addon_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
 
     surface = b.color(b.surface_token)
@@ -270,7 +253,7 @@ def build_addon_button_style(b: ButtonStyleBuilder):
         relief='flat',
         stipple="gray12",
         padding=0,
-        font=get_font(b.options('size')))
+        font=b.get_font(b.options('size')))
 
     b.style_map(
         ttk_style,
@@ -280,6 +263,7 @@ def build_addon_button_style(b: ButtonStyleBuilder):
 
 @ButtonStyleBuilder.register_variant("list")
 def build_list_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
 
     surface = b.color(b.surface_token)
@@ -304,7 +288,7 @@ def build_list_button_style(b: ButtonStyleBuilder):
         padding=0,
         relief='flat',
         stipple="gray12",
-        font=get_font(b.options('size')))
+        font=b.get_font(b.options('size')))
 
     b.style_map(
         ttk_style,
@@ -318,23 +302,6 @@ def build_list_button_style(b: ButtonStyleBuilder):
 
 # ----- Helpers -----
 
-def icon_font_size(b: ButtonStyleBuilder) -> int:
-    """Return the icon size scaled from font size."""
-    factor = 0.9 if b.options('icon_only') else 0.72
-    fnt = get_font(b.options('size'))
-    font_size = fnt.metrics('linespace')
-    return int(font_size * factor)
-
-
-def get_font(size: str) -> Font:
-    if size == "sm":
-        return nametofont("body")
-    elif size == "lg":
-        return nametofont("body-xl")
-    else:
-        return nametofont("body-lg")
-
-
 def button_img_border(size: str):
     if size == "sm":
         return 6
@@ -346,16 +313,18 @@ def button_img_border(size: str):
 
 # ----- Icon Builders -----
 
+
 @ButtonStyleBuilder.register_variant("text-icon-builder")
 def build_text_icon_assets(b: ButtonStyleBuilder, icon):
     surface = b.color(b.surface_token)
     foreground = b.on_color(surface)
     foreground_disabled = b.disabled("text")
-    b.create_icon_asset(icon, 'normal', foreground)
-    b.create_icon_asset(icon, 'hover', foreground)
-    b.create_icon_asset(icon, 'pressed', foreground)
-    b.create_icon_asset(icon, 'focus', foreground)
-    b.create_icon_asset(icon, 'disabled', foreground_disabled)
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.map_stateful_icons()
 
 
 @ButtonStyleBuilder.register_variant("solid-icon-builder")
@@ -363,11 +332,13 @@ def build_solid_icon_assets(b: ButtonStyleBuilder, icon: dict):
     background = b.color(b.color_token)
     foreground = b.on_color(background)
     foreground_disabled = b.disabled("text")
-    b.create_icon_asset(icon, 'normal', foreground)
-    b.create_icon_asset(icon, 'hover', foreground)
-    b.create_icon_asset(icon, 'pressed', foreground)
-    b.create_icon_asset(icon, 'focus', foreground)
-    b.create_icon_asset(icon, 'disabled', foreground_disabled)
+
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.map_stateful_icons()
 
 
 @ButtonStyleBuilder.register_variant("outline-icon-builder")
@@ -375,22 +346,24 @@ def build_outline_icon_assets(b: ButtonStyleBuilder, icon: dict):
     accent = b.color(b.color_token)
     foreground_active = b.on_color(accent)
     foreground_disabled = b.disabled("text")
-    b.create_icon_asset(icon, 'normal', accent)
-    b.create_icon_asset(icon, 'hover', foreground_active)
-    b.create_icon_asset(icon, 'pressed', foreground_active)
-    b.create_icon_asset(icon, 'focus', foreground_active)
-    b.create_icon_asset(icon, 'disabled', foreground_disabled)
+    b.register_stateful_icon(icon, 'normal', accent)
+    b.register_stateful_icon(icon, 'hover', foreground_active)
+    b.register_stateful_icon(icon, 'pressed', foreground_active)
+    b.register_stateful_icon(icon, 'focus', foreground_active)
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.map_stateful_icons()
 
 
 @ButtonStyleBuilder.register_variant("ghost-icon-builder")
 def build_ghost_icon_assets(b: ButtonStyleBuilder, icon: dict):
     foreground = b.color(b.color_token)
     foreground_disabled = b.disabled("text")
-    b.create_icon_asset(icon, 'normal', foreground)
-    b.create_icon_asset(icon, 'hover', foreground)
-    b.create_icon_asset(icon, 'pressed', foreground)
-    b.create_icon_asset(icon, 'focus', foreground)
-    b.create_icon_asset(icon, 'disabled', foreground_disabled)
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.map_stateful_icons()
 
 
 @ButtonStyleBuilder.register_variant("prefix-icon-builder")
@@ -400,11 +373,12 @@ def build_addon_icon_assets(b: ButtonStyleBuilder, icon: dict):
     surface = b.color(b.surface_token)
     foreground = b.on_color(surface)
     foreground_disabled = b.disabled("text")
-    b.create_icon_asset(icon, 'normal', foreground)
-    b.create_icon_asset(icon, 'hover', foreground)
-    b.create_icon_asset(icon, 'pressed', foreground)
-    b.create_icon_asset(icon, 'focus', foreground)
-    b.create_icon_asset(icon, 'disabled', foreground_disabled)
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.map_stateful_icons()
 
 
 @ButtonStyleBuilder.register_variant("list-icon-builder")
@@ -417,13 +391,16 @@ def build_list_icon_assets(b: ButtonStyleBuilder, icon: dict):
     foreground_selected = b.on_color(background_selected)
     foreground_disabled = b.disabled("text")
 
-    b.create_icon_asset(icon, 'normal', foreground)
-    b.create_icon_asset(icon, 'hover', foreground)
-    b.create_icon_asset(icon, 'pressed', foreground)
-    b.create_icon_asset(icon, 'focus', foreground)
-    b.create_icon_asset(icon, 'disabled', foreground_disabled)
-    b.create_icon_asset(icon, 'selected', foreground_selected)
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.register_stateful_icon(icon, 'selected', foreground_selected)
+    b.map_stateful_icons()
 
+
+# ------ Helper to build button style ------
 
 def create_button_style(b: ButtonStyleBuilder):
     """Create a button layout common to all style variants"""
