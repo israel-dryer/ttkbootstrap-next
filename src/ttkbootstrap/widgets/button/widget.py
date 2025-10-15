@@ -72,6 +72,7 @@ class Button(BaseWidget, IconMixin):
         # style builder options
         build_options = merge_build_options(
             kwargs.pop('builder', {}),
+            icon=self._icon,
             icon_only=not self._has_text,
             color=color,
             variant=variant
@@ -103,14 +104,10 @@ class Button(BaseWidget, IconMixin):
     def enable(self):
         """Enable the button."""
         self.widget.state(['normal'])
-        if self.configure('icon'):
-            self._toggle_disable_icon(False)
         return self
 
     def disable(self):
         """Disable the button."""
-        if self.configure('icon'):
-            self._toggle_disable_icon(True)
         self.state(['disabled'])
         return self
 
@@ -121,8 +118,6 @@ class Button(BaseWidget, IconMixin):
     def update_style(self):
         """Update the widget style and bind stateful icons"""
         super().update_style()
-        if self._icon:
-            self._bind_stateful_icons()
 
     # ---- Event handlers -----
 
