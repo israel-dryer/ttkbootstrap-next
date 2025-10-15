@@ -1,6 +1,8 @@
 import threading
+from tkinter.font import nametofont, Font
 from typing import Any, Callable, Concatenate, ParamSpec, TypeVar
 
+from ttkbootstrap.icons import BootstrapIcon
 from ttkbootstrap.style.element import Element, ElementImage
 from ttkbootstrap.style.style import Style
 from ttkbootstrap.style.theme_provider import ThemeProvider
@@ -13,12 +15,14 @@ SelfT = TypeVar("SelfT", bound="StyleManager")
 
 Func = Callable[Concatenate[SelfT, P], R]
 
+_images = []
+
 
 class OptionManager:
     """Class to manage options"""
 
     def __init__(self, **kwargs):
-        self._options = dict(**kwargs)
+        self._options: dict[str, Any] = dict(**kwargs)
 
     def __call__(self, option=None, **kwargs):
         if option:
@@ -46,6 +50,28 @@ class StyleManager:
     _variant_registry = {}
     _variant_lock = threading.Lock()
 
+    def create_icon_asset(self, icon: dict, state: str, color: str):
+        # create stateful icons to be mapped by the buttons event handling logic
+        options = dict(icon)
+        options.setdefault('color', color)
+        options.setdefault('size', self.icon_font_size())
+        self.stateful_icons[state] = BootstrapIcon(**options)
+
+    def build_icon_assets(self):
+        icon = self.options("icon")
+        if not icon: return
+        icon_builder = f"{self.variant}-icon-builder"
+        func = self.get(icon_builder)
+        func(self, icon)
+
+    def register_stateful_icon(self, icon: dict, state: str, color: str):
+        """Substitute and icon image for a specific state if specified and create the icon asset"""
+        state_icon = icon.copy()
+        state_subs = state_icon.pop('state', {})
+        if state in state_subs:
+            state_icon['name'] = state_subs[state]
+        self.create_icon_asset(state_icon, state, color)
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls._variant_registry = dict(getattr(cls, "_variant_registry", {}))
@@ -57,6 +83,27 @@ class StyleManager:
         self._provider = ThemeProvider().instance()
         self._options = OptionManager(**options)
         self._options.set_defaults(surface="background")
+        self._stateful_icons = dict()
+
+    def icon_font_size(self) -> int:
+        """Return the icon size scaled from font size."""
+        factor = 0.9 if self.options('icon_only') else 0.72
+        fnt = self.get_font(self.options('size'))
+        font_size = fnt.metrics('linespace')
+        return int(font_size * factor)
+
+    @staticmethod
+    def get_font(size: str) -> Font:
+        if size == "sm":
+            return nametofont("body")
+        elif size == "lg":
+            return nametofont("body-xl")
+        else:
+            return nametofont("body-lg")
+
+    @property
+    def stateful_icons(self):
+        return self._stateful_icons
 
     @property
     def options(self):
@@ -99,7 +146,7 @@ class StyleManager:
     @property
     def variant(self):
         """The style variant"""
-        return self.options('variant')
+        return self.options('variant') or 'default'
 
     @property
     def color_mode(self):
@@ -107,11 +154,17 @@ class StyleManager:
         return self.provider.mode
 
     def resolve_ttk_name(self):
-        return ".".join(
-            [str(x) for x in self.options.values()]
-            + [self.surface_token]
-            + [self.theme_name, self._ttk_class]
-        )
+        items = [str(v) for k, v in self.options.items() if k != 'icon']
+        # use the icon name and any state names in the generated ttk name
+        if 'icon' in self.options.keys():
+            items.insert(0, 'IconNormal' + self.options('icon')['name'].title())
+            for ik, iv in self.options('icon').get('state', {}).items():
+                items.insert(0, 'Icon' + ik.title() + iv.title())
+        items.append(self.theme_name)
+        items.append(self._ttk_class)
+        ttk_style = '.'.join(items).replace('-', '')
+        print(ttk_style)
+        return ttk_style
 
     def ttk_name_exists(self):
         return self._style.style_exists(self.resolve_ttk_name())
@@ -288,6 +341,24 @@ class StyleManager:
         blend_target = "#000000" if self.provider.mode == "light" else "#ffffff"
         weight = min(elevation / max_elevation, 1.0) * 0.3
         return mix_colors(blend_target, color, weight)
+
+    def map_stateful_icons(self):
+        s = self.stateful_icons
+
+        # Map ttk states (no 'hover' state; use 'active')
+        state_map = [
+            ("disabled", s["disabled"]),
+            ("pressed", s["pressed"]),
+            ("active", s["hover"]),
+            ("focus", s["focus"]),
+            ((), s["normal"]),
+        ]
+        if "selected" in s:
+            state_map.insert(3, ("selected !disabled", s["selected"]))
+
+        ttk_style = self.resolve_ttk_name()
+        print(ttk_style, 'mapped stateful icons')
+        self.style_map(ttk_style, image=state_map)
 
     @staticmethod
     def _state_color(color, state):
