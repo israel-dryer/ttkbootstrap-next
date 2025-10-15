@@ -163,7 +163,6 @@ class StyleManager:
         items.append(self.theme_name)
         items.append(self._ttk_class)
         ttk_style = '.'.join(items).replace('-', '')
-        print(ttk_style)
         return ttk_style
 
     def ttk_name_exists(self):
