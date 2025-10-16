@@ -1,7 +1,7 @@
 from tkinter import TclError
 from tkinter.font import nametofont
+from typing import override
 
-from ttkbootstrap.icons import BootstrapIcon
 from ttkbootstrap.style import Element, ElementImage, StyleManager, recolor_image
 
 _images = []
@@ -12,20 +12,19 @@ class LabelStyleBuilder(StyleManager):
     def __init__(self, **kwargs):
         super().__init__("TLabel", **kwargs)
         self.options.set_defaults(variant="default", select_background="primary")
-        self._stateful_icons: dict[str, BootstrapIcon] = dict()
 
-    @property
-    def stateful_icons(self):
-        return self._stateful_icons
-
-    def build_icon_assets(self, icon: dict):
-        if icon is None: return
-        func = LabelStyleBuilder.get(f"{self.variant}-icon-builder")
-        func(self, icon)
+    @override
+    def icon_font_size(self) -> int:
+        """Return the icon size scaled from font size."""
+        factor = 0.9
+        fnt = nametofont('body-lg')
+        font_size = fnt.metrics('linespace')
+        return int(font_size * factor)
 
 
 @LabelStyleBuilder.register_variant("default")
 def build_default_label_style(b: LabelStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
     foreground_token = b.options("foreground")
     background_token = b.options("background")
@@ -47,6 +46,7 @@ def build_default_label_style(b: LabelStyleBuilder):
 
 @LabelStyleBuilder.register_variant("addon")
 def build_addon_label_style(b: LabelStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
     surface_token = b.surface_token()
 
@@ -84,7 +84,10 @@ def build_addon_label_style(b: LabelStyleBuilder):
 
 
 @LabelStyleBuilder.register_variant("list")
+@LabelStyleBuilder.register_variant("list-radio")
+@LabelStyleBuilder.register_variant("list-checkbox")
 def build_list_label_style(b: LabelStyleBuilder):
+    b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
     background = b.color(b.surface_token)
     background_hover = b.elevate(background, 1)
@@ -127,12 +130,12 @@ def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
         except TclError:
             foreground = foreground_token
 
-    create_icon_asset(b, icon, 'normal', foreground)
-    create_icon_asset(b, icon, 'hover', foreground)
-    create_icon_asset(b, icon, 'pressed', foreground)
-    create_icon_asset(b, icon, 'focus', foreground)
-    create_icon_asset(b, icon, 'disabled', foreground)
-
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground)
+    b.map_stateful_icons()
 
 @LabelStyleBuilder.register_variant("list-icon-builder")
 def build_list_icon_assets(b: LabelStyleBuilder, icon: dict):
@@ -150,27 +153,10 @@ def build_list_icon_assets(b: LabelStyleBuilder, icon: dict):
     background_selected = b.color(b.options('select_background'))
     foreground_selected = b.on_color(background_selected)
 
-    create_icon_asset(b, icon, 'normal', foreground)
-    create_icon_asset(b, icon, 'hover', foreground)
-    create_icon_asset(b, icon, 'pressed', foreground)
-    create_icon_asset(b, icon, 'focus', foreground)
-    create_icon_asset(b, icon, 'disabled', foreground)
-    create_icon_asset(b, icon, 'selected', foreground_selected)
-
-
-# ------ Helpers ------
-
-def create_icon_asset(b: LabelStyleBuilder, icon: dict, state: str, color: str):
-    # create stateful icons to be mapped by the buttons event handling logic
-    options = dict(icon)
-    options.setdefault('size', icon_font_size())
-    options.setdefault('color', color)
-    b.stateful_icons[state] = BootstrapIcon(**options)
-
-
-def icon_font_size() -> int:
-    """Return the icon size scaled from font size."""
-    factor = 0.9
-    fnt = nametofont('body-lg')
-    font_size = fnt.metrics('linespace')
-    return int(font_size * factor)
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'focus', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground)
+    b.register_stateful_icon(icon, 'selected', foreground_selected)
+    b.map_stateful_icons()

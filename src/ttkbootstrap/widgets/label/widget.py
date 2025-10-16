@@ -81,6 +81,8 @@ class Label(BaseWidget, IconMixin):
             kwargs.pop('builder', {}),
             foreground=foreground,
             background=background,
+            icon=self._icon,
+            icon_only=not self._has_text,
             variant=variant
         )
         self._style_builder = LabelStyleBuilder(**build_options)
@@ -96,12 +98,6 @@ class Label(BaseWidget, IconMixin):
     def signal(self):
         """The signal bound to the label text"""
         return self._text_signal
-
-    def update_style(self):
-        """INTERNAL --- Update the widget style and bind stateful icons"""
-        super().update_style()
-        if self._icon:
-            self._bind_stateful_icons()
 
     # ----- Configuration delegates -----
 

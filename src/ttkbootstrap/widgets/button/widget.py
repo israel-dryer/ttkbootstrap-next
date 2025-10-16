@@ -115,10 +115,6 @@ class Button(BaseWidget, IconMixin):
         """Trigger a button click programmatically."""
         self.widget.invoke()
 
-    def update_style(self):
-        """Update the widget style and bind stateful icons"""
-        super().update_style()
-
     # ---- Event handlers -----
 
     def _handle_invoke(self, *_):
