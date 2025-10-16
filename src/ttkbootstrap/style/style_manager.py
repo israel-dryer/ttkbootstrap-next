@@ -347,16 +347,16 @@ class StyleManager:
         # Map ttk states (no 'hover' state; use 'active')
         state_map = [
             ("disabled", s["disabled"]),
+            ("selected pressed", s["selected"]),
+            ("selected active", s["selected"]),
+            ("selected !disabled", s["selected"]),
             ("pressed", s["pressed"]),
             ("active", s["hover"]),
             ("focus", s["focus"]),
             ((), s["normal"]),
         ]
-        if "selected" in s:
-            state_map.insert(3, ("selected !disabled", s["selected"]))
 
         ttk_style = self.resolve_ttk_name()
-        print(ttk_style, 'mapped stateful icons')
         self.style_map(ttk_style, image=state_map)
 
     @staticmethod

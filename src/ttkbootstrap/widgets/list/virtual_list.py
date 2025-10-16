@@ -100,18 +100,13 @@ class VirtualList(Pack):
         self._update_rows()
 
     def _update_rows(self):
-        # Recompute counts and re-clamp every paint
         self._clamp_indices()
-
         page_data = self._datasource.get_page_from_index(self._start_index, VISIBLE_ROWS)
 
         for i, row in enumerate(self._rows):
             rec = page_data[i] if i < len(page_data) else None
-            row.update_data(rec)
-
-            # Sync selection icon/state using datasource (fallback to record flag)
-            sel = False
             if rec is not None:
+                # Compute the authoritative selection state
                 rid = rec.get('id')
                 if rid is not None and hasattr(self._datasource, 'is_selected'):
                     try:
@@ -121,11 +116,10 @@ class VirtualList(Pack):
                 else:
                     sel = bool(rec.get('selected', False))
 
-            # push to row (updates icon + states across composites)
-            try:
-                row._update_selection(sel)
-            except Exception:
-                pass
+                # Inject selection into record so ListItem.update_data() handles it once
+                rec = {**rec, 'selected': sel}
+
+            row.update_data(rec)
 
         # Scrollbar thumb (guard small/empty datasets)
         denom = max(1, self._total_rows)  # avoid div/0

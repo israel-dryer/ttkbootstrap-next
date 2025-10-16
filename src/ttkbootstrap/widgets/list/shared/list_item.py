@@ -21,6 +21,7 @@ class ListItem(Pack):
         self._selection_background = kwargs.get('selection_background', 'primary')
         self._selection_mode = kwargs.get('selection_mode', 'none')
         self._selection_controls_visible = kwargs.get('selection_controls_visible', False)
+        self._set_selection_icon()
 
         super().__init__(
             direction="horizontal",
@@ -58,10 +59,10 @@ class ListItem(Pack):
         self._title_widget: Optional[Label] = None
         self._text_widget: Optional[Label] = None
         self._caption_widget: Optional[Label] = None
-        self._delete_widget: Optional["Button"] = None
+        self._delete_widget: Optional[Button] = None
         self._badge_widget: Optional[Badge] = None
         self._chevron_widget: Optional[Label] = None
-        self._drag_widget: Optional["Button"] = None
+        self._drag_widget: Optional[Button] = None
 
         self._composite_widgets = set()
         for widget in [self, self._frame_start, self._frame_end, self._frame_center]:
@@ -70,6 +71,14 @@ class ListItem(Pack):
         # row-level pointer events
         self.on(Event.ENTER).listen(self._on_enter)
         self.on(Event.LEAVE).listen(self._on_leave)
+
+    def _set_selection_icon(self):
+        if self._selection_mode == "multiple":
+            self._selection_icon = {"name": "square", "state": {"selected": "check-square-fill"}}
+        elif self._selection_mode == "single":
+            self._selection_icon = {"name": "circle", "state": {"selected": "check-circle-fill"}}
+        else:
+            self._selection_icon = None
 
     # ---- event handlers ----
 
@@ -132,14 +141,36 @@ class ListItem(Pack):
         if value is None:
             return self._selection_mode
         else:
-            self._selection_mode = value
+            if value != self._selection_mode:
+                self._selection_mode = value
+                self._set_selection_icon()
+                if self._selection_widget is not None:
+                    try:
+                        self._selection_widget.configure(icon=self._selection_icon)
+                    except Exception:
+                        pass
             return self
 
     def selection_controls_visible(self, value=None):
         if value is None:
             return self._selection_controls_visible
         else:
-            self._selection_controls_visible = value
+            if value != self._selection_controls_visible:
+                self._selection_controls_visible = value
+                if value:
+                    if self._selection_widget is None:
+                        self._selection_widget = Label(
+                            parent=self._frame_start,
+                            icon=self._selection_icon,
+                            variant='list',
+                            take_focus=False,
+                            builder=dict(select_background=self._selection_background),
+                        )
+                        self._add_composite_widget(self._selection_widget)
+                    self._selection_widget.attach(side="left", padx=5)
+                else:
+                    if self._selection_widget is not None:
+                        self._selection_widget.detach()
             return self
 
     def selection_background(self, value=None):
@@ -173,9 +204,7 @@ class ListItem(Pack):
     # ---- selection + data ----
 
     def select(self):
-        """
-        Emit SELECTED/DESELECTED and let VirtualList reconcile selection via DataSource.
-        """
+        """Emit SELECTED/DESELECTED and let VirtualList reconcile selection via DataSource"""
         mode = self.selection_mode()
         if mode == 'none':
             return None
@@ -194,55 +223,12 @@ class ListItem(Pack):
         self.detach()
 
     def _update_selection(self, selected: bool = False):
-        """
-        Ensure 'selected' state + the selection control icon propagate to the entire row,
-        and notify composites so their IconMixin can swap to the 'selected' image.
-        """
+        """Apply selection state atomically (styles + icon) with null guards."""
         mode = self.selection_mode()
 
-        if mode != 'none':
-            # Ensure/create control or update icon
-            if not self._selection_widget:
-                icon = (
-                    'check-square-fill' if (mode == 'multiple' and selected)
-                    else 'square' if mode == 'multiple'
-                    else ('check-circle-fill' if selected else 'circle')
-                )
-                self._selection_widget = Label(
-                    parent=self._frame_start,
-                    icon=icon,
-                    variant='list'
-                )
-                if self._selection_controls_visible:
-                    self._selection_widget.attach(side="left", padx=5)
-                self._add_composite_widget(self._selection_widget)
-            else:
-                if mode == 'multiple':
-                    self._selection_widget.configure(icon='check-square-fill' if selected else 'square')
-                else:
-                    self._selection_widget.configure(icon='check-circle-fill' if selected else 'circle')
-
-            # Push selected/!selected to row and composites (styling)
-            try:
-                self.state(['selected' if selected else '!selected'])
-            except Exception:
-                pass
-            for widget in self._composite_widgets:
-                try:
-                    widget.state(['selected' if selected else '!selected'])
-                except Exception:
-                    pass
-
-            # ✅ Tell icon-bearing widgets to flip to their 'selected' art
-            for widget in self._composite_widgets:
-                try:
-                    widget.emit(Event.SELECTED if selected else Event.DESELECTED)
-                except Exception:
-                    pass
-
-        else:
-            # Selection disabled: remove control and clear selection state
-            if self._selection_widget:
+        if mode == "none":
+            # selection disabled: tear down and clear states
+            if self._selection_widget is not None:
                 try:
                     self._selection_widget.detach()
                 except Exception:
@@ -253,22 +239,58 @@ class ListItem(Pack):
                 except Exception:
                     pass
                 self._selection_widget = None
-
+            # clear selected state on row + composites
             try:
                 self.state(['!selected'])
             except Exception:
                 pass
-            for widget in self._composite_widgets:
+            for w in list(self._composite_widgets):
                 try:
-                    widget.state(['!selected'])
+                    w.state(['!selected'])
+                    w.emit(Event.DESELECTED)
                 except Exception:
                     pass
+            # keep a remembered icon so later comparisons are cheap and safe
+            if hasattr(self, '_state'):
+                self._state['__sel_icon'] = None
+                self._state['selected'] = False
+            return
 
-            for widget in self._composite_widgets:
-                try:
-                    widget.emit(Event.DESELECTED)
-                except Exception:
-                    pass
+        # Ensure state cache exists
+        if not hasattr(self, '_state'):
+            self._state = {}
+
+        # Ensure the selection control exists (even if not visible)
+        if self._selection_widget is None:
+            self._selection_widget = Label(
+                parent=self._frame_start,
+                icon=self._selection_icon,
+                variant='list',
+                take_focus=False,
+                builder=dict(select_background=self._selection_background),
+            )
+            if self._selection_controls_visible:
+                self._selection_widget.attach(side="left", padx=5)
+            self._add_composite_widget(self._selection_widget)
+
+        # Apply selected state to the row + all composites (styles co-update)
+        try:
+            self.state(['selected' if selected else '!selected'])
+        except Exception:
+            pass
+        for w in list(self._composite_widgets):
+            try:
+                w.state(['selected' if selected else '!selected'])
+            except Exception:
+                pass
+        for w in list(self._composite_widgets):
+            try:
+                w.emit(Event.SELECTED if selected else Event.DESELECTED)
+            except Exception:
+                pass
+
+        # Remember logical selected flag
+        self._state['selected'] = bool(selected)
 
     def _update_icon(self, icon=None):
         if icon is not None:
@@ -279,7 +301,7 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='left', padx=6)  # marginx -> padx
+                ).attach(side='left', padx=6)
                 self._add_composite_widget(self._icon_widget)
             else:
                 self._icon_widget.configure(icon=icon)
@@ -289,6 +311,7 @@ class ListItem(Pack):
                 self._composite_widgets.discard(self._icon_widget)
                 self._icon_widget.destroy()
                 self._icon_widget = None
+        pass
 
     def _update_title(self, text=None):
         if text is not None:
@@ -300,7 +323,7 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(fill='x', padx=(0, 3))  # marginx -> padx
+                ).attach(fill='x', padx=(0, 3))
                 self._add_composite_widget(self._title_widget)
             else:
                 self._title_widget.configure(text=text)
@@ -343,7 +366,7 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(fill='x', padx=(0, 3))  # marginx -> padx
+                ).attach(fill='x', padx=(0, 3))
                 self._add_composite_widget(self._caption_widget)
             else:
                 self._caption_widget.configure(text=text)
@@ -362,7 +385,7 @@ class ListItem(Pack):
                     text=text,
                     variant='list',
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', padx=6)  # marginx -> padx
+                ).attach(side='right', padx=6)
                 self._add_composite_widget(self._badge_widget)
             else:
                 self._badge_widget.configure(text=text)
@@ -383,7 +406,7 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', padx=6)  # marginx -> padx
+                ).attach(side='right', padx=6)
                 self._add_composite_widget(self._chevron_widget)
         else:
             if self._chevron_widget:
@@ -402,7 +425,7 @@ class ListItem(Pack):
                     variant='list',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', padx=6)  # marginx -> padx
+                ).attach(side='right', padx=6)
                 self._delete_widget.on(Event.CLICK1_DOWN).listen(lambda _: self.delete())
                 self._add_composite_widget(self._delete_widget)
         else:
@@ -423,7 +446,7 @@ class ListItem(Pack):
                     cursor='double_arrow',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
-                ).attach(side='right', padx=6)  # marginx -> padx
+                ).attach(side='right', padx=6)
                 self._add_composite_widget(self._drag_widget)
         else:
             if self._drag_widget:
@@ -443,9 +466,8 @@ class ListItem(Pack):
             self._state = {}
 
         self._data = record
-        selected = record.get("selected", False)
 
-        # Efficient selection update
+        selected = bool(record.get("selected", False))
         if self._state.get("selected") != selected:
             self._update_selection(selected)
             self._state["selected"] = selected
@@ -462,26 +484,17 @@ class ListItem(Pack):
                 updater(value)
                 self._state[field] = value
 
-        # Defer low-priority visuals
-        def defer(field, updater):
-            value = record.get(field)
-            if self._state.get(field) != value:
-                self.schedule.idle(lambda: updater(value))
-                self._state[field] = value
-
-        defer("badge", self._update_badge)
         self.schedule.idle(self._update_chevron)
         self.schedule.idle(self._update_delete)
         self.schedule.idle(self._update_drag)
 
     def _add_composite_widget(self, widget):
-        widget.update_style()  # for some reason, update_style will not be invoked by theme_change on composite.
         self._composite_widgets.add(widget)
         widget.on(Event.ENTER).listen(self._on_enter)
         widget.on(Event.LEAVE).listen(self._on_leave)
         widget.on(Event.CLICK1_DOWN).listen(self._on_mouse_down)
         widget.on(Event.CLICK1_UP).listen(self._on_mouse_up)
-        # mirror any current pseudo-states to the new child (hover/pressed/selected)
+
         try:
             current = set(self.state())
         except Exception:

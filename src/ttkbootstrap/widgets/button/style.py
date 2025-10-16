@@ -391,11 +391,11 @@ def build_list_icon_assets(b: ButtonStyleBuilder, icon: dict):
     foreground_selected = b.on_color(background_selected)
     foreground_disabled = b.disabled("text")
 
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
     b.register_stateful_icon(icon, 'normal', foreground)
     b.register_stateful_icon(icon, 'hover', foreground)
     b.register_stateful_icon(icon, 'pressed', foreground)
     b.register_stateful_icon(icon, 'focus', foreground)
-    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
     b.register_stateful_icon(icon, 'selected', foreground_selected)
     b.map_stateful_icons()
 
