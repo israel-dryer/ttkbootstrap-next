@@ -1,6 +1,6 @@
 from typing import Literal
 
-from ttkbootstrap.datasource.sqlite_source import DataSource
+from ttkbootstrap.datasource.sqlite_source import SqliteDataSource
 from ttkbootstrap.layouts import Pack
 
 
@@ -26,7 +26,7 @@ class ListBox(Pack):
             width: int = None,
             **kwargs
     ):
-        self._datasource = DataSource()
+        self._datasource = SqliteDataSource()
         self._datasource.set_data(items)
 
         self._selected_items = []
