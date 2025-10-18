@@ -1,9 +1,10 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Unpack
 
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets.badge import Badge
 from ttkbootstrap.widgets.label import Label
+from ttkbootstrap.widgets.list.types import ListItemOptions
 
 if TYPE_CHECKING:
     from ttkbootstrap.widgets.button import Button
@@ -11,16 +12,20 @@ if TYPE_CHECKING:
 
 class ListItem(Pack):
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Unpack[ListItemOptions]):
 
         # properties
-        self._data = kwargs.get('data', dict())
+        self._data = {}
         self._dragging_enabled = kwargs.get('dragging_enabled', False)
         self._deleting_enabled = kwargs.get('deleting_enabled', False)
         self._chevron_visible = kwargs.get('chevron_visible', False)
         self._selection_background = kwargs.get('selection_background', 'primary')
         self._selection_mode = kwargs.get('selection_mode', 'none')
         self._selection_controls_visible = kwargs.get('selection_controls_visible', False)
+        self._ignore_selection_by_click = False
+        if self._selection_mode != 'none':
+            self._ignore_selection_by_click = False if not self._selection_controls_visible else not kwargs.get(
+                'select_by_click', False)
         self._set_selection_icon()
 
         super().__init__(
@@ -66,11 +71,17 @@ class ListItem(Pack):
 
         self._composite_widgets = set()
         for widget in [self, self._frame_start, self._frame_end, self._frame_center]:
-            self._add_composite_widget(widget)
+            self._add_composite_widget(widget, ignore_click=self._ignore_selection_by_click)
 
         # row-level pointer events
         self.on(Event.ENTER).listen(self._on_enter)
         self.on(Event.LEAVE).listen(self._on_leave)
+
+    # Configuration provided through the updater methods
+
+    @property
+    def selected(self):
+        return self.data.get('selected')
 
     def _set_selection_icon(self):
         if self._selection_mode == "multiple":
@@ -117,6 +128,7 @@ class ListItem(Pack):
     def _on_mouse_down(self, _):
         self.focus()
         # Let the list handle selection via emitted event
+        self.parent.emit(Event.ITEM_CLICK, data=self._data)
         self.select()
         for widget in self._composite_widgets:
             try:
@@ -209,7 +221,7 @@ class ListItem(Pack):
         if mode == 'none':
             return None
 
-        is_selected = bool(self.data.get('selected', False))
+        is_selected = bool(self.selected or False)
         if is_selected:
             self.parent.emit(Event.DESELECTED, data=self.data)
             return False
@@ -220,7 +232,6 @@ class ListItem(Pack):
     def delete(self):
         """Unpack this widget and notify subscribers to handle delete action."""
         self.parent.emit(Event.DELETE, data=self.data)
-        self.detach()
 
     def _update_selection(self, selected: bool = False):
         """Apply selection state atomically (styles + icon) with null guards."""
@@ -302,7 +313,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='left', padx=6)
-                self._add_composite_widget(self._icon_widget)
+                self._add_composite_widget(self._icon_widget, ignore_click=self._ignore_selection_by_click)
             else:
                 self._icon_widget.configure(icon=icon)
         else:
@@ -324,7 +335,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(fill='x', padx=(0, 3))
-                self._add_composite_widget(self._title_widget)
+                self._add_composite_widget(self._title_widget, ignore_click=self._ignore_selection_by_click)
             else:
                 self._title_widget.configure(text=text)
         else:
@@ -344,7 +355,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(fill='x', padx=(0, 3))
-                self._add_composite_widget(self._text_widget)
+                self._add_composite_widget(self._text_widget, ignore_click=self._ignore_selection_by_click)
             else:
                 self._text_widget.configure(text=text)
         else:
@@ -367,7 +378,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(fill='x', padx=(0, 3))
-                self._add_composite_widget(self._caption_widget)
+                self._add_composite_widget(self._caption_widget, ignore_click=self._ignore_selection_by_click)
             else:
                 self._caption_widget.configure(text=text)
         else:
@@ -386,7 +397,7 @@ class ListItem(Pack):
                     variant='list',
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', padx=6)
-                self._add_composite_widget(self._badge_widget)
+                self._add_composite_widget(self._badge_widget, ignore_click=self._ignore_selection_by_click)
             else:
                 self._badge_widget.configure(text=text)
         else:
@@ -407,7 +418,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', padx=6)
-                self._add_composite_widget(self._chevron_widget)
+                self._add_composite_widget(self._chevron_widget, ignore_click=self._ignore_selection_by_click)
         else:
             if self._chevron_widget:
                 self._chevron_widget.detach()
@@ -427,7 +438,7 @@ class ListItem(Pack):
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', padx=6)
                 self._delete_widget.on(Event.CLICK1_DOWN).listen(lambda _: self.delete())
-                self._add_composite_widget(self._delete_widget)
+                self._add_composite_widget(self._delete_widget, ignore_click=True)
         else:
             if self._delete_widget:
                 self._delete_widget.detach()
@@ -447,7 +458,7 @@ class ListItem(Pack):
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', padx=6)
-                self._add_composite_widget(self._drag_widget)
+                self._add_composite_widget(self._drag_widget, ignore_click=True)
         else:
             if self._drag_widget:
                 self._drag_widget.detach()
@@ -488,12 +499,14 @@ class ListItem(Pack):
         self.schedule.idle(self._update_delete)
         self.schedule.idle(self._update_drag)
 
-    def _add_composite_widget(self, widget):
+    def _add_composite_widget(self, widget, *, ignore_click: bool = False):
         self._composite_widgets.add(widget)
         widget.on(Event.ENTER).listen(self._on_enter)
         widget.on(Event.LEAVE).listen(self._on_leave)
-        widget.on(Event.CLICK1_DOWN).listen(self._on_mouse_down)
-        widget.on(Event.CLICK1_UP).listen(self._on_mouse_up)
+
+        if not ignore_click:
+            widget.on(Event.CLICK1_DOWN).listen(self._on_mouse_down)
+            widget.on(Event.CLICK1_UP).listen(self._on_mouse_up)
 
         try:
             current = set(self.state())
