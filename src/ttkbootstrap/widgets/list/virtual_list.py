@@ -1,10 +1,11 @@
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, Literal
 
-from ttkbootstrap.datasource.sqlite_source import DataSource
+from ttkbootstrap.datasource.memory_source import MemoryDataSource
+from ttkbootstrap.datasource.types import DataSourceProtocol
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.types import Primitive
-from ttkbootstrap.widgets.list.shared.list_item import ListItem
+from ttkbootstrap.widgets.list.list_item import ListItem
 from ttkbootstrap.widgets.scrollbar import Scrollbar
 
 VISIBLE_ROWS = 20
@@ -14,17 +15,34 @@ ROW_HEIGHT = 32
 class VirtualList(Pack):
     def __init__(
             self,
-            items: Union[DataSource, list[Primitive], list[ListItem], list[dict[str, Any]]] = None,
+            *,
+            items: Union[DataSourceProtocol, list[Primitive], list[ListItem], list[dict[str, Any]]] = None,
             row_factory: Callable = None,
             dragging_enabled=False,
             deleting_enabled=False,
             chevron_visible=False,
             scrollbar_visible=True,
-            selection_background='primary',
-            selection_mode='none',
+            selection_background: str = 'primary',
+            select_by_click: bool = False,
+            selection_mode: Literal['single', 'multiple', 'none'] = 'none',
             selection_controls_visible=False,
             **kwargs
     ):
+        """
+            Initialize a virtual list.
+
+            Keyword Arguments:
+                items: A list of items used to populate the list.
+                row_factory: A factory function used to generate the list items.
+                dragging_enabled: Show a drag handle and emit a drag event.
+                deleting_enabled: Show a delete button and emit a delete event.
+                chevron_visible: Show a chevron icon.
+                scrollbar_visible: Display a scrollbar when content overflows the list view.
+                select_by_click: Select item by clicking the row; instead of only the selection control.
+                selection_mode: Indicates what kind of selection is allowed on list items.
+                selection_controls_visible: Show selection controls when selection is enabled.
+                **kwargs: Additional keyword arguments.
+        """
         super().__init__(parent=kwargs.pop("parent", None), direction="horizontal")
         self._scrollbar_visible = scrollbar_visible
 
@@ -33,10 +51,11 @@ class VirtualList(Pack):
             deleting_enabled=deleting_enabled,
             chevron_visible=chevron_visible,
             selection_background=selection_background,
+            select_by_click=select_by_click,
             selection_mode=selection_mode,
             selection_controls_visible=selection_controls_visible
         )
-        self._datasource = items if isinstance(items, DataSource) else DataSource().set_data(items or [])
+        self._datasource = items if isinstance(items, DataSourceProtocol) else MemoryDataSource().set_data(items or [])
         self._row_factory = row_factory or self._default_row_factory
         self._rows: list[ListItem] = []
         self._start_index = 0
@@ -50,6 +69,7 @@ class VirtualList(Pack):
 
         self._canvas_frame.on(Event.SELECTED).listen(lambda x: self._on_select(x.data['id']))
         self._canvas_frame.on(Event.DESELECTED).listen(lambda x: self._on_deselected(x.data['id']))
+        self._canvas_frame.on(Event.DELETE).listen(lambda x: self._on_deleted(x.data['id']))
 
         # Fixed row pool
         for _ in range(VISIBLE_ROWS):
@@ -62,6 +82,28 @@ class VirtualList(Pack):
         self._scrollbar.widget.config(command=self._on_scroll)
         self.on(Event.MOUSE_WHEEL, scope="all").listen(self._on_mousewheel)
         self._update_rows()
+
+    # ------ Event handlers ------
+
+    def on_selection_changed(self):
+        """Convenience alias for changed event"""
+        return self._canvas_frame.on(Event.CHANGED)
+
+    def on_item_selected(self):
+        """Convenience alias for selected stream"""
+        return self._canvas_frame.on(Event.SELECTED)
+
+    def on_item_deselected(self):
+        """Convenience alias for deselected stream"""
+        return self._canvas_frame.on(Event.DESELECTED)
+
+    def on_item_deleted(self):
+        """Convenience alias for deleted stream"""
+        return self._canvas_frame.on(Event.DELETE)
+
+    def on_item_click(self):
+        """Convenience alias for the item click stream"""
+        return self._canvas_frame.on(Event.ITEM_CLICK)
 
     @classmethod
     def _default_row_factory(cls, parent, **kwargs):
@@ -131,6 +173,8 @@ class VirtualList(Pack):
     def _on_deselected(self, record_id):
         self._datasource.unselect_record(record_id)
         self._update_rows()
+        selected = self._datasource.get_selected()
+        self._canvas_frame.emit(Event.CHANGED, selected=selected)
 
     def _on_select(self, record_id):
         if self._options.get('selection_mode') == 'single':
@@ -138,4 +182,11 @@ class VirtualList(Pack):
             self._datasource.select_record(record_id)
         else:
             self._datasource.select_record(record_id)
+        self._update_rows()
+        selected = self._datasource.get_selected()
+
+        self._canvas_frame.emit(Event.CHANGED, selected=selected)
+
+    def _on_deleted(self, record_id):
+        self._datasource.delete_record(record_id)
         self._update_rows()
