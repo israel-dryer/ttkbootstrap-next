@@ -29,13 +29,13 @@ New
 
 from __future__ import annotations
 
-from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic, Literal, Union
 import weakref
+from collections import defaultdict
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic, Literal, Union, Mapping
 
+from ttkbootstrap.events import EventType
 from ttkbootstrap.interop.runtime.commands import event_callback_wrapper
 from ttkbootstrap.interop.spec.profiles import event_substring
-from ttkbootstrap.events import EventType
 from ttkbootstrap.types import Widget
 
 # =============================================================================
@@ -493,10 +493,12 @@ class BindingMixin:
 
     # ---------------------------------------------------------------- emitters
 
+    # TODO this needs some protection againt massive payloads
+
     def emit(
             self,
             event: EventType,
-            data: dict[str, Any] | None = None,
+            data: dict[str, Any] | Any | None = None,
             *,
             when: When = "now",
             **kwargs,
@@ -508,45 +510,45 @@ class BindingMixin:
         ----------
         event : EventType
             The event sequence (e.g., <<Invalid>>, <Return>).
-        data : dict | None
-            Optional dict payload for virtual events (<<...>>).
+        data : dict | Any | None
+            Payload for virtual events (<<...>>). If a mapping, it's merged with **kwargs.
+            If a non-mapping (e.g., list), it's wrapped as {"data": data} and merged with **kwargs.
         when : Literal["now","tail","head","mark"]
             Scheduling of the generated event in the Tk event queue.
-            - "now"  (default): process immediately before returning
-            - "tail": append behind all queued events
-            - "head": place at the front of the queue
-            - "mark": front, but after previously queued "mark" events
         **kwargs
-            Additional key-values flattened into the payload for virtual events.
+            Additional key-values flattened/merged into the payload for virtual events.
         """
         sequence = self._normalize(event)
 
-        # Flatten data + kwargs into one payload
-        payload: dict[str, Any] = {}
-        if data:
-            payload.update(data)
-        if kwargs:
-            payload.update(kwargs)
+        # Build payload depending on type of `data`
+        if isinstance(data, Mapping):
+            payload: Any = {**data, **kwargs} if kwargs else dict(data)
+        elif data is None:
+            payload = dict(kwargs) if kwargs else None
+        else:
+            # Non-mapping (e.g., list, tuple, str, int ...)
+            payload = {"data": data, **kwargs} if kwargs else data
 
-        if sequence.startswith("<<") and sequence.endswith(">>") and payload:
+        # Only virtual events carry payload
+        if sequence.startswith("<<") and sequence.endswith(">>") and payload is not None:
             import json
+            import base64
             import datetime as _dt
             import enum as _enum
 
-            def _default(o):
-                # Serialize common non-JSON types used in UI payloads
+            def _default(o: Any):
                 if isinstance(o, (_dt.date, _dt.datetime, _dt.time)):
                     return o.isoformat()
                 if isinstance(o, _enum.Enum):
                     return getattr(o, "value", o.name)
                 if isinstance(o, set):
                     return list(o)
-                # Last resort string representation to avoid hard failures in UI callbacks
                 return str(o)
 
-            self.widget.event_generate(
-                sequence, data=json.dumps(payload, default=_default), when=when
-            )
+            # JSON -> base64 (avoid Tcl parsing of [, $, \, etc.)
+            json_bytes = json.dumps(payload, default=_default).encode("utf-8")
+            b64 = base64.b64encode(json_bytes).decode("ascii")
+            self.widget.event_generate(sequence, data="b64:" + b64, when=when)
         else:
             self.widget.event_generate(sequence, when=when)
 

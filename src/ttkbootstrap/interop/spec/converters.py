@@ -29,11 +29,10 @@ event payload.
 
 from __future__ import annotations
 
+import base64
 import json
 import re
 from datetime import datetime, timezone
-from json import JSONDecodeError
-
 from typing import Any
 
 
@@ -50,20 +49,55 @@ def convert_event_state(state: str | int) -> int | str:
         return state
 
 
-def convert_event_data(data: str):
-    """Best-effort JSON decode with Tcl backslash-escape cleanup."""
-    # try plain JSON first
-    try:
-        return json.loads(data)
-    except (TypeError, JSONDecodeError):
-        pass
-    # strip Tcl backslash-escapes for { } " \ and space, then parse
+def convert_event_data(data: Any) -> Any:
+    """Decode event.data into Python objects.
+
+    Supports:
+      - "b64:<...>" payloads (base64-encoded JSON) to avoid Tcl parsing issues
+      - Plain JSON strings
+      - JSON strings with Tcl backslash-escapes for { } " and space
+      - Already-parsed Python objects (dict/list/bool/number)
+      - None -> {}
+    """
+    if data is None:
+        return {}
+
+    # If Tk ever gives bytes, normalize to str
+    if isinstance(data, (bytes, bytearray)):
+        data = data.decode("utf-8", "replace")
+
+    # Already a Python object? (defensive)
+    if isinstance(data, (dict, list, int, float, bool)):
+        return data
+
     if isinstance(data, str):
-        cleaned = re.sub(r'\\([{}"\\ ])', r'\1', data)
+        # 1) Base64-tagged JSON
+        if data.startswith("b64:"):
+            b64 = data[4:]
+            try:
+                raw = base64.b64decode(b64, validate=True)
+                return json.loads(raw.decode("utf-8"))
+            except Exception:
+                # Last-ditch: lenient decode + parse
+                try:
+                    return json.loads(base64.b64decode(b64).decode("utf-8", "replace"))
+                except Exception:
+                    return {}
+
+        # 2) Plain JSON
+        try:
+            return json.loads(data)
+        except Exception:
+            pass
+
+        # 3) JSON with Tcl backslash-escapes -> unescape then parse
+        cleaned = re.sub(r'\\([{}"\\ ])', r"\1", data)
         try:
             return json.loads(cleaned)
-        except JSONDecodeError:
+        except Exception:
             return {}
+
+    # Unknown type -> empty object
     return {}
 
 
