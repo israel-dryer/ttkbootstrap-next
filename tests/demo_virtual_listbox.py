@@ -1,7 +1,6 @@
 from ttkbootstrap import App, Pack, Button, VirtualList
 from ttkbootstrap.datasource import MemoryDataSource
 
-# TODO create a label variant for list-radio and list-checkbox to enable faster state selection changes
 records = [{"id": i, "text": f"Item {i}", "caption": "Caption", "icon": "apple"} for i in range(100)]
 
 with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
