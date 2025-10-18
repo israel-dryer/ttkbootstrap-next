@@ -21,8 +21,8 @@ from ttkbootstrap.interop.runtime.event_types import (
     WheelEvent,
     WidgetEvent,
 )
-from ttkbootstrap.interop.spec.subs import Sub, event_subs
 from ttkbootstrap.interop.spec.profiles import fields_for, pattern_for
+from ttkbootstrap.interop.spec.subs import Sub, event_subs
 
 # Build a fast lookup: field name -> Sub (to access its converter)
 _SUB_BY_NAME: Dict[str, Sub] = {s.name: s for s in event_subs}
@@ -35,7 +35,7 @@ _CLASS_BY_PATTERN: Dict[str, Type[BaseEvent]] = {
     "wheel": WheelEvent,
     "configure": ConfigureEvent,
     "widget": WidgetEvent,
-    "virtual": WidgetEvent,   # virtuals use the simple WidgetEvent shape
+    "virtual": WidgetEvent,  # virtuals use the simple WidgetEvent shape
 }
 
 
