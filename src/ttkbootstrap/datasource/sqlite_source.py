@@ -1,18 +1,18 @@
 import csv
 import sqlite3
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Sequence
 
 from ttkbootstrap.types import Primitive
 
 
-class DataSource:
+class SqliteDataSource:
     """
-    In-memory SQLite-backed data manager with pagination, sorting, filtering,
+    SQLite-backed data manager with pagination, sorting, filtering,
     inferred schema, and full CRUD support.
     """
 
-    def __init__(self, page_size: int = 10):
-        self.conn = sqlite3.connect(":memory:")
+    def __init__(self, name: str = ":memory:", page_size: int = 10):
+        self.conn = sqlite3.connect(name)
         self.conn.row_factory = sqlite3.Row
         self.page_size = page_size
         self._table = "records"
@@ -31,7 +31,7 @@ class DataSource:
             return "BLOB"
         return "TEXT"
 
-    def set_data(self, records: Union[list[Primitive], list[dict[str, Any]]]):
+    def set_data(self, records: Union[Sequence[Primitive], Sequence[dict[str, Any]]]):
         if not records:
             return self
 
