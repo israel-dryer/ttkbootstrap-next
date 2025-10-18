@@ -176,6 +176,7 @@ class Event(StrEnum):
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
     DELETE = "<<Delete>>"
+    ITEM_CLICK = "<<Tkb-ItemClick>>"
 
     # --------------------------------------------------------------------- #
     # Radiobutton
