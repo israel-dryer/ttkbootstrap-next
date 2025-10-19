@@ -1,4 +1,4 @@
-from typing import Any, Callable, Union, Literal
+from typing import Any, Callable, Literal, Union
 
 from ttkbootstrap.datasource.memory_source import MemoryDataSource
 from ttkbootstrap.datasource.types import DataSourceProtocol
@@ -67,9 +67,21 @@ class VirtualList(Pack):
         if not self._scrollbar_visible:
             self._scrollbar.hide()
 
-        self._canvas_frame.on(Event.SELECTED).listen(lambda x: self._on_select(x.data['id']))
-        self._canvas_frame.on(Event.DESELECTED).listen(lambda x: self._on_deselected(x.data['id']))
-        self._canvas_frame.on(Event.DELETE).listen(lambda x: self._on_deleted(x.data['id']))
+        # Event streams - persist and expose to enable cancellable events
+        self._deleting_stream = self._hub.on(Event.ITEM_DELETING)
+        self._deleting_stream.listen(self._on_deleting)
+
+        self._inserting_stream = self._hub.on(Event.ITEM_INSERTING)
+        self._inserting_stream.listen(self._on_inserting)
+
+        self._updating_stream = self._hub.on(Event.ITEM_UPDATING)
+        self._updating_stream.listen(self._on_updating)
+
+        self._selecting_stream = self._hub.on(Event.ITEM_SELECTING)
+        self._selecting_stream.listen(self._on_selecting)
+
+        self._deselecting_stream = self._hub.on(Event.ITEM_DESELECTING)
+        self._deselecting_stream.listen(self._on_deselecting)
 
         # Fixed row pool
         for _ in range(VISIBLE_ROWS):
@@ -83,27 +95,13 @@ class VirtualList(Pack):
         self.on(Event.MOUSE_WHEEL, scope="all").listen(self._on_mousewheel)
         self._update_rows()
 
-    # ------ Event handlers ------
+    # ----- Helpers -----
 
-    def on_selection_changed(self):
-        """Convenience alias for changed event"""
-        return self._canvas_frame.on(Event.CHANGED)
+    @property
+    def _hub(self):
+        """Convenience alias used for emitting events on this object"""
 
-    def on_item_selected(self):
-        """Convenience alias for selected stream"""
-        return self._canvas_frame.on(Event.SELECTED)
-
-    def on_item_deselected(self):
-        """Convenience alias for deselected stream"""
-        return self._canvas_frame.on(Event.DESELECTED)
-
-    def on_item_deleted(self):
-        """Convenience alias for deleted stream"""
-        return self._canvas_frame.on(Event.DELETE)
-
-    def on_item_click(self):
-        """Convenience alias for the item click stream"""
-        return self._canvas_frame.on(Event.ITEM_CLICK)
+        return self._canvas_frame
 
     @classmethod
     def _default_row_factory(cls, parent, **kwargs):
@@ -119,6 +117,8 @@ class VirtualList(Pack):
             self._start_index = 0
         elif self._start_index > max_start:
             self._start_index = max_start
+
+    # ----- Event handlers -----
 
     def _on_scroll(self, *args):
         # Keep counts fresh
@@ -140,6 +140,56 @@ class VirtualList(Pack):
         self._start_index += step
         self._clamp_indices()
         self._update_rows()
+
+    def _on_deselecting(self, event: Any):
+        self._datasource.unselect_record(event.data['id'])
+        self._update_rows()
+        selected = self._datasource.get_selected()
+        self._hub.emit(Event.ITEM_DESELECTED, data=event.data)
+        self._hub.emit(Event.CHANGED, selected=selected)
+
+    def _on_selecting(self, event: Any):
+        if self._options.get('selection_mode') == 'single':
+            self._datasource.unselect_all()
+            self._datasource.select_record(event.data['id'])
+        else:
+            self._datasource.select_record(event.data['id'])
+        self._update_rows()
+        selected = self._datasource.get_selected()
+        self._hub.emit(Event.ITEM_SELECTED, data=event.data)
+        self._hub.emit(Event.SELECTION_CHANGED, selected=selected)
+
+    def _on_deleting(self, event: Any):
+        try:
+            self._datasource.delete_record(event.data['id'])
+            self._update_rows()
+            self._hub.emit(Event.ITEM_DELETED, data=event.data)
+        except Exception as error:
+            self._hub.emit(Event.ITEM_DELETE_FAILED, data={**event.data, "reason": error.args[0]})
+
+    def _on_inserting(self, event: Any):
+        try:
+            record = event.data
+            record_id = self._datasource.create_record(record)
+            record['id'] = record_id
+            self._update_rows()
+            self._hub.emit(Event.ITEM_INSERTED, data=record)
+        except Exception as error:
+            self._hub.emit(Event.ITEM_INSERT_FAILED, data={**event.data, "reason": error.args[0]})
+
+    def _on_updating(self, event: Any):
+        try:
+            updated = self._datasource.update_record(event.data['id'], event.data.updates)
+            if updated:
+                self._update_rows()
+                self._hub.emit(Event.ITEM_UPDATED, data=event.data)
+            else:
+                self._hub.emit(
+                    Event.ITEM_UPDATE_FAILED, data={**event.data, "reason": "Datasource rejected the update."})
+        except Exception as error:
+            self._hub.emit(Event.ITEM_UPDATE_FAILED, data={**event.data, "reason": error.args[0]})
+
+    # ----- Data ------
 
     def _update_rows(self):
         self._clamp_indices()
@@ -170,23 +220,110 @@ class VirtualList(Pack):
         last = min(last, 1.0)
         self._scrollbar.set(first, last)
 
-    def _on_deselected(self, record_id):
-        self._datasource.unselect_record(record_id)
+    # ----- Event streams -----
+
+    def on_item_selecting(self):
+        """Convenience alias for item selecting stream"""
+        return self._selecting_stream
+
+    def on_item_selected(self):
+        """Convenience alias for item selected stream"""
+        return self._hub.on(Event.ITEM_SELECTED)
+
+    def on_selection_changed(self):
+        """Convenience alias for selection changed stream"""
+        return self._hub.on(Event.SELECTION_CHANGED)
+
+    def on_item_deselecting(self):
+        """Convenience alias for item deselecting stream"""
+        return self._deselecting_stream
+
+    def on_item_deselected(self):
+        """Convenience alias for item deselected stream"""
+        return self._hub.on(Event.ITEM_DESELECTED)
+
+    def on_item_deleting(self):
+        """Convenience alias for item deleting stream"""
+        return self._deleting_stream
+
+    def on_item_deleted(self):
+        """Convenience alias for item deleted stream"""
+        return self._hub.on(Event.ITEM_DELETED)
+
+    def on_item_delete_failed(self):
+        """Convenience alias for item delete failed stream"""
+        return self._hub.on(Event.ITEM_DELETE_FAILED)
+
+    def on_item_click(self):
+        """Convenience alias for the item click stream"""
+        return self._hub.on(Event.ITEM_CLICK)
+
+    def on_item_inserting(self):
+        """Convenience alias for item inserting stream"""
+        return self._inserting_stream
+
+    def on_item_inserted(self):
+        """Convenience alias for item inserted stream"""
+        return self._hub.on(Event.ITEM_INSERTED)
+
+    def on_item_insert_failed(self):
+        """Convenience alias for item insert failed stream"""
+        return self._hub.on(Event.ITEM_INSERT_FAILED)
+
+    def on_item_updating(self):
+        """Convenience alias for item updating stream"""
+        return self._updating_stream
+
+    def on_item_updated(self):
+        """Convenience alias for item updated stream"""
+        return self._hub.on(Event.ITEM_UPDATED)
+
+    def on_item_update_failed(self):
+        """Convenience alias for item update failed stream"""
+        return self._hub.on(Event.ITEM_UPDATE_FAILED)
+
+    # ----- Actions -----
+
+    def reload(self):
+        """Reload from datasource and redraw the rows"""
+        self._datasource.reload()
+        self._update_rows()
+
+    # ----- Mutators -----
+
+    def delete_item(self, key: str):
+        """Delete item by key"""
+        self._hub.emit(Event.ITEM_DELETING, data={'id': key})
+
+    def insert_item(self, value: dict):
+        """Insert new item"""
+        self._hub.emit(Event.ITEM_INSERTING, data=value)
+
+    def update_item(self, key: str, changes: dict):
+        """Update item by key"""
+        self._hub.emit(Event.ITEM_UPDATING, data={"id": key, "changes": changes})
+
+    # ----- Query -----
+
+    def get_item(self, key: str):
+        return self._datasource.read_record(key)
+
+    def get_items(self, keys: list[str]):
+        return list(map(self._datasource.read_record, keys))
+
+    # ----- Selection -----
+
+    def select_item(self, key: str):
+        """Select item by key"""
+        self._hub.emit(Event.ITEM_SELECTING, data={"id": key})
+
+    def deselect_item(self, key: str):
+        """Deselect item by key"""
+        self._hub.emit(Event.ITEM_DESELECTING, data={"id": key})
+
+    def unselect_all(self):
+        """Unselect all items"""
+        self._datasource.unselect_all()
         self._update_rows()
         selected = self._datasource.get_selected()
-        self._canvas_frame.emit(Event.CHANGED, selected=selected)
-
-    def _on_select(self, record_id):
-        if self._options.get('selection_mode') == 'single':
-            self._datasource.unselect_all()
-            self._datasource.select_record(record_id)
-        else:
-            self._datasource.select_record(record_id)
-        self._update_rows()
-        selected = self._datasource.get_selected()
-
-        self._canvas_frame.emit(Event.CHANGED, selected=selected)
-
-    def _on_deleted(self, record_id):
-        self._datasource.delete_record(record_id)
-        self._update_rows()
+        self._hub.emit(Event.CHANGED, selected=selected)
