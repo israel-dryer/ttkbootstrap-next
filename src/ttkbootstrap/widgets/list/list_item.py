@@ -223,15 +223,15 @@ class ListItem(Pack):
 
         is_selected = bool(self.selected or False)
         if is_selected:
-            self.parent.emit(Event.DESELECTED, data=self.data)
+            self.parent.emit(Event.ITEM_DESELECTING, data=self.data)
             return False
         else:
-            self.parent.emit(Event.SELECTED, data=self.data)
+            self.parent.emit(Event.ITEM_SELECTING, data=self.data)
             return True
 
     def delete(self):
         """Unpack this widget and notify subscribers to handle delete action."""
-        self.parent.emit(Event.DELETE, data=self.data)
+        self.parent.emit(Event.ITEM_DELETING, data=self.data)
 
     def _update_selection(self, selected: bool = False):
         """Apply selection state atomically (styles + icon) with null guards."""
@@ -258,7 +258,7 @@ class ListItem(Pack):
             for w in list(self._composite_widgets):
                 try:
                     w.state(['!selected'])
-                    w.emit(Event.DESELECTED)
+                    w.emit(Event.COMPOSITE_DESELECT)
                 except Exception:
                     pass
             # keep a remembered icon so later comparisons are cheap and safe
@@ -296,7 +296,7 @@ class ListItem(Pack):
                 pass
         for w in list(self._composite_widgets):
             try:
-                w.emit(Event.SELECTED if selected else Event.DESELECTED)
+                w.emit(Event.COMPOSITE_SELECT if selected else Event.COMPOSITE_DESELECT)
             except Exception:
                 pass
 
