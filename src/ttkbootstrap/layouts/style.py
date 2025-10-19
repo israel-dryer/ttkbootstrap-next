@@ -40,14 +40,16 @@ def build_list_frame_style(b: FrameStyleBuilder):
     background_pressed = b.elevate(background, 2)
     background_selected = b.color(b.options("select_background"), background)
     background_selected_hover = b.hover(background_selected)
-    b.style_configure(ttk_style, background=background)
+    b.style_configure(ttk_style, background=background, relief='raised', darkcolor='', lightcolor='')
     b.style_map(
         ttk_style,
+        darkcolor=[('focus', b.on_color(background))],
+        lightcolor=[('focus', b.on_color(background))],
         background=[
             ('selected hover', background_selected_hover),
             ('selected', background_selected),
             ('pressed', background_pressed),
-            ('hover', background_hover)
+            ('hover', background_hover),
         ])
 
 
