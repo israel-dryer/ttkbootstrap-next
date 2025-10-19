@@ -176,7 +176,37 @@ class Event(StrEnum):
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
     DELETE = "<<Delete>>"
+    SELECTION_CHANGED = "<<Tkb-SelectionChanged>>"
+
+    # --------------------------------------------------------------------- #
+    # Composite Widgets
+    # --------------------------------------------------------------------- #
+
+    COMPOSITE_SELECT = "<<Tkb-CompositeSelect>>"
+    COMPOSITE_DESELECT = "<<Tkb-CompositeDeselect>>"
+
+    # --------------------------------------------------------------------- #
+    # Items (list, etc.)
+    # --------------------------------------------------------------------- #
     ITEM_CLICK = "<<Tkb-ItemClick>>"
+
+    ITEM_SELECTING = "<<Tkb-ItemSelecting>>"
+    ITEM_SELECTED = "<<Tkb-ItemSelected>>"
+
+    ITEM_DESELECTING = "<<Tkb-ItemDeselecting>>"
+    ITEM_DESELECTED = "<<Tkb-ItemDeselected>>"
+
+    ITEM_DELETING = "<<Tkb-ItemDeleting>>"
+    ITEM_DELETED = "<<Tkb-ItemDeleted>>"
+    ITEM_DELETE_FAILED = "<<Tkb-ItemDeleteFailed>>"
+
+    ITEM_UPDATING = "<<Tkb-ItemUpdating>>"
+    ITEM_UPDATED = "<<Tkb-ItemUpdated>>"
+    ITEM_UPDATE_FAILED = "<<Tkb-ItemUpdateFailed>>"
+
+    ITEM_INSERTING = "<<Tkb-ItemInserting>>"
+    ITEM_INSERTED = "<<Tkb-ItemInserted>>"
+    ITEM_INSERT_FAILED = "<<Tkb-ItemInsertFailed>>"
 
     # --------------------------------------------------------------------- #
     # Radiobutton
@@ -194,6 +224,7 @@ class Event(StrEnum):
     INPUT_METHOD_CHANGED = "<<IMChanged>>"
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
     STATE_CHANGED = "<<StateChanged>>"
+
     TOGGLE = "<<Toggle>>"
 
     # --------------------------------------------------------------------- #
