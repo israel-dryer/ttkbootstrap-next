@@ -1,37 +1,38 @@
-"""
-interop.runtime.binding
------------------------
+"""ttkbootstrap interop: runtime binding utilities.
 
-BindingMixin centralizes event binding and emission for widgets.
+This module centralizes Tk/ttk event binding with a small FRP-style Stream API.
 
-Features
---------
-- Wraps Tk's `bind`, `bind_class`, and `bind_all` with ttkbootstrap integration.
-- Uses per-event substitution strings (`event_substring`), so Tcl only expands
-  the fields each event type actually needs.
-- Braces `%d` substitutions as `{%d}` so JSON payloads passed via
-  `event_generate -data` are not split by Tcl into multiple arguments.
-- Provides `.emit()` to programmatically generate events, including
-  JSON-encoded payloads for virtual events.
-- Tracks registered callbacks and func_ids for safe rebinding and cleanup.
+The module installs a single Tk binding per (scope, sequence) and multiplexes
+to subscribers. It also provides helpers to emit virtual events with JSON
+payloads and to manage rebinding safely.
 
-New
----
-- Stream API:
-    * `.on(event, scope=...) -> Stream` (lazy pipeline; no Tk bind yet)
-    * Operators: `.map()`, `.filter()`, `.tap()` (return Stream)
-    * Terminals: `.listen()`, `.then_stop()`, `.then_stop_when()` (return Subscription)
-- `scope` may be:
-    * "widget" (default) — bind to this widget (uses `bind`)
-    * "all"             — bind to the application (uses `bind_all`)
-    * "<TkClassName>"   — bind to a Tk class, e.g. "TEntry" (uses `bind_class`)
+Features:
+  * Wraps Tk's `bind`, `bind_class`, and `bind_all` with ttkbootstrap integration.
+  * Uses per-event substitution strings (`event_substring`) so Tcl only expands
+    the fields each event type needs.
+  * Braces `%d` substitutions as `{%d}` so JSON payloads in `event_generate -data`
+    are not split by Tcl.
+  * `.emit()` to programmatically generate events (virtual events carry payloads).
+  * Tracks callbacks/func_ids for safe rebinding and cleanup.
+  * Stream API with composition operators and Tk/domain short-circuit semantics.
+
+Streams:
+  * on(event, scope=...) -> Stream
+  * Operators (return Stream): map, filter, skip_when, tap, debounce, throttle,
+    cancel_when  (domain veto for pre/ING events)
+  * Terminals (return Subscription): listen, then_stop, then_stop_when
+
+Scopes:
+  * "widget" (default) — bind to this widget
+  * "all"             — bind application-wide
+  * "<TkClassName>"   — bind to a Tk class (e.g., "TEntry")
 """
 
 from __future__ import annotations
 
 import weakref
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic, Literal, Union, Mapping
+from typing import Any, Callable, Dict, Generic, List, Literal, Mapping, Optional, TypeVar, Union
 
 from ttkbootstrap.events import EventType
 from ttkbootstrap.interop.runtime.commands import event_callback_wrapper
@@ -49,7 +50,8 @@ When = Literal["now", "tail", "head", "mark"]
 
 # --------------------------------------------------------------------- timing
 class _TkScheduler:
-    """Small adapter around widget.after/after_cancel for time-based operators."""
+    """Adapter around `widget.after`/`after_cancel` for time-based operators."""
+
     __slots__ = ("_w",)
 
     def __init__(self, widget) -> None:
@@ -70,7 +72,7 @@ class _TkScheduler:
 
 
 class Subscription:
-    """Handle returned by Stream terminals; call `.unlisten()` to detach."""
+    """Disposable handle for a stream listener."""
 
     __slots__ = ("_cancel", "_done")
 
@@ -92,74 +94,110 @@ class Subscription:
 
 
 class Stream(Generic[T]):
-    """
-    Minimal push-stream with composition + terminals.
+    """Minimal push-stream with composition and terminals.
 
-    Operators (return Stream; composition only):
-      - map(f): transform values
-      - filter(pred): pass only matching values
-      - tap(fn): run side-effects and pass original value through
-
-    Terminals (return Subscription; these CREATE the Tk binding):
-      - listen(fn): subscribe a handler (its return may be 'break')
-      - then_stop(): subscribe a handler that always returns 'break'
-      - then_stop_when(pred): subscribe a handler that returns 'break' when pred(value) is True
+    Notes:
+        - Subscribers run in descending priority (higher first).
+        - Returning `"break"` short-circuits later subscribers on this stream
+          and signals Tk to stop propagation.
+        - `cancel_when` is for domain veto on pre/ING events; `then_stop`
+          controls raw Tk propagation.
     """
 
     __slots__ = ("_subs", "_on_empty", "_sched")
 
-    def __init__(self, scheduler: "_TkScheduler | None" = None) -> None:
-        self._subs: List[Callable[[T], Any]] = []
+    def __init__(self, scheduler: Optional[_TkScheduler] = None):
+        # store subscribers as (priority, fn)
+        self._subs: List[tuple[int, Callable[[T], Any]]] = []
         self._on_empty: Optional[Callable[[], None]] = None
         self._sched = scheduler
 
     # ---------------- terminals ----------------------------------------------
 
-    def listen(self, fn: Callable[[T], Any]) -> Subscription:
-        """Subscribe a handler for each value (this CREATES the Tk binding)."""
-        self._subs.append(fn)
+    def listen(self, fn: Callable[[T], Any], *, priority: int = 0) -> "Subscription":
+        """Subscribe a handler.
 
-        def _cancel() -> None:
-            if fn in self._subs:
-                self._subs.remove(fn)
-            if not self._subs and self._on_empty is not None:
-                cb = self._on_empty  # narrow Optional for linters
-                cb()  # type: ignore[misc]
+        Args:
+            fn: Handler function.
+            priority: Higher runs earlier (default 0).
+
+        Returns:
+            Subscription: Disposable handle.
+        """
+        pair = (priority, fn)
+        self._subs.append(pair)
+        # keep highest priority first
+        self._subs.sort(key=lambda p: p[0], reverse=True)
+
+        def _cancel():
+            try:
+                self._subs.remove(pair)
+            finally:
+                if not self._subs and self._on_empty:
+                    self._on_empty()
 
         return Subscription(_cancel)
 
-        # ergonomic aliases available via external assignment if desired:
-        # subscribe = listen
-        # track = listen
-        # sub = listen
-
     def then_stop(self) -> Subscription:
-        """Subscribe a handler that always stops Tk propagation (returns 'break')."""
-        return self.listen(lambda _v: "break")
+        """Stop Tk propagation unconditionally (always returns 'break')."""
+        return self.then_stop_when(lambda _v: True)
 
     def then_stop_when(self, pred: Callable[[T], bool]) -> Subscription:
-        """Subscribe a handler that stops Tk propagation when predicate is True."""
+        """Stop Tk propagation when predicate is true."""
         return self.listen(lambda v: "break" if pred(v) else None)
 
     # ---------------- operators ----------------------------------------------
 
     def map(self, f: Callable[[T], U]) -> "Stream[U]":
+        """Transform each value via `f` and emit the result."""
         out: Stream[U] = Stream(self._sched)
         sub = self.listen(lambda v: out._next(f(v)))
         out._on_empty = lambda: sub.unlisten()
         return out
 
     def filter(self, pred: Callable[[T], bool]) -> "Stream[T]":
+        """Emit only values for which `pred(value)` is True."""
         out: Stream[T] = Stream(self._sched)
         sub = self.listen(lambda v: out._next(v) if pred(v) else None)
         out._on_empty = lambda: sub.unlisten()
         return out
 
     def tap(self, fn: Callable[[T], Any]) -> "Stream[T]":
+        """Invoke `fn(value)` for side-effects; forward the original value."""
         out: Stream[T] = Stream(self._sched)
         sub = self.listen(lambda v: (fn(v), out._next(v)))
         out._on_empty = lambda: sub.unlisten()
         return out
+
+    def cancel_when(self, predicate: Callable[[T], bool], *, priority: int = 100) -> "Stream[T]":
+        """Chainable domain veto for pre/ING streams.
+
+        Installs a high-priority guard that evaluates `predicate(payload)`,
+        marks the event vetoed, and returns `"break"` so later listeners (e.g.,
+        the mutator) do not run. On predicate errors, fails open (no cancel).
+
+        Args:
+            predicate: Function receiving event.
+            priority: Guard priority (default 100).
+
+        Returns:
+            Stream[T]: The same stream to allow fluent chaining.
+        """
+
+        def _guard(ev):
+            try:
+                if predicate(ev):  # <— pass event, not payload
+                    payload = ev.data if hasattr(ev, "data") else ev
+                    if hasattr(ev, "veto"):
+                        ev.veto()
+                    elif isinstance(payload, dict):
+                        payload["_veto"] = True
+                    return "break"
+            except Exception:
+                return None
+
+        self.listen(_guard, priority=priority)
+        return self
 
     def delay(self, ms: int) -> "Stream[T]":
         """Re-emit each value after `ms` milliseconds."""
@@ -202,10 +240,7 @@ class Stream(Generic[T]):
         return out
 
     def debounce(self, ms: int) -> "Stream[T]":
-        """
-        Emit after no new values arrive for `ms` milliseconds.
-        Useful for keystroke-driven validation/formatting.
-        """
+        """Emit after no new values arrive for `ms` ms (e.g., keystrokes)."""
         out: Stream[T] = Stream(self._sched)
         last: Dict[str, Any] = {"value": None, "token": None}
 
@@ -234,11 +269,7 @@ class Stream(Generic[T]):
         return out
 
     def throttle(self, ms: int, *, leading: bool = True, trailing: bool = True) -> "Stream[T]":
-        """
-        Emit at most once every `ms` ms.
-        - leading=True: emit immediately on first event in window.
-        - trailing=True: emit once more at the end with the last value.
-        """
+        """Emit at most once every `ms` ms, with optional leading/trailing emits."""
         out: Stream[T] = Stream(self._sched)
         state = {"open": True, "pending": False, "last": None, "timer": None}
 
@@ -256,7 +287,6 @@ class Stream(Generic[T]):
                 if leading:
                     out._next(v)
                 else:
-                    # reserve trailing if not leading
                     state["pending"] = True
                     state["last"] = v
                 state["open"] = False
@@ -279,24 +309,27 @@ class Stream(Generic[T]):
     # ---------------- internal -----------------------------------------------
 
     def _next(self, v: T) -> None:
-        for fn in list(self._subs):
+        """Push values downstream (operators ignore 'break')."""
+        for _prio, fn in list(self._subs):
             fn(v)
 
     # ---------- operator utilities (for cleanup and scheduling) ---------------
     def _chain(self, attach: Callable[[Callable[[T], Any]], "Subscription"], on_value: Callable[[T], Any]) -> "Stream":
+        """Internal: helper to wire operator lifecycles (unused in most paths)."""
         out: Stream = Stream(self._sched)
         sub = attach(lambda v: on_value(v))
         out._on_empty = lambda: sub.unlisten()
         return out
 
     def _schedule(self, ms: int, fn: Callable[[], None]):
+        """Internal: schedule a callback after `ms` ms."""
         if not self._sched:
-            # Fallback: run immediately if no scheduler (shouldn't happen for Tk streams)
             fn()
             return None
         return self._sched.call_later(ms, fn)
 
     def _idle(self, fn: Callable[[], None]):
+        """Internal: schedule a callback at Tk idle."""
         if not self._sched:
             fn()
             return None
@@ -311,22 +344,17 @@ Scope = Union[Literal["widget", "all"], str]  # str = Tk class name like "TEntry
 
 
 class _EventHub:
-    """
-    One dispatcher per (scope, sequence).
-
-    Reuses BindingMixin.bind/bind_class/bind_all so per-event substitution and
-    func_id tracking remain exactly as in the existing system.
-    """
+    """Dispatcher that multiplexes a single Tk bind to stream subscribers."""
 
     __slots__ = ("_owner_ref", "_streams", "_func_ids")
 
     def __init__(self, mixin_owner: "BindingMixin") -> None:
         self._owner_ref = weakref.ref(mixin_owner)
-        # Key by (scope, sequence) so widget/class/all namespaces don't collide
         self._streams: Dict[tuple[str, str], Stream[Any]] = {}
         self._func_ids: Dict[tuple[str, str], str] = {}
 
     def on(self, sequence: str, scope: Scope) -> Stream[Any]:
+        """Return (and create if needed) the Stream for (scope, sequence)."""
         scope_key = self._scope_key(scope)
         key = (scope_key, sequence)
 
@@ -339,38 +367,29 @@ class _EventHub:
         self._streams[key] = s
 
         if owner is None:
-            # Owner is gone; return inert stream
             return s
 
-        # Single Tk binding → fan out to all listeners of this stream.
-        # IMPORTANT: if any listener returns "break", we return "break" to Tk.
         def _dispatcher(event: Any):
-            broke = False
-            for fn in list(s._subs):
+            for _prio, fn in list(s._subs):
                 try:
                     if fn(event) == "break":
-                        broke = True
+                        return "break"
                 except Exception:
-                    # Optional: log via your error bus; we avoid breaking the chain.
+                    # Optional: log
                     pass
-            return "break" if broke else None
+            return None
 
-        # Route to the correct underlying binder
         if scope_key == "widget":
             func_id = owner._bind_widget(sequence, _dispatcher, add=True, dedup=True)
         elif scope_key == "all":
             func_id = owner._bind_all(sequence, _dispatcher, add=True)
         else:
-            # scope_key is a Tk class name
             func_id = owner._bind_class(scope_key, sequence, _dispatcher, add=True)
 
         self._func_ids[key] = func_id
 
-        # Optional: remove our stream record when last listener goes away
         def _on_empty() -> None:
             # Keeping the dispatcher bound is cheap and avoids churn.
-            # If you want strict cleanup, you could unbind here by rebuilding
-            # the Tcl binding script without `func_id`.
             self._streams.pop(key, None)
 
         s._on_empty = _on_empty
@@ -383,7 +402,6 @@ class _EventHub:
             return "widget"
         if scope == "all":
             return "all"
-        # Otherwise assume it's a Tk class name like "TEntry"
         return str(scope)
 
 
@@ -393,7 +411,7 @@ class _EventHub:
 
 
 class BindingMixin:
-    """Mixin providing Tk event binding and emission helpers."""
+    """Mixin that provides Tk event binding, emission, and stream access."""
 
     widget: Widget
 
@@ -468,7 +486,7 @@ class BindingMixin:
     # ---------------------------------------------------------------- rebinders
 
     def _tcl_rebind_widget(self) -> None:
-        """Rebind all saved widget-level callbacks (e.g. after theme change)."""
+        """Rebind all saved widget-level callbacks (e.g., after theme change)."""
         for sequence, func_ids in self.__tcl_bound_events.items():
             for func_id in func_ids:
                 subs = event_substring(sequence).replace("%d", "{%d}")
@@ -493,7 +511,7 @@ class BindingMixin:
 
     # ---------------------------------------------------------------- emitters
 
-    # TODO this needs some protection againt massive payloads
+    # TODO this needs some protection against massive payloads
 
     def emit(
             self,
@@ -503,20 +521,15 @@ class BindingMixin:
             when: When = "now",
             **kwargs,
     ) -> None:
-        """
-        Programmatically generate a Tk event on this widget.
+        """Programmatically generate a Tk event on this widget.
 
-        Parameters
-        ----------
-        event : EventType
-            The event sequence (e.g., <<Invalid>>, <Return>).
-        data : dict | Any | None
-            Payload for virtual events (<<...>>). If a mapping, it's merged with **kwargs.
-            If a non-mapping (e.g., list), it's wrapped as {"data": data} and merged with **kwargs.
-        when : Literal["now","tail","head","mark"]
-            Scheduling of the generated event in the Tk event queue.
-        **kwargs
-            Additional key-values flattened/merged into the payload for virtual events.
+        Args:
+            event: Tk event sequence (e.g., '<<Invalid>>', '<Return>').
+            data: Payload for virtual events (<<...>>). If a mapping, it is
+                merged with ``**kwargs``. If non-mapping, it is wrapped as
+                ``{'data': data}`` and merged with ``**kwargs``.
+            when: Tk scheduling for the generated event ('now', 'tail', 'head', 'mark').
+            **kwargs: Additional key/values flattened into the payload for virtual events.
         """
         sequence = self._normalize(event)
 
@@ -562,45 +575,32 @@ class BindingMixin:
     # ============================================================= stream entry
 
     def _ensure_hub(self) -> _EventHub:
-        """Lazy-create (and cache) the event hub used by `on()`."""
+        """Create and cache the event hub on first use."""
         if self.__event_hub is None:
             self.__event_hub = _EventHub(self)
         return self.__event_hub
 
     def on(self, event: EventType, *, scope: Scope = "widget") -> Stream[Any]:
-        """
-        Create (or reuse) a Stream for the given Tk event sequence and scope.
+        """Return a multiplexed Stream for the given event and scope.
 
-        IMPORTANT
-        ---------
-        This method is **lazy**: it builds the pipeline but performs **no Tk
-        binding** until you call a **terminal operator**:
-            - `.listen(handler)`
-            - `.then_stop()`
-            - `.then_stop_when(predicate)`
+        Binding:
+            The first call to `.on(event, scope)` installs a single underlying
+            Tk binding for that (scope, sequence). All listeners are fanned out
+            from that dispatcher. If any listener returns `"break"`, propagation
+            stops for that event instance at both the stream and Tk levels.
 
-        Parameters
-        ----------
-        event : EventType
-            The event sequence (e.g., <<Change>>, <Return>, <KeyRelease>).
-        scope : "widget" | "all" | str (Tk class name)
-            "widget" (default) binds to this widget,
-            "all" binds to the application,
-            "<TkClassName>" binds to a Tk class, e.g. "TEntry".
+        Args:
+            event: Tk event sequence (e.g., '<<Change>>', '<Return>').
+            scope: One of "widget", "all", or a Tk class name like "TEntry".
 
-        Notes
-        -----
-        - A single underlying Tk `bind` is installed per (scope, sequence) and
-          multiplexes to all listeners of the returned Stream.
-        - Internally routes to `.bind`, `.bind_all`, or `.bind_class`.
-        - If any listener returns the string "break", the dispatcher returns
-          "break" to Tk and propagation stops for that event instance.
+        Returns:
+            Stream[Any]: Multiplexed stream for this (scope, sequence).
         """
         sequence = self._normalize(event)
         return self._ensure_hub().on(sequence, scope)
 
     def process_tasks(self) -> None:
-        """Pump Tk's event loop once: input, timers, idles, geometry, repaints."""
+        """Pump Tk's event loop once (input, timers, idles, geometry, repaints)."""
         try:
             self.widget.update()
         except Exception:
