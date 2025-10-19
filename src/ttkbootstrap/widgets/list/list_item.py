@@ -468,7 +468,7 @@ class ListItem(Pack):
 
     def update_data(self, record: dict | None):
         """Efficiently update row visuals only when values have changed."""
-        if record is None:
+        if record is None or '__empty__' in record:
             self.detach()
             return
 

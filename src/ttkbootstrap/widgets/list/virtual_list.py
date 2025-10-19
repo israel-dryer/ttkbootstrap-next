@@ -10,6 +10,8 @@ from ttkbootstrap.widgets.scrollbar import Scrollbar
 
 VISIBLE_ROWS = 20
 ROW_HEIGHT = 32
+OVERSCAN_ROWS = 2  # small buffer for smoother scroll/resizes
+EMPTY = {"__empty__": True, "id": "__empty__"}
 
 
 class VirtualList(Pack):
@@ -60,9 +62,13 @@ class VirtualList(Pack):
         self._rows: list[ListItem] = []
         self._start_index = 0
         self._total_rows = self._datasource.total_count()
+        self._visible_rows = VISIBLE_ROWS
+        self._row_height = ROW_HEIGHT
+        self._page_size = VISIBLE_ROWS + OVERSCAN_ROWS
 
         # Layout
         self._canvas_frame = Pack(parent=self).attach(fill="both", expand=True)
+        self._canvas_frame.on(Event.CONFIGURE).listen(self._on_resize)
         self._scrollbar = Scrollbar(parent=self, orient="vertical").attach(side="right", fill="y")
         if not self._scrollbar_visible:
             self._scrollbar.hide()
@@ -84,11 +90,8 @@ class VirtualList(Pack):
         self._deselecting_stream.listen(self._on_deselecting)
 
         # Fixed row pool
-        for _ in range(VISIBLE_ROWS):
-            row = self._row_factory(self._canvas_frame, **self._options)
-            # keep your original packing approach
-            row.widget.pack(fill="x")
-            self._rows.append(row)
+        self._ensure_row_pool(self._page_size)
+        self.schedule.after(0, self._remeasure_and_relayout)
 
         # Scrollbar binding
         self._scrollbar.widget.config(command=self._on_scroll)
@@ -108,11 +111,9 @@ class VirtualList(Pack):
         return ListItem(parent=parent, **kwargs)
 
     def _clamp_indices(self):
-        # Always refresh counts before computing indices
         self._total_rows = self._datasource.total_count()
-        # Max start index that still yields a full page (or 0 if dataset is small)
-        max_start = max(0, self._total_rows - VISIBLE_ROWS)
-        # Clamp to [0, max_start]
+        vr = max(1, self._visible_rows)
+        max_start = max(0, self._total_rows - vr)
         if self._start_index < 0:
             self._start_index = 0
         elif self._start_index > max_start:
@@ -121,21 +122,20 @@ class VirtualList(Pack):
     # ----- Event handlers -----
 
     def _on_scroll(self, *args):
-        # Keep counts fresh
         self._clamp_indices()
         if args and args[0] == "moveto":
             fraction = float(args[1])
-            max_start = max(0, self._total_rows - VISIBLE_ROWS)
+            max_start = max(0, self._total_rows - max(1, self._visible_rows))
             self._start_index = int(round(fraction * max_start))
         elif args and args[0] == "scroll":
-            steps = int(args[1])  # positive or negative
-            self._start_index += steps
-        # Final clamp, then paint
+            number = int(args[1])
+            what = args[2] if len(args) > 2 else "units"
+            step = self._visible_rows if what == "pages" else 1
+            self._start_index += number * step
         self._clamp_indices()
         self._update_rows()
 
     def _on_mousewheel(self, event):
-        # Windows: event.delta is ±120 multiples; macOS may be small increments
         step = -1 if event.delta > 0 else 1
         self._start_index += step
         self._clamp_indices()
@@ -189,16 +189,19 @@ class VirtualList(Pack):
         except Exception as error:
             self._hub.emit(Event.ITEM_UPDATE_FAILED, data={**event.data, "reason": error.args[0]})
 
-    # ----- Data ------
+    # ----- Helpers ------
 
     def _update_rows(self):
         self._clamp_indices()
-        page_data = self._datasource.get_page_from_index(self._start_index, VISIBLE_ROWS)
+        page_data = self._datasource.get_page_from_index(self._start_index, self._page_size)
 
         for i, row in enumerate(self._rows):
-            rec = page_data[i] if i < len(page_data) else None
-            if rec is not None:
-                # Compute the authoritative selection state
+            rec = page_data[i] if i < len(page_data) else EMPTY
+            # if ListItem ever gets pack_forget/destroyed elsewhere, make sure it's packed:
+            if not row.widget.winfo_manager():
+                row.widget.pack(fill="x")
+            # preserve selection flag like before
+            if rec is not EMPTY:
                 rid = rec.get('id')
                 if rid is not None and hasattr(self._datasource, 'is_selected'):
                     try:
@@ -207,18 +210,81 @@ class VirtualList(Pack):
                         sel = bool(rec.get('selected', False))
                 else:
                     sel = bool(rec.get('selected', False))
-
-                # Inject selection into record so ListItem.update_data() handles it once
                 rec = {**rec, 'selected': sel}
-
             row.update_data(rec)
 
-        # Scrollbar thumb (guard small/empty datasets)
-        denom = max(1, self._total_rows)  # avoid div/0
-        first = (self._start_index / denom) if self._total_rows > 0 else 0.0
-        last = ((self._start_index + VISIBLE_ROWS) / denom) if self._total_rows > 0 else 1.0
-        last = min(last, 1.0)
-        self._scrollbar.set(first, last)
+        total = max(1, self._total_rows)
+        first = (self._start_index / total) if self._total_rows > 0 else 0.0
+        last = ((self._start_index + max(1, self._visible_rows)) / total) if self._total_rows > 0 else 1.0
+        if last < first:
+            last = first
+        self._scrollbar.set(first, min(last, 1.0))
+
+    def _compute_sizes(self) -> tuple[int, int]:
+        try:
+            h = int(self._canvas_frame.widget.winfo_height())
+        except Exception:
+            h = 0
+
+        # Use the measured row height; guard against zero
+        rh = max(1, int(self._row_height) or ROW_HEIGHT)
+
+        visible = max(1, (h // rh) if h > 0 else self._visible_rows or VISIBLE_ROWS)
+        page = visible + OVERSCAN_ROWS
+        # Also cap by total rows so clamping math can reach the end exactly
+        total = max(0, self._datasource.total_count())
+        visible = min(visible, total) if total else visible
+        page = min(page, total) if total else page
+        return visible, page
+
+    def _on_resize(self, *_):
+        self._remeasure_and_relayout()
+
+    def _compute_page_size(self) -> int:
+        """Return how many rows fit in the viewport, with a small overscan."""
+        try:
+            h = int(self._canvas_frame.widget.winfo_height())
+        except Exception:
+            h = 0
+
+        # If height not yet laid out, fall back to previous or default
+        base = max(1, (h // self._row_height) if h > 0 else self._page_size or VISIBLE_ROWS)
+        return base + OVERSCAN_ROWS
+
+    def _ensure_row_pool(self, needed: int):
+        """Grow/shrink the pooled ListItem widgets to match the needed page size."""
+        # Grow
+        while len(self._rows) < needed:
+            row = self._row_factory(self._canvas_frame, **self._options)
+            row.widget.pack(fill="x")
+            self._rows.append(row)
+        # Shrink
+        while len(self._rows) > needed:
+            row = self._rows.pop()
+            row.destroy()
+
+    def _remeasure_and_relayout(self):
+        """Measure real row height, then recompute visible/page sizes and repaint."""
+        if not self._rows:
+            return
+        # Measure actual widget height; fall back to requested if 0 (not yet mapped)
+        rh = self._rows[0].widget.winfo_height()
+        if rh <= 1:
+            rh = self._rows[0].widget.winfo_reqheight()
+
+        # If ListItem adds internal padding/margins, this captures it.
+        if rh and rh != self._row_height:
+            self._row_height = rh
+
+        # Recompute sizes with the true row height
+        vis, page = self._compute_sizes()
+        size_changed = (vis != self._visible_rows) or (page != self._page_size)
+
+        # Always ensure pool >= page and repaint when height changed
+        self._visible_rows, self._page_size = vis, page
+        self._ensure_row_pool(self._page_size)
+        self._clamp_indices()
+        self._update_rows()
 
     # ----- Event streams -----
 
