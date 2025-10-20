@@ -34,13 +34,11 @@ class PasswordEntry(EntryField):
             initial_focus: If true, this widget will receive focus on display.
             justify: Text alignment within the entry.
             kind: The input type, either "entry" or "manualnumeric".
-            label: The label text shown above the input field.
-            message: The caption or helper message shown below the input field.
+            show_messages: If true (default), space is allocated for validation messages.
             padding: Inner padding around the content.
             show: Mask character to display (e.g., '•').
             take_focus: Whether the widget can receive focus.
             text_variable: Variable bound to the entry text.
-            value: The initial value of the input field.
             width: Widget width in characters.
             x_scroll_command: Callback to connect a horizontal scrollbar.
         """
@@ -49,7 +47,8 @@ class PasswordEntry(EntryField):
 
         super().__init__(value=value, label=label, message=message, show="•", **kwargs)
 
-        self.insert_addon(Button, name="visibility", icon="eye", compound="image")
+        self.insert_addon(Button, name="visibility", icon={"name": "eye", "state": {"pressed": "eye-slash"}},
+                          compound="image")
         self.show_visible_toggle(show_visible_toggle)
 
         addon = self.addons.get('visibility')
@@ -65,14 +64,12 @@ class PasswordEntry(EntryField):
         """Temporarily reveal the password when the eye icon is pressed."""
         if 'disabled' in self.entry_widget.state():
             return
-        self._visibility_addon.configure(icon='eye-slash')
         self.entry_widget.configure(show="")
 
     def _hide_password(self, _):
         """Hide the password when the eye icon is released."""
         if 'disabled' in self.entry_widget.state():
             return
-        self._visibility_addon.configure(icon='eye', compound="image")
         self.entry_widget.configure(show="•")
 
     def show_visible_toggle(self, value: bool):

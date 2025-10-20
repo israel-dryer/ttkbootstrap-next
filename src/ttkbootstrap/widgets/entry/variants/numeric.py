@@ -41,6 +41,7 @@ class NumericEntry(EntryField):
             kind: The input type, either "entry" or "manualnumeric".
             padding: Inner padding around the content.
             required: If True, the field must be non-empty to validate.
+            show_messages: If true (default), space is allocated for validation messages.
             show: Mask character to display (e.g., '*').
             take_focus: Whether the widget can receive focus.
             text_variable: Variable bound to the entry text.

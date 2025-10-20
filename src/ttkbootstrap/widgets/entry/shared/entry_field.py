@@ -26,6 +26,7 @@ class EntryField(Pack, EntryMixin, ABC):
             value: str | int | float = None,
             label: str = None,
             message: str = None,
+            show_messages: bool = True,
             required: bool = False,
             kind: str = "entry",
             **kwargs,
@@ -49,10 +50,12 @@ class EntryField(Pack, EntryMixin, ABC):
             width: Widget width in characters.
             x_scroll_command: Callback to connect a horizontal scrollbar.
         """
-        super().__init__(direction="vertical")
+        parent = kwargs.pop('parent', None)
+        super().__init__(direction="vertical", parent=parent)
 
         # standard composite state
         self._message_text = message
+        self._show_messages = show_messages
         self._theme = ColorTheme.instance()
         self._addons: dict[str, Union[Button, Label]] = {}
 
@@ -73,7 +76,10 @@ class EntryField(Pack, EntryMixin, ABC):
         label and self._label.attach(fill='x')
         self._field.attach(fill='x', expand=True)
         self._entry.attach(fill='both', expand=True)
-        self._message.attach(fill='x')  # always reserve space for messages
+
+        if self._show_messages:
+            self._message.attach(fill='x')
+
         self._entry.on(Event.INVALID).listen(self._show_error)
         self._entry.on(Event.VALID).listen(self._clear_error)
 

@@ -60,6 +60,7 @@ class EntryFieldOptions(EntryOptions, total=False):
         kind: The input type, either "entry" or "manualnumeric".
         label: The label text shown above the input field.
         message: The caption or helper message shown below the input field.
+        show_messages: If true (default), space is allocated for validation messages.
         parent: Widget
         padding: Inner padding around the content.
         show: Mask character to display (e.g., '*').
@@ -76,6 +77,7 @@ class EntryFieldOptions(EntryOptions, total=False):
     value: str | int | float
     label: str
     message: str
+    show_messages: bool
     required: bool
     kind: Literal['entry', 'manualnumeric']
 

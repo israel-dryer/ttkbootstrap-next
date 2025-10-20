@@ -32,6 +32,7 @@ class TextEntry(EntryField):
             kind: The input type, either "entry" or "manualnumeric".
             label: The label text shown above the input field.
             message: The caption or helper message shown below the input field.
+            show_messages: If true (default), space is allocated for validation messages.
             padding: Inner padding around the content.
             show: Mask character to display (e.g., '•').
             take_focus: Whether the widget can receive focus.
