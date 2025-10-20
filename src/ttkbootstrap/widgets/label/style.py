@@ -44,19 +44,18 @@ def build_default_label_style(b: LabelStyleBuilder):
     b.style_configure(ttk_style, background=background, foreground=foreground)
 
 
-@LabelStyleBuilder.register_variant("addon")
+@LabelStyleBuilder.register_variant("prefix")
+@LabelStyleBuilder.register_variant("suffix")
 def build_addon_label_style(b: LabelStyleBuilder):
     b.build_icon_assets()
     ttk_style = b.resolve_ttk_name()
-    surface_token = b.surface_token()
-
-    surface = b.color(surface_token)
+    surface = b.color(b.surface_token)
     border = b.border(surface)
     foreground = b.on_color(surface)
     normal = b.disabled()
 
     # button element images
-    normal_img = recolor_image(f'input-{b.options('variant')}', normal, border)
+    normal_img = recolor_image(f'input-{b.variant}', normal, border)
     img_padding = 8
 
     # button element
@@ -120,6 +119,8 @@ def build_list_label_style(b: LabelStyleBuilder):
 
 # ----- Icon builders ------
 
+@LabelStyleBuilder.register_variant("prefix-icon-builder")
+@LabelStyleBuilder.register_variant("suffix-icon-builder")
 @LabelStyleBuilder.register_variant("default-icon-builder")
 def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
     background = b.color(b.surface_token)
@@ -138,6 +139,7 @@ def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
     b.register_stateful_icon(icon, 'focus', foreground)
     b.register_stateful_icon(icon, 'disabled', foreground)
     b.map_stateful_icons()
+
 
 @LabelStyleBuilder.register_variant("list-icon-builder")
 def build_list_icon_assets(b: LabelStyleBuilder, icon: dict):
