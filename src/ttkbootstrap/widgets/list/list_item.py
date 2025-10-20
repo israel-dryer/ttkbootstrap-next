@@ -5,6 +5,7 @@ from ttkbootstrap.layouts import Pack
 from ttkbootstrap.widgets.badge import Badge
 from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.list.types import ListItemOptions
+from ttkbootstrap.widgets.separator import Separator
 
 if TYPE_CHECKING:
     from ttkbootstrap.widgets.button import Button
@@ -16,6 +17,7 @@ class ListItem(Pack):
 
         # properties
         self._data = {}
+        self._show_separator = kwargs.pop('show_separators', False)
         self._dragging_enabled = kwargs.get('dragging_enabled', False)
         self._deleting_enabled = kwargs.get('deleting_enabled', False)
         self._chevron_visible = kwargs.get('chevron_visible', False)
@@ -30,7 +32,7 @@ class ListItem(Pack):
 
         super().__init__(
             direction="horizontal",
-            variant='list',
+            variant='list-item-separated' if self._show_separator else 'list-item',
             take_focus=True,
             padding=(8, 4),
             builder=dict(select_background=self._selection_background),
@@ -59,6 +61,7 @@ class ListItem(Pack):
             builder=dict(select_background=self._selection_background)
         ).attach()
 
+        self._separator = Separator(parent=self)
         self._selection_widget: Optional[Label] = None
         self._icon_widget: Optional[Label] = None
         self._title_widget: Optional[Label] = None
@@ -76,8 +79,9 @@ class ListItem(Pack):
         # row-level pointer events
         self.on(Event.ENTER).listen(self._on_enter)
         self.on(Event.LEAVE).listen(self._on_leave)
-
-    # Configuration provided through the updater methods
+        self.on(Event.FOCUS).listen(self._on_focus_in)
+        self.on(Event.BLUR).listen(self._on_focus_out)
+        self.on(Event.KEYDOWN_SPACE).listen(self._on_mouse_down)
 
     @property
     def selected(self):
@@ -142,6 +146,52 @@ class ListItem(Pack):
                 widget.state(['!pressed'])
             except Exception:
                 pass
+
+    def _set_focus_state(self, focused: bool):
+        # Helper to apply a guaranteed transition to row + composites
+        targets = [self, *list(self._composite_widgets)]
+
+        for w in targets:
+            try:
+                # Force a real transition so ttk recomputes maps:
+                # clear then set, even if we "think" it's already that value.
+                w.state(['!focus'])
+                if focused:
+                    w.state(['focus'])
+            except Exception:
+                pass
+
+            # Optional nudge: re-assign current style to force re-resolve.
+            # (Useful if your style element caches and didn't invalidate.)
+            try:
+                style = w.cget('style')
+                if style:
+                    w.configure(style=style)
+            except Exception:
+                pass
+
+        # If you also key off 'active' as a hover surrogate, make sure we don't
+        # leave it set accidentally (focus visuals often compete with active).
+        if focused:
+            for w in targets:
+                try:
+                    w.state(['!active'])
+                except Exception:
+                    pass
+
+    def _on_focus_in(self, event):
+        self._set_focus_state(True)
+
+    def _on_focus_out(self, event):
+        # Keep focus styling if focus moved to a descendant of this row
+        related = getattr(event, 'related', None)
+        try:
+            if related is not None and str(related).startswith(str(self)):
+                return "break"
+        except Exception:
+            pass
+        self._set_focus_state(False)
+        return None
 
     # ---- properties ----
 
@@ -503,6 +553,8 @@ class ListItem(Pack):
         self._composite_widgets.add(widget)
         widget.on(Event.ENTER).listen(self._on_enter)
         widget.on(Event.LEAVE).listen(self._on_leave)
+        widget.on(Event.FOCUS).listen(self._on_focus_in)
+        widget.on(Event.BLUR).listen(self._on_focus_out)
 
         if not ignore_click:
             widget.on(Event.CLICK1_DOWN).listen(self._on_mouse_down)
@@ -512,7 +564,7 @@ class ListItem(Pack):
             current = set(self.state())
         except Exception:
             current = set()
-        for s in ('hover', 'pressed', 'selected'):
+        for s in ('hover', 'pressed', 'selected', 'focus'):
             if s in current:
                 try:
                     widget.state([s])

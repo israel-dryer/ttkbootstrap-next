@@ -108,10 +108,12 @@ def build_list_label_style(b: LabelStyleBuilder):
     b.style_map(
         ttk_style,
         background=[
+            ('focus selected', background_selected_hover),
             ('selected hover', background_selected_hover),
             ('selected', background_selected),
             ('pressed', background_pressed),
-            ('hover', background_hover)],
+            ('hover', background_hover),
+            ('focus', background_hover)],
         foreground=[('selected', foreground_selected)]
     )
 

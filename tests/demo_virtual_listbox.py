@@ -15,7 +15,9 @@ with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
             items=ds,
             dragging_enabled=True,
             deleting_enabled=True,
-            selection_mode="single",
+            show_separators=True,
+            selection_background='secondary',
+            selection_mode="multiple",
             selection_controls_visible=True,
             select_by_click=True,
         ).attach(fill="both", expand=True)

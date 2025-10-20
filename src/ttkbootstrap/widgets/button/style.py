@@ -294,10 +294,12 @@ def build_list_button_style(b: ButtonStyleBuilder):
         ttk_style,
         foreground=[],
         background=[
+            ('focus selected', background_selected_hover),
             ('selected hover', background_selected_hover),
             ('selected', background_selected),
             ('pressed', background_pressed),
-            ('hover', background_hover)])
+            ('hover', background_hover),
+            ('focus', background_hover)])
 
 
 # ----- Helpers -----

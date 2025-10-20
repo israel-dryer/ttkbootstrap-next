@@ -40,17 +40,69 @@ def build_list_frame_style(b: FrameStyleBuilder):
     background_pressed = b.elevate(background, 2)
     background_selected = b.color(b.options("select_background"), background)
     background_selected_hover = b.hover(background_selected)
-    b.style_configure(ttk_style, background=background, relief='raised', darkcolor='', lightcolor='')
+    b.style_configure(ttk_style, background=background)
     b.style_map(
         ttk_style,
-        darkcolor=[('focus', b.on_color(background))],
-        lightcolor=[('focus', b.on_color(background))],
         background=[
+            ('focus selected', background_selected_hover),
             ('selected hover', background_selected_hover),
             ('selected', background_selected),
             ('pressed', background_pressed),
             ('hover', background_hover),
+            ('focus', background_hover),
+            ((), background)
         ])
+
+
+@FrameStyleBuilder.register_variant("list-item")
+@FrameStyleBuilder.register_variant("list-item-separated")
+def build_list_item_style(b: FrameStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    background = b.color(b.surface_token)
+    background_hover = b.elevate(background, 1)
+    background_pressed = b.elevate(background, 2)
+    background_selected = b.color(b.options("select_background"), background)
+    background_selected_hover = b.hover(background_selected)
+    border_normal = b.border(background) if b.variant.endswith('separated') else background
+
+    normal_img = recolor_image('list-item-separated', background, border_normal)
+    hover_img = recolor_image('list-item-separated', background_hover, border_normal)
+    selected_img = recolor_image('list-item-separated', background_selected, border_normal)
+    selected_hover_img = recolor_image('list-item-separated', background_selected_hover, border_normal)
+    pressed_img = recolor_image('list-item-separated', background_pressed, border_normal)
+
+    focus_img = recolor_image('list-item-separated', background_hover, border_normal)
+    focus_hover_img = recolor_image('list-item-separated', background_hover, border_normal)
+    focus_selected_img = recolor_image('list-item-separated', background_selected_hover, border_normal)
+    focus_selected_hover_img = recolor_image('list-item-separated', background_selected_hover, border_normal)
+
+    # list element
+    b.style_create_element(
+        ElementImage(f'{ttk_style}.border', normal_img, sticky="nsew", border=8).state_specs(
+            [
+                # Most specific combos (first match wins)
+                ('focus selected', focus_selected_hover_img),
+                ('hover selected', selected_hover_img),
+                ('focus selected', focus_selected_img),
+                ('selected', selected_img),
+                ('focus pressed', pressed_img),
+                ('pressed', pressed_img),
+                ('focus hover', focus_hover_img),
+                ('hover', hover_img),
+                ('focus', focus_img),
+                ((), normal_img),
+            ]
+        )
+    )
+
+    b.style_create_layout(
+        ttk_style, Element(f'{ttk_style}.border', sticky="nsew").children(
+            [
+                Element(f'{ttk_style}.padding', sticky="")
+            ])
+    )
+
+    b.style_configure(ttk_style, background=background)
 
 
 @FrameStyleBuilder.register_variant("field")

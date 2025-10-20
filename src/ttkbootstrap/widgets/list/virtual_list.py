@@ -24,6 +24,7 @@ class VirtualList(Pack):
             deleting_enabled=False,
             chevron_visible=False,
             scrollbar_visible=True,
+            show_separators=True,
             selection_background: str = 'primary',
             select_by_click: bool = False,
             selection_mode: Literal['single', 'multiple', 'none'] = 'none',
@@ -40,6 +41,7 @@ class VirtualList(Pack):
                 deleting_enabled: Show a delete button and emit a delete event.
                 chevron_visible: Show a chevron icon.
                 scrollbar_visible: Display a scrollbar when content overflows the list view.
+                show_separators: Display a separator between list items..
                 select_by_click: Select item by clicking the row; instead of only the selection control.
                 selection_mode: Indicates what kind of selection is allowed on list items.
                 selection_controls_visible: Show selection controls when selection is enabled.
@@ -52,6 +54,7 @@ class VirtualList(Pack):
             dragging_enabled=dragging_enabled,
             deleting_enabled=deleting_enabled,
             chevron_visible=chevron_visible,
+            show_separators=show_separators,
             selection_background=selection_background,
             select_by_click=select_by_click,
             selection_mode=selection_mode,
