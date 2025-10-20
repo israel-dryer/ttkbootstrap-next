@@ -1,17 +1,19 @@
-from ttkbootstrap import App, Button, Event, Grid, Label, TextEntry
+from ttkbootstrap import App, TextEntry, DateEntry, Pack, PasswordEntry, PathEntry, NumericEntry, Label
 
-with App("Text Entry Demo", geometry="600x400") as app:
-    with Grid(padding=16, columns=2, gap=8, sticky_items="ew").attach(fill="x"):
-        TextEntry(label="First Name", required=True).attach(columnspan=2).on_validated().listen(lambda e: print(e))
-        te = TextEntry("16228 Kelby Cove", label="Address").attach(columnspan=2)
-        te.on_input().listen(lambda x: print(x))
-        te.on_enter().listen(lambda x: print(x))
-        te.on_changed().listen(lambda x: print(x))
-        TextEntry("July 15, 2025", label="Birthday", value_format="shortDate").attach()
-        occupation = TextEntry(label="Email", required=True).attach(columnspan=2)
-        occupation.insert_addon(Label, text="@", position="left")
-        Button("Submit", icon="moon").attach().on_invoke().listen(lambda _: app.theme.use("dark"))
-        Button("On Handler").attach().on(Event.CLICK).filter(lambda e: e.x > 100).listen(lambda x: print(x))
-        Button("Cancel", variant="outline", icon="sun").attach().on_invoke().tap(
-            lambda _: app.theme.use('light')).then_stop()
+with App("Entry Demo") as app:
+    with Pack(padding=16, gap=8, direction="column", fill_items='x').attach():
+        TextEntry("Israel", label="First Name", required=True).attach()
+        NumericEntry(124000, label="Range", value_format="currency").attach()
+        DateEntry("March 14, 1981", value_format="shortDate").attach()
+        PasswordEntry("mypassword", label="Password", show_visible_toggle=True).attach()
+        PathEntry().attach()
+
+        # custom email entry
+
+        te = TextEntry("israel.dryer@gmail.com", label="Email")
+        te.insert_addon(Label, text="@", position="left")
+        te.add_validation_rule("email")
+        te.attach()
+
+
 app.run()
