@@ -5,6 +5,8 @@ from ttkbootstrap.datasource.types import DataSourceProtocol
 from ttkbootstrap.events import Event
 from ttkbootstrap.layouts import Pack
 from ttkbootstrap.types import Primitive
+from ttkbootstrap.widgets.entry import TextEntry
+from ttkbootstrap.widgets.label import Label
 from ttkbootstrap.widgets.list.list_item import ListItem
 from ttkbootstrap.widgets.scrollbar import Scrollbar
 
@@ -25,6 +27,9 @@ class VirtualList(Pack):
             chevron_visible=False,
             scrollbar_visible=True,
             show_separators=True,
+            search_enabled=False,
+            search_expr: list[str] = None,
+            search_mode: Literal["contains", "startswith", "endswidth", "equals"] = "contains",
             selection_background: str = 'primary',
             select_by_click: bool = False,
             selection_mode: Literal['single', 'multiple', 'none'] = 'none',
@@ -41,13 +46,16 @@ class VirtualList(Pack):
                 deleting_enabled: Show a delete button and emit a delete event.
                 chevron_visible: Show a chevron icon.
                 scrollbar_visible: Display a scrollbar when content overflows the list view.
+                search_enabled: Display a search entry above the list.
+                search_expr: The field(s) to use when executing the search query.
+                search_mode: The search method to execute.
                 show_separators: Display a separator between list items..
                 select_by_click: Select item by clicking the row; instead of only the selection control.
                 selection_mode: Indicates what kind of selection is allowed on list items.
                 selection_controls_visible: Show selection controls when selection is enabled.
                 **kwargs: Additional keyword arguments.
         """
-        super().__init__(parent=kwargs.pop("parent", None), direction="horizontal")
+        super().__init__(parent=kwargs.pop("parent", None), direction="vertical", fill_items='x')
         self._scrollbar_visible = scrollbar_visible
 
         self._options = dict(
@@ -69,10 +77,20 @@ class VirtualList(Pack):
         self._row_height = ROW_HEIGHT
         self._page_size = VISIBLE_ROWS + OVERSCAN_ROWS
 
-        # Layout
+        # Search
+        self._search_enabled = search_enabled
+        self._search_expr = search_expr
+        self._search_mode = search_mode
+        if self._search_enabled and self._search_expr:
+            self._search_entry = TextEntry(parent=self, show_messages=False)
+            self._search_entry.insert_addon(Label, icon="search", position="left")
+            self._search_entry.on_input().listen(self._on_search_text)
+            self._search_entry.attach()
+
+        # List layout
         self._canvas_frame = Pack(parent=self).attach(fill="both", expand=True)
         self._canvas_frame.on(Event.CONFIGURE).listen(self._on_resize)
-        self._scrollbar = Scrollbar(parent=self, orient="vertical").attach(side="right", fill="y")
+        self._scrollbar = Scrollbar(parent=self, orient="vertical").attach("place", x="100%", height="100%", xoffset=4)
         if not self._scrollbar_visible:
             self._scrollbar.hide()
 
@@ -123,6 +141,24 @@ class VirtualList(Pack):
             self._start_index = max_start
 
     # ----- Event handlers -----
+
+    def _on_search_text(self, event):
+        search_term = event.data['text']
+        query_parts = []
+        for key in self._search_expr:
+            match self._search_mode:
+                case "startswith":
+                    query_parts.append(f"{key} LIKE '{search_term}%'")
+                case "endswidth":
+                    query_parts.append(f"{key} LIKE '%{search_term}'")
+                case "equals":
+                    query_parts.append(f"{key} = '{search_term}'")
+                case _:
+                    query_parts.append(f"{key} LIKE '%{search_term}%'")
+
+        where_sql = " OR ".join(query_parts).strip()
+        self._datasource.set_filter(where_sql)
+        self._update_rows()
 
     def _on_scroll(self, *args):
         self._clamp_indices()
