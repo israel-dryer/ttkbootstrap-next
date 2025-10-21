@@ -4,6 +4,7 @@ from typing import Any, Callable, Optional, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream, Subscription
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.types import Variable
@@ -16,15 +17,6 @@ class Switch(BaseWidget):
     """A themed switch widget with support for signals and callbacks."""
 
     widget: ttk.Checkbutton
-    _configure_methods = {
-        "color": "_configure_color",
-        "text": "_configure_text",
-        "signal": "_configure_value_signal",
-        "text_signal": "_configure_text_signal",
-        "variable": "_configure_variable",
-        "text_variable": "_configure_text_variable",
-        "command": "_configure_command",
-    }
 
     def __init__(
             self,
@@ -130,8 +122,9 @@ class Switch(BaseWidget):
             self.state(['!disabled', '!readonly'])
         return self
 
+    @configure_delegate("readonly")
     def readonly(self, value: bool):
-        """Set the readonly state of the switch."""
+        """Get or set the readonly state of the switch."""
         states = []
         if self.value() == self._tristate_value:
             states.append('alternate')
@@ -185,6 +178,7 @@ class Switch(BaseWidget):
 
     # ---- Configuration delegates -----
 
+    @configure_delegate("command")
     def _configure_command(self, value: Callable[..., Any] = None):
         if value is None:
             return self._command
@@ -194,6 +188,7 @@ class Switch(BaseWidget):
             self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
             return self
 
+    @configure_delegate("color")
     def _configure_color(self, value: SemanticColor = None):
         if value is None:
             return self._style_builder.options('color')
@@ -202,12 +197,14 @@ class Switch(BaseWidget):
             self.update_style()
             return self
 
+    @configure_delegate("text")
     def _configure_text(self, value: str = None):
         if value is None:
             return self._text_signal()
         self._text_signal.set(value)
         return self
 
+    @configure_delegate("text_signal")
     def _configure_text_signal(self, value: Signal[str] = None):
         if value is None:
             return self._text_signal
@@ -215,6 +212,7 @@ class Switch(BaseWidget):
         self.configure(textvariable=self._text_signal.var)
         return self
 
+    @configure_delegate("value_signal")
     def _configure_value_signal(self, value: Signal[str | int] = None):
         if value is None:
             return self._value_signal
@@ -227,12 +225,15 @@ class Switch(BaseWidget):
         self._prev_value = self._value_signal()
         return self
 
+    @configure_delegate("text_variable")
+    @configure_delegate("textvariable")
     def _configure_text_variable(self, value: Variable = None):
         if value is None:
             return self._text_signal
         else:
             return self._configure_text_signal(Signal.from_variable(value))
 
+    @configure_delegate("variable")
     def _configure_variable(self, value: Variable = None):
         if value is None:
             return self._value_signal
