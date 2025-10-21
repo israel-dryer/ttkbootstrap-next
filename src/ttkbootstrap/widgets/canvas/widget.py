@@ -5,9 +5,10 @@ from typing import Callable, Literal, Optional, Self, Tuple, Union, Unpack, over
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.container import ContainerMixin
 from ttkbootstrap.events import Event
-from ttkbootstrap.widgets.canvas.style import CanvasStyleBuilder
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.types import Image, Widget
 from ttkbootstrap.utils import unsnake, unsnake_kwargs
+from ttkbootstrap.widgets.canvas.style import CanvasStyleBuilder
 from ttkbootstrap.widgets.canvas.types import (
     CanvasArcOptions, CanvasImageOptions, CanvasItemOptions,
     CanvasLineOptions, CanvasOptions, CanvasOvalOptions,
@@ -20,10 +21,6 @@ class Canvas(BaseWidget, ContainerMixin):
     """A themed canvas widget with drawing, manipulation, and tagging utilities."""
 
     widget: tk.Canvas
-    _configure_methods = {
-        "on_yview_change": "on_yview_change",
-        "on_xview_change": "on_xview_change"
-    }
 
     def __init__(self, **kwargs: Unpack[CanvasOptions]):
         """
@@ -49,7 +46,9 @@ class Canvas(BaseWidget, ContainerMixin):
         self._style_builder.build()
         self._theme = self._style_builder.provider
 
-    def on_yview_change(self, func: Callable = None):
+    @configure_delegate('yscroll_command')
+    @configure_delegate("yscrollcommand")
+    def yscroll_command(self, func: Callable = None):
         """Get or set the scrollbar.set command"""
         if func is None:
             return self._on_yview_change
@@ -58,7 +57,9 @@ class Canvas(BaseWidget, ContainerMixin):
             self.widget.configure(yscrollcommand=func)
             return self
 
-    def on_xview_change(self, func: Callable = None):
+    @configure_delegate('xscroll_command')
+    @configure_delegate('xscrollcommand')
+    def xscroll_command(self, func: Callable = None):
         """Get or set the scrollbar.set command"""
         if func is None:
             return self._on_xview_change

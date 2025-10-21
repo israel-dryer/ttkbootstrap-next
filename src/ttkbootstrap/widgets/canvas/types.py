@@ -26,8 +26,8 @@ class CanvasOptions(CoreOptions, total=False):
         select_border_width: Width of the border around selected text.
         select_foreground: Foreground color of selected text.
         take_focus: Determines if the canvas accepts focus during tab traversal.
-        on_xview_change: Function to call with horizontal scrollbar parameters.
-        on_yview_change: Function to call with vertical scrollbar parameters.
+        xscroll_command: Function to call with horizontal scrollbar parameters.
+        yscroll_command: Function to call with vertical scrollbar parameters.
         close_enough: Distance (float) within which mouse events are considered to hit items.
         confine: If True, canvas view is confined to the scroll_region.
         height: Height of the canvas in pixels.
@@ -57,8 +57,8 @@ class CanvasOptions(CoreOptions, total=False):
     select_border_width: int
     select_foreground: str
     take_focus: Union[bool, str]
-    on_yview_change: ScrollCommand
-    on_xview_change: ScrollCommand
+    yscroll_command: ScrollCommand
+    xscroll_command: ScrollCommand
 
     # Canvas-specific options
     close_enough: float
