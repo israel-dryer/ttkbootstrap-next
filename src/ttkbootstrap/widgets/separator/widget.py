@@ -2,6 +2,7 @@ from tkinter import ttk
 from typing import Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.types import Orientation
 from ttkbootstrap.widgets.separator.style import SeparatorStyleBuilder
 from ttkbootstrap.widgets.separator.types import SeparatorColor, SeparatorOptions
@@ -13,10 +14,6 @@ class Separator(BaseWidget):
     """A themed horizontal or vertical line used to divide content areas."""
 
     widget: ttk.Separator
-    _configure_methods = {
-        "color": "_configure_color",
-        "orient": "_configure_orient"
-    }
 
     def __init__(
             self,
@@ -39,6 +36,7 @@ class Separator(BaseWidget):
         tk_options = {**kwargs, "orient": orient}
         super().__init__(ttk.Separator, tk_options, parent=parent)
 
+    @configure_delegate("color")
     def _configure_color(self, value: SeparatorColor = None):
         if value is None:
             return self._style_builder.options("color")
@@ -47,6 +45,7 @@ class Separator(BaseWidget):
             self.update_style()
             return self
 
+    @configure_delegate("orient")
     def _configure_orient(self, value: Orientation = None):
         if value is None:
             return self.configure('orient')
