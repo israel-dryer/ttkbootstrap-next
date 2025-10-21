@@ -5,6 +5,7 @@ from typing import Any, Callable, Optional, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream, Subscription
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.types import Orientation, Variable
@@ -15,16 +16,6 @@ from ttkbootstrap.widgets.scale.types import ScaleOptions
 
 class Scale(BaseWidget):
     widget: ttk.Scale
-
-    _configure_methods = {
-        "color": "_configure_color",
-        "min_value": "_configure_min_value",
-        "max_value": "_configure_max_value",
-        "precision": "_configure_precision",
-        "variable": "_configure_variable",
-        "signal": "_configure_signal",
-        "command": "_configure_command"
-    }
 
     def __init__(
             self,
@@ -122,6 +113,7 @@ class Scale(BaseWidget):
 
     # ----- Configuration delegates -----
 
+    @configure_delegate("command")
     def _configure_command(self, value: Callable[..., Any] = None):
         if value is None:
             return self._command
@@ -131,6 +123,7 @@ class Scale(BaseWidget):
             self._command_sub = self.on_changed().tap(lambda _: value()).then_stop()
             return self
 
+    @configure_delegate("color")
     def _configure_color(self, value: SemanticColor = None):
         if value is None:
             return self._style_builder.options('color')
@@ -139,6 +132,7 @@ class Scale(BaseWidget):
             self.update_style()
             return self
 
+    @configure_delegate("signal")
     def _configure_signal(self, value: Signal = None):
         """Get or set the slider Signal."""
         if value is None:
@@ -152,6 +146,7 @@ class Scale(BaseWidget):
             self._value_signal_sub = self._value_signal.subscribe(self._handle_change)
             return self
 
+    @configure_delegate("min_value")
     def _configure_min_value(self, value: int | float = None):
         """Get or set the minimum value."""
         if value is None:
@@ -161,6 +156,7 @@ class Scale(BaseWidget):
             self._prev_value = self._normalize_value(float(self._value_signal()))
             return self
 
+    @configure_delegate("max_value")
     def _configure_max_value(self, value: int | float = None):
         """Get or set the maximum value."""
         if value is None:
@@ -170,6 +166,7 @@ class Scale(BaseWidget):
             self._prev_value = self._normalize_value(float(self._value_signal()))
             return self
 
+    @configure_delegate("precision")
     def _configure_precision(self, value: int = None):
         """Get or set decimal precision (ignored in int mode)."""
         if value is None:
@@ -181,6 +178,7 @@ class Scale(BaseWidget):
             self._prev_value = self._normalize_value(float(self._value_signal()))
             return self
 
+    @configure_delegate("variable")
     def _configure_variable(self, value: Variable = None):
         if value is None:
             return self._value_signal
