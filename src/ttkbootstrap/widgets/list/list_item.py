@@ -17,6 +17,7 @@ class ListItem(Pack):
 
         # properties
         self._data = {}
+        self._item_index = 0
         self._show_separator = kwargs.pop('show_separators', False)
         self._dragging_enabled = kwargs.get('dragging_enabled', False)
         self._deleting_enabled = kwargs.get('deleting_enabled', False)
@@ -24,6 +25,9 @@ class ListItem(Pack):
         self._selection_background = kwargs.get('selection_background', 'primary')
         self._selection_mode = kwargs.get('selection_mode', 'none')
         self._selection_controls_visible = kwargs.get('selection_controls_visible', False)
+        self._row_alternation_enabled = kwargs.get('row_alternation_enabled', False)
+        self._row_alternation_color = kwargs.get('row_alternation_color', 'background-1')
+        self._row_alternation_mode = kwargs.get('row_alternation_mode', 'even')
         self._ignore_selection_by_click = False
         if self._selection_mode != 'none':
             self._ignore_selection_by_click = False if not self._selection_controls_visible else not kwargs.get(
@@ -527,6 +531,30 @@ class ListItem(Pack):
             self._state = {}
 
         self._data = record
+        self._item_index = self._data.get('item_index', 0)
+
+        if self._row_alternation_enabled:
+            surface_token = self.parent.surface_token
+            if self._row_alternation_mode == 'even':
+                if self._item_index % 2 == 0:
+                    surface_token = self._row_alternation_color
+            if self._row_alternation_mode == 'odd':
+                if self._item_index % 2 == 1:
+                    surface_token = self._row_alternation_color
+
+            # Update surface on parent and all composite widgets
+            self.configure(surface=surface_token)
+            for widget in [self._frame_start, self._frame_center, self._frame_end]:
+                widget.configure(surface=surface_token)
+
+            # Update surface on all child widgets
+            for widget in self._composite_widgets:
+                if widget not in [self, self._frame_start, self._frame_center, self._frame_end]:
+                    try:
+                        widget.configure(surface=surface_token)
+                    except Exception:
+                        pass
+
 
         selected = bool(record.get("selected", False))
         if self._state.get("selected") != selected:

@@ -25,6 +25,9 @@ class VirtualList(Pack):
             dragging_enabled=False,
             deleting_enabled=False,
             chevron_visible=False,
+            row_alternation_enabled=False,
+            row_alternation_color="background-1",
+            row_alternation_mode: Literal['even', 'odd'] = "even",
             scrollbar_visible=True,
             show_separators=True,
             search_enabled=False,
@@ -42,6 +45,9 @@ class VirtualList(Pack):
             Keyword Arguments:
                 items: A list of items used to populate the list.
                 row_factory: A factory function used to generate the list items.
+                row_alternation_enabled: Display alternating rows a different color.
+                row_alternation_color: The color of the alternating rows (default, surface-2)
+                row_alternation_mode: Whether to alternate even or odd rows.
                 dragging_enabled: Show a drag handle and emit a drag event.
                 deleting_enabled: Show a delete button and emit a delete event.
                 chevron_visible: Show a chevron icon.
@@ -66,7 +72,10 @@ class VirtualList(Pack):
             selection_background=selection_background,
             select_by_click=select_by_click,
             selection_mode=selection_mode,
-            selection_controls_visible=selection_controls_visible
+            selection_controls_visible=selection_controls_visible,
+            row_alternation_enabled=row_alternation_enabled,
+            row_alternation_color=row_alternation_color,
+            row_alternation_mode=row_alternation_mode,
         )
         self._datasource = items if isinstance(items, DataSourceProtocol) else MemoryDataSource().set_data(items or [])
         self._row_factory = row_factory or self._default_row_factory
@@ -249,7 +258,7 @@ class VirtualList(Pack):
                         sel = bool(rec.get('selected', False))
                 else:
                     sel = bool(rec.get('selected', False))
-                rec = {**rec, 'selected': sel}
+                rec = {**rec, 'selected': sel, "item_index": i + self._start_index}
             row.update_data(rec)
 
         total = max(1, self._total_rows)
