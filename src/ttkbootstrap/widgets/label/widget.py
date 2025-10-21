@@ -5,6 +5,7 @@ from typing import Unpack, cast
 
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.icon import IconMixin
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import ForegroundColor, SurfaceColor, TypographyToken
 from ttkbootstrap.types import Compound, IconPosition, Variable
@@ -17,15 +18,6 @@ class Label(BaseWidget, IconMixin):
     """A themed label widget with support for signals and color tokens."""
 
     widget: ttk.Label
-    _configure_methods = {
-        "text": "_configure_text",
-        "icon": "_configure_icon",
-        "foreground": "_configure_foreground",
-        "background": "_configure_background",
-        "compound": "_configure_compound",
-        "text_variable": "_configure_text_variable",
-        "signal": "_configure_text_signal",
-    }
 
     def __init__(
             self,
@@ -101,6 +93,7 @@ class Label(BaseWidget, IconMixin):
 
     # ----- Configuration delegates -----
 
+    @configure_delegate("text")
     def _configure_text(self, value: str = None):
         """Get or set the label text."""
         if value is None:
@@ -112,6 +105,7 @@ class Label(BaseWidget, IconMixin):
             self._configure_compound("auto")
         return self
 
+    @configure_delegate("text_signal")
     def _configure_text_signal(self, value: Signal[str] = None):
         """Get or set the label text as a signal"""
         if value is None:
@@ -122,12 +116,15 @@ class Label(BaseWidget, IconMixin):
         self.configure(textvariable=self._text_signal.var)
         return self
 
+    @configure_delegate("text_variable")
+    @configure_delegate("textvariable")
     def _configure_text_variable(self, value: Variable = None):
         if value is None:
             return self._text_signal
         else:
             return self._configure_text_signal(Signal.from_variable(value))
 
+    @configure_delegate("foreground")
     def _configure_foreground(self, value: ForegroundColor = None):
         if value is None:
             return self._style_builder.options('foreground')
@@ -136,6 +133,7 @@ class Label(BaseWidget, IconMixin):
             self.update_style()
             return self
 
+    @configure_delegate("background")
     def _configure_background(self, value: SurfaceColor = None):
         if value is None:
             return self._style_builder.options('background')
@@ -144,6 +142,7 @@ class Label(BaseWidget, IconMixin):
             self.update_style()
             return self
 
+    @configure_delegate("compound")
     def _configure_compound(self, value: IconPosition = None):
         if value is None:
             return self._compound
