@@ -60,9 +60,15 @@ class Event(StrEnum):
     DRAG2 = "<B2-Motion>"
     DRAG3 = "<B3-Motion>"
 
+    # Aliases for clarity
+    BUTTON1_MOTION = DRAG1
+    BUTTON2_MOTION = DRAG2
+    BUTTON3_MOTION = DRAG3
+
     # Any-button helpers
     ANY_CLICK = "<Button>"  # any button press
     ANY_RELEASE = "<ButtonRelease>"  # any button release
+    ANY_MOTION = "<Motion>"  # any motion (alias for MOTION)
 
     # Wheel (cross-platform & X11 specifics)
     MOUSE_WHEEL = "<MouseWheel>"  # use event.delta (+/-) for direction
@@ -178,6 +184,11 @@ class Event(StrEnum):
     DELETE = "<<Delete>>"
     SELECTION_CHANGED = "<<Tkb-SelectionChanged>>"
 
+    # Drag & Drop (generic virtual events for widgets)
+    DRAG_START = "<<Tkb-DragStart>>"
+    DRAG = "<<Tkb-Drag>>"
+    DRAG_END = "<<Tkb-DragEnd>>"
+
     # --------------------------------------------------------------------- #
     # Composite Widgets
     # --------------------------------------------------------------------- #
@@ -209,6 +220,13 @@ class Event(StrEnum):
     ITEM_INSERTING = "<<Tkb-ItemInserting>>"
     ITEM_INSERTED = "<<Tkb-ItemInserted>>"
     ITEM_INSERT_FAILED = "<<Tkb-ItemInsertFailed>>"
+
+    ITEM_DRAG_START = "<<Tkb-ItemDragStart>>"
+    ITEM_DRAGGING = "<<Tkb-ItemDragging>>"
+    ITEM_DRAG_END = "<<Tkb-ItemDragEnd>>"
+
+    ITEM_REORDERED = "<<Tkb-ItemReordered>>"
+    ITEM_REORDER_FAILED = "<<Tkb-ItemReorderFailed>>"
 
     # --------------------------------------------------------------------- #
     # Radiobutton

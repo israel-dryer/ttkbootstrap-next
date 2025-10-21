@@ -87,6 +87,12 @@ class VirtualList(Pack):
         self._page_size = VISIBLE_ROWS + OVERSCAN_ROWS
         self._focused_record_id = None  # Track which record has logical focus
 
+        # Drag state tracking
+        self._drag_source_index = None  # Index of item being dragged
+        self._drag_target_index = None  # Index where item will be dropped
+        self._drag_start_y = None  # Starting Y position of drag
+        self._drag_indicator = None  # Visual drop indicator (Frame widget)
+
         # Search
         self._search_enabled = search_enabled
         self._search_expr = search_expr
@@ -130,6 +136,11 @@ class VirtualList(Pack):
 
         # Listen for focus events from list items
         self._hub.on(Event.ITEM_FOCUSED).listen(self._on_item_focused)
+
+        # Listen for drag events from list items
+        self._hub.on(Event.ITEM_DRAG_START).listen(self._on_drag_start)
+        self._hub.on(Event.ITEM_DRAGGING).listen(self._on_dragging)
+        self._hub.on(Event.ITEM_DRAG_END).listen(self._on_drag_end)
 
         self._update_rows()
 
@@ -249,6 +260,186 @@ class VirtualList(Pack):
             self._focused_record_id = record_id
             # Force update to apply focused state to the correct row
             self._update_rows()
+
+    def _on_drag_start(self, event: Any):
+        """Handle when user starts dragging an item."""
+        self._drag_source_index = event.data.get('source_index')
+        self._drag_start_y = event.data.get('y_start')
+        self._drag_target_index = self._drag_source_index  # Initially target same as source
+        self._drag_scroll_counter = 0  # Reset scroll counter
+        self._show_drag_indicator()
+
+    def _on_dragging(self, event: Any):
+        """Handle dragging motion - calculate drop target position and auto-scroll."""
+        if self._drag_source_index is None:
+            return
+
+        y_current = event.data.get('y_current')
+        if y_current is None:
+            return
+
+        try:
+            # Calculate which row the mouse is currently over
+            # Get the Y position and height of the list container
+            container_y = self._canvas_frame.widget.winfo_rooty()
+            container_height = self._canvas_frame.widget.winfo_height()
+            relative_y = y_current - container_y
+
+            # Define scroll zones (20% of container height from top/bottom)
+            scroll_zone_height = int(container_height * 0.2)
+
+            # Check if we need to auto-scroll
+            # Only scroll every few motion events to slow it down
+            if not hasattr(self, '_drag_scroll_counter'):
+                self._drag_scroll_counter = 0
+
+            self._drag_scroll_counter += 1
+            should_scroll = self._drag_scroll_counter % 8 == 0  # Only scroll every 8th motion event
+
+            if should_scroll:
+                if relative_y < scroll_zone_height and self._start_index > 0:
+                    # Near top edge - scroll up
+                    # Always scroll just 1 row for smooth, predictable scrolling
+                    self._start_index -= 1
+                    self._clamp_indices()
+                    self._update_rows()
+
+                elif relative_y > (container_height - scroll_zone_height):
+                    # Near bottom edge - scroll down
+                    max_start = max(0, self._total_rows - self._visible_rows)
+                    if self._start_index < max_start:
+                        # Always scroll just 1 row for smooth, predictable scrolling
+                        self._start_index += 1
+                        self._clamp_indices()
+                        self._update_rows()
+
+            # Calculate target row index based on mouse position
+            row_index = self._start_index + (relative_y // self._row_height)
+
+            # Clamp to valid range
+            row_index = max(0, min(row_index, self._total_rows - 1))
+
+            # Update target if it changed
+            if row_index != self._drag_target_index:
+                self._drag_target_index = row_index
+                # Update the visual indicator position
+                self._update_drag_indicator_position(row_index)
+
+        except Exception:
+            pass  # Ignore errors during drag calculation
+
+    def _on_drag_end(self, event: Any):
+        """Handle when user finishes dragging - perform the reorder."""
+        # Hide the drag indicator
+        self._hide_drag_indicator()
+
+        if self._drag_source_index is None or self._drag_target_index is None:
+            # Reset state and bail
+            self._drag_source_index = None
+            self._drag_target_index = None
+            self._drag_start_y = None
+            return
+
+        source = self._drag_source_index
+        target = self._drag_target_index
+
+        # Reset drag state
+        self._drag_source_index = None
+        self._drag_target_index = None
+        self._drag_start_y = None
+
+        # Don't do anything if dropped in same position
+        if source == target:
+            return
+
+        try:
+            # Get all records from datasource
+            all_records = self._datasource.get_page_from_index(0, self._total_rows)
+
+            if source < len(all_records) and target < len(all_records):
+                # Get the record being moved
+                moved_record = all_records[source]
+
+                # Remove from source position
+                all_records.pop(source)
+
+                # Insert at target position
+                # If moving down, target index doesn't need adjustment (already removed one before it)
+                # If moving up, target index is correct
+                insert_index = target if source > target else target
+                all_records.insert(insert_index, moved_record)
+
+                # Update datasource with reordered data
+                self._datasource.set_data(all_records)
+
+                # Refresh the list
+                self._update_rows()
+
+                # Emit success event
+                self._hub.emit(Event.ITEM_REORDERED, data={
+                    'record': moved_record,
+                    'from_index': source,
+                    'to_index': target
+                })
+
+        except Exception as e:
+            # Handle error - emit failed event
+            self._hub.emit(Event.ITEM_REORDER_FAILED, data={
+                'from_index': source,
+                'to_index': target,
+                'reason': str(e)
+            })
+
+    # ----- Drag indicator helpers ------
+
+    def _show_drag_indicator(self):
+        """Create and show the drag drop indicator line."""
+        if self._drag_indicator is None:
+            import tkinter as tk
+            # Create a thin colored line to show drop position
+            self._drag_indicator = tk.Frame(
+                self._canvas_frame.widget,
+                height=2,
+                bg='#0d6efd',  # Primary blue color
+            )
+
+    def _update_drag_indicator_position(self, target_index):
+        """Update the position of the drag indicator to show drop location."""
+        if self._drag_indicator is None:
+            return
+
+        try:
+            # Calculate the Y position for the indicator
+            # Show indicator above the target row (where item will be inserted)
+            visual_index = target_index - self._start_index
+
+            # Only show indicator if target is visible
+            if 0 <= visual_index < len(self._rows):
+                y_pos = visual_index * self._row_height
+
+                # Place the indicator at the top of the target row
+                self._drag_indicator.place(
+                    x=0,
+                    y=y_pos,
+                    width=self._canvas_frame.widget.winfo_width(),
+                    height=2
+                )
+            else:
+                # Target not visible, hide indicator temporarily
+                self._drag_indicator.place_forget()
+
+        except Exception:
+            pass  # Ignore positioning errors
+
+    def _hide_drag_indicator(self):
+        """Hide and destroy the drag indicator."""
+        if self._drag_indicator is not None:
+            try:
+                self._drag_indicator.place_forget()
+                self._drag_indicator.destroy()
+            except Exception:
+                pass
+            self._drag_indicator = None
 
     # ----- Helpers ------
 
@@ -412,6 +603,14 @@ class VirtualList(Pack):
     def on_item_update_failed(self):
         """Convenience alias for item update failed stream"""
         return self._hub.on(Event.ITEM_UPDATE_FAILED)
+
+    def on_item_reordered(self):
+        """Convenience alias for item reordered stream"""
+        return self._hub.on(Event.ITEM_REORDERED)
+
+    def on_item_reorder_failed(self):
+        """Convenience alias for item reorder failed stream"""
+        return self._hub.on(Event.ITEM_REORDER_FAILED)
 
     # ----- Actions -----
 

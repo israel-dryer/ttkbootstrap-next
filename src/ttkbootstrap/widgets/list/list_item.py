@@ -510,10 +510,19 @@ class ListItem(Pack):
                     parent=self._frame_end,
                     icon='grip-vertical',
                     variant='list',
-                    cursor='double_arrow',
+                    cursor='fleur',
                     take_focus=False,
                     builder=dict(select_background=self._selection_background)
                 ).attach(side='right', padx=6)
+
+                # Setup drag detection using direct tkinter bindings
+                # NOTE: Using direct bindings because button has take_focus=False which may
+                # prevent the event system from working correctly in this context
+                self._drag_state = {'dragging': False, 'start_y': None}
+                self._drag_widget.widget.bind('<ButtonPress-1>', self._on_drag_mouse_down, add='+')
+                self._drag_widget.widget.bind('<B1-Motion>', self._on_drag_mouse_motion, add='+')
+                self._drag_widget.widget.bind('<ButtonRelease-1>', self._on_drag_mouse_up, add='+')
+
                 self._add_composite_widget(self._drag_widget, ignore_click=True)
         else:
             if self._drag_widget:
@@ -521,6 +530,54 @@ class ListItem(Pack):
                 self._composite_widgets.discard(self._drag_widget)
                 self._drag_widget.destroy()
                 self._drag_widget = None
+                self._drag_state = None
+
+    def _on_drag_mouse_down(self, event):
+        """Mouse pressed on drag handle - prepare for drag."""
+        if not hasattr(self, '_drag_state'):
+            self._drag_state = {}
+        self._drag_state['start_y'] = event.y_root
+        self._drag_state['dragging'] = False  # Not dragging yet, wait for motion
+
+    def _on_drag_mouse_motion(self, event):
+        """Mouse moving with button held - this is a drag."""
+        if not hasattr(self, '_drag_state') or self._drag_state.get('start_y') is None:
+            return
+
+        # If this is the first motion event, emit drag start
+        if not self._drag_state.get('dragging'):
+            self._drag_state['dragging'] = True
+            self.parent.emit(Event.ITEM_DRAG_START, data={
+                **self._data,
+                'source_index': self._item_index,
+                'y_start': self._drag_state['start_y']
+            })
+
+        # Emit drag motion event
+        self.parent.emit(Event.ITEM_DRAGGING, data={
+            **self._data,
+            'source_index': self._item_index,
+            'y_current': event.y_root,
+            'y_start': self._drag_state['start_y'],
+            'delta_y': event.y_root - self._drag_state['start_y']
+        })
+
+    def _on_drag_mouse_up(self, event):
+        """Mouse released - end drag if we were dragging."""
+        if not hasattr(self, '_drag_state'):
+            return
+
+        # Only emit drag end if we actually started dragging
+        if self._drag_state.get('dragging'):
+            self.parent.emit(Event.ITEM_DRAG_END, data={
+                **self._data,
+                'source_index': self._item_index,
+                'y_end': event.y_root,
+                'y_start': self._drag_state.get('start_y')
+            })
+
+        # Reset drag state
+        self._drag_state = {'dragging': False, 'start_y': None}
 
     def update_data(self, record: dict | None):
         """Efficiently update row visuals only when values have changed."""
@@ -572,6 +629,9 @@ class ListItem(Pack):
                     self.widget.focus_set()
                 except Exception:
                     pass
+            else:
+                # This record lost focus - clear the focus styling
+                self._set_focus_state(False)
             self._state["focused"] = focused
 
         # Direct update for high-priority visuals
