@@ -85,6 +85,7 @@ class VirtualList(Pack):
         self._visible_rows = VISIBLE_ROWS
         self._row_height = ROW_HEIGHT
         self._page_size = VISIBLE_ROWS + OVERSCAN_ROWS
+        self._focused_record_id = None  # Track which record has logical focus
 
         # Search
         self._search_enabled = search_enabled
@@ -126,6 +127,10 @@ class VirtualList(Pack):
         # Scrollbar binding
         self._scrollbar.widget.config(command=self._on_scroll)
         self.on(Event.MOUSE_WHEEL, scope="all").listen(self._on_mousewheel)
+
+        # Listen for focus events from list items
+        self._hub.on(Event.ITEM_FOCUSED).listen(self._on_item_focused)
+
         self._update_rows()
 
     # ----- Helpers -----
@@ -237,6 +242,14 @@ class VirtualList(Pack):
         except Exception as error:
             self._hub.emit(Event.ITEM_UPDATE_FAILED, data={**event.data, "reason": error.args[0]})
 
+    def _on_item_focused(self, event: Any):
+        """Handle when a list item receives focus - track which record is focused."""
+        record_id = event.data.get('id')
+        if record_id and record_id != '__empty__':
+            self._focused_record_id = record_id
+            # Force update to apply focused state to the correct row
+            self._update_rows()
+
     # ----- Helpers ------
 
     def _update_rows(self):
@@ -248,7 +261,7 @@ class VirtualList(Pack):
             # if ListItem ever gets pack_forget/destroyed elsewhere, make sure it's packed:
             if not row.widget.winfo_manager():
                 row.widget.pack(fill="x")
-            # preserve selection flag like before
+            # preserve selection and focus flags
             if rec is not EMPTY:
                 rid = rec.get('id')
                 if rid is not None and hasattr(self._datasource, 'is_selected'):
@@ -258,7 +271,11 @@ class VirtualList(Pack):
                         sel = bool(rec.get('selected', False))
                 else:
                     sel = bool(rec.get('selected', False))
-                rec = {**rec, 'selected': sel, "item_index": i + self._start_index}
+
+                # Check if this record should have logical focus
+                focused = (rid is not None and rid == self._focused_record_id)
+
+                rec = {**rec, 'selected': sel, 'focused': focused, "item_index": i + self._start_index}
             row.update_data(rec)
 
         total = max(1, self._total_rows)

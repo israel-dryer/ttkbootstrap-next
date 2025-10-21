@@ -185,6 +185,8 @@ class ListItem(Pack):
 
     def _on_focus_in(self, event):
         self._set_focus_state(True)
+        # Emit event to notify parent list that this record is focused
+        self.parent.emit(Event.ITEM_FOCUSED, data=self._data)
 
     def _on_focus_out(self, event):
         # Keep focus styling if focus moved to a descendant of this row
@@ -561,6 +563,17 @@ class ListItem(Pack):
             self._update_selection(selected)
             self._state["selected"] = selected
 
+        # Handle focus - apply tkinter focus to the widget that should have logical focus
+        focused = bool(record.get("focused", False))
+        if self._state.get("focused") != focused:
+            if focused:
+                # This record should have focus - give tkinter focus to this widget
+                try:
+                    self.widget.focus_set()
+                except Exception:
+                    pass
+            self._state["focused"] = focused
+
         # Direct update for high-priority visuals
         for field, updater in {
             "title": self._update_title,
@@ -574,8 +587,8 @@ class ListItem(Pack):
                 self._state[field] = value
 
         self.schedule.idle(self._update_chevron)
-        self.schedule.idle(self._update_delete)
         self.schedule.idle(self._update_drag)
+        self.schedule.idle(self._update_delete)
 
     def _add_composite_widget(self, widget, *, ignore_click: bool = False):
         self._composite_widgets.add(widget)
