@@ -5,6 +5,7 @@ from typing import Any, Callable, Optional, Union, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream, Subscription
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import ForegroundColor, SemanticColor
 from ttkbootstrap.types import Variable
@@ -19,15 +20,6 @@ class Radiobutton(BaseWidget):
     """
 
     widget: ttk.Radiobutton
-    _configure_methods = {
-        "text": "_configure_text",
-        "color": "_configure_color",
-        "signal": "_configure_value_signal",
-        "variable": "_configure_variable",
-        "text_variable": "_configure_text_variable",
-        "text_signal": "_configure_text_signal",
-        "command": "_configure_command"
-    }
 
     def __init__(
             self,
@@ -189,6 +181,7 @@ class Radiobutton(BaseWidget):
 
     # ----- Configuration delegates -----
 
+    @configure_delegate("command")
     def _configure_command(self, value: Callable[..., Any] = None):
         if value is None:
             return self._command
@@ -198,6 +191,7 @@ class Radiobutton(BaseWidget):
             self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
             return self
 
+    @configure_delegate("color")
     def _configure_color(self, value: SemanticColor = None):
         if value is None:
             return self._style_builder.options('color')
@@ -206,12 +200,14 @@ class Radiobutton(BaseWidget):
             self.update_style()
             return self
 
+    @configure_delegate("text")
     def _configure_text(self, value: str = None):
         if value is None:
             return self._text_signal()
         self._text_signal.set(value)
         return self
 
+    @configure_delegate("text_signal")
     def _configure_text_signal(self, value: Signal[str] = None):
         if value is None:
             return self._text_signal
@@ -219,6 +215,7 @@ class Radiobutton(BaseWidget):
         self.configure(textvariable=self._text_signal.var)
         return self
 
+    @configure_delegate("value_signal")
     def _configure_value_signal(self, value: Signal[str | int] = None):
         if value is None:
             return self._value_signal
@@ -231,12 +228,15 @@ class Radiobutton(BaseWidget):
         self._prev_value = self._value_signal()
         return self
 
+    @configure_delegate("text_variable")
+    @configure_delegate("textvariable")
     def _configure_text_variable(self, value: Variable = None):
         if value is None:
             return self._text_signal
         else:
             return self._configure_text_signal(Signal.from_variable(value))
 
+    @configure_delegate("variable")
     def _configure_variable(self, value: Variable = None):
         if value is None:
             return self._value_signal
