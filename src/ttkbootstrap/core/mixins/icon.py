@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.interop.runtime.schedule import Schedule
 from ttkbootstrap.utils import resolve_options
 
@@ -24,6 +25,7 @@ class IconMixin:
         self._has_icon = getattr(self, "_has_icon", False)
         super().__init__(*args, **kwargs)
 
+    @configure_delegate("icon")
     def _configure_icon(self, value=None):
         """Get or set the widget icon"""
         if value is None:

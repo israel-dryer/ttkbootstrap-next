@@ -5,6 +5,7 @@ from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.core.mixins.icon import IconMixin
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream, Subscription
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.types import AltEventHandler, Compound, IconPosition
@@ -20,16 +21,6 @@ class Button(BaseWidget, IconMixin):
     """
 
     widget: ttk.Button
-    _configure_methods = {
-        "text": "_configure_text",
-        "icon": "_configure_icon",
-        "compound": "_configure_compound",
-        "color": "_configure_color",
-        "variant": "_configure_variant",
-        "signal": "_configure_text_signal",
-        "text_variable": "_configure_text_variable",
-        "command": "_configure_command",
-    }
 
     def __init__(
             self,
@@ -127,6 +118,7 @@ class Button(BaseWidget, IconMixin):
 
     # ---- Configuration delegates -----
 
+    @configure_delegate("command")
     def _configure_command(self, value: AltEventHandler = None):
         if value is None:
             return self._command
@@ -136,6 +128,7 @@ class Button(BaseWidget, IconMixin):
             self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
             return self
 
+    @configure_delegate("text")
     def _configure_text(self, value: str = None):
         if value is None:
             return self._text_signal()
@@ -145,6 +138,7 @@ class Button(BaseWidget, IconMixin):
             self._configure_compound("auto")  # force automatic adjustment
         return self
 
+    @configure_delegate("text_signal")
     def _configure_text_signal(self, value: Signal[str] = None):
         if value is None:
             return self._text_signal
@@ -154,12 +148,15 @@ class Button(BaseWidget, IconMixin):
         self.widget.configure(textvariable=self._text_signal.var)
         return self
 
+    @configure_delegate("textvariable")
+    @configure_delegate("text_variable")
     def _configure_text_variable(self, value: Variable = None):
         if value is None:
             return self._text_signal
         else:
             return self._configure_text_signal(Signal.from_variable(value))
 
+    @configure_delegate("compound")
     def _configure_compound(self, value: IconPosition = None):
         if value is None:
             return self._compound
@@ -173,6 +170,7 @@ class Button(BaseWidget, IconMixin):
                 self._style_builder.options(icon_only=False)
             return self
 
+    @configure_delegate("color")
     def _configure_color(self, value: str = None):
         if value is None:
             return self._style_builder.color_token
@@ -181,6 +179,7 @@ class Button(BaseWidget, IconMixin):
             self.update_style()
             return self
 
+    @configure_delegate("variant")
     def _configure_variant(self, value: str = None):
         """Get or set the style variant."""
         if value is None:
