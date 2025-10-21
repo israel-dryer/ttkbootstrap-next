@@ -2,6 +2,7 @@ from tkinter import ttk
 from typing import Unpack
 
 from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.widgets.sizegrip.style import SizegripStyleBuilder
 from ttkbootstrap.widgets.sizegrip.types import SizegripOptions
@@ -16,7 +17,6 @@ class Sizegrip(BaseWidget):
     """
 
     widget: ttk.Sizegrip
-    _configure_methods = {"color": "_configure_color"}
 
     def __init__(self, color: SemanticColor = None, **kwargs: Unpack[SizegripOptions]):
         """Initialize a new SizeGrip widget.
@@ -35,6 +35,7 @@ class Sizegrip(BaseWidget):
         tk_options = dict(**kwargs)
         super().__init__(ttk.Sizegrip, tk_options, parent=parent)
 
+    @configure_delegate("color")
     def _configure_color(self, value: SemanticColor = None):
         """Get or set the sizegrip color."""
         if value is None:
