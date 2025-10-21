@@ -8,6 +8,7 @@ from ttkbootstrap.core.layout_context import pop_container, push_container
 from ttkbootstrap.events import Event
 from ttkbootstrap.exceptions.base import NavigationError
 from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.types import Widget
 from ttkbootstrap.utils import assert_valid_keys
 from ttkbootstrap.widgets.pagestack.events import NavigationEvent
@@ -22,11 +23,6 @@ class PageStack(BaseWidget):
     widget: ttk.Notebook
     Pack: Type[PackPage]
     Grid: Type[GridPage]
-
-    _configure_methods = {
-        "surface": "_configure_surface",
-        "variant": "_configure_variant"
-    }
 
     def __init__(self, **kwargs: Unpack[PageStackOptions]):
         """
@@ -60,19 +56,12 @@ class PageStack(BaseWidget):
         """Exit layout context; pop self from the container stack."""
         pop_container()
 
+    @configure_delegate("variant")
     def _configure_variant(self, value: str = None):
         """Get or set the current style variant."""
         if value is None:
             return self._style_builder.variant
         self._style_builder.options(variant=value)
-        self.update_style()
-        return self
-
-    def _configure_surface(self, value: str = None):
-        """Get or set the current surface style token."""
-        if value is None:
-            return self._style_builder.surface_token
-        self._style_builder.options(surface=value)
         self.update_style()
         return self
 
