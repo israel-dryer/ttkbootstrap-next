@@ -4,6 +4,7 @@ from typing import Literal, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.style.types import SemanticColor
 from ttkbootstrap.types import Orientation
@@ -14,12 +15,6 @@ from ttkbootstrap.widgets.progressbar.types import ProgressbarOptions
 
 class Progressbar(BaseWidget):
     widget: ttk.Progressbar
-    _configure_methods = {
-        "orient": "_configure_orient",
-        "color": "_configure_color",
-        "variant": "_configure_variant",
-        "signal": "_configure_signal",
-    }
 
     def __init__(
             self,
@@ -108,6 +103,7 @@ class Progressbar(BaseWidget):
 
     # ---- Configuration delegates -----
 
+    @configure_delegate("orient")
     def _configure_orient(self, value: Orientation = None):
         """Get or set the widget orientation"""
         if value is None:
@@ -118,6 +114,7 @@ class Progressbar(BaseWidget):
             self._style_builder.build()
             return self
 
+    @configure_delegate("color")
     def _configure_color(self, value: SemanticColor = None):
         """Get or set the progressbar color"""
         if value is None:
@@ -127,6 +124,7 @@ class Progressbar(BaseWidget):
             self._style_builder.build()
             return self
 
+    @configure_delegate("variant")
     def _configure_variant(self, value: Literal['default', 'striped'] = None):
         """Get or set the progressbar variant: 'default' or 'striped'"""
         if value is None:
@@ -136,6 +134,7 @@ class Progressbar(BaseWidget):
             self._style_builder.build()
             return self
 
+    @configure_delegate("signal")
     def _configure_signal(self, value: Signal = None):
         """Get or set the signal controlling the progress value."""
         if value is None:
