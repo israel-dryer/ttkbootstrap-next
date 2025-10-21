@@ -27,7 +27,7 @@ class EntryOptions(CoreOptions, total=False):
         take_focus: Whether the widget can receive focus.
         text_variable: Variable bound to the entry text.
         width: Widget width in characters.
-        x_scroll_command: Callback to connect a horizontal scrollbar.
+        xscroll_command: Callback to connect a horizontal scrollbar.
     """
     cursor: str
     export_selection: bool
@@ -39,7 +39,7 @@ class EntryOptions(CoreOptions, total=False):
     take_focus: bool
     text_variable: StringVar
     width: int
-    x_scroll_command: Callable
+    xscroll_command: Callable
     # Formatting/locale
     locale: str
 
@@ -68,7 +68,7 @@ class EntryFieldOptions(EntryOptions, total=False):
         text_variable: Variable bound to the entry text.
         value: The initial value of the input field.
         width: Widget width in characters.
-        x_scroll_command: Callback to connect a horizontal scrollbar.
+        xscroll_command: Callback to connect a horizontal scrollbar.
         locale: Locale tag for Intl formatting (e.g., "en_US", "de_DE").
     """
     allow_blank: bool
@@ -117,7 +117,7 @@ class NumberEntryOptions(EntryOptions, total=False):
         text_variable: Variable bound to the entry text.
         width: Widget width in characters.
         wrap: If True, values exceeding bounds wrap around.
-        x_scroll_command: Callback to connect a horizontal scrollbar.
+        xscroll_command: Callback to connect a horizontal scrollbar.
     """
     allow_blank: bool
     value_format: FormatSpec
@@ -146,7 +146,7 @@ class SpinboxOptions(CoreOptions, total=False):
         font: The font used to render text in the entry (name or Font object).
         foreground: The text color (e.g., "#333", "red").
         take_focus: Indicates whether the widget accepts focus during keyboard traversal.
-        x_scroll_command: A callback used to link the entry to a horizontal scrollbar.
+        xscroll_command: A callback used to link the entry to a horizontal scrollbar.
         export_selection: Whether to export the selection to the clipboard (default is True).
         justify: Text justification (left, center, or right).
         show: The character used to mask text (e.g., "*" for passwords).
@@ -156,7 +156,7 @@ class SpinboxOptions(CoreOptions, total=False):
     font: str | Font
     foreground: str
     take_focus: bool
-    x_scroll_command: Callable
+    xscroll_command: Callable
     export_selection: bool
     justify: Justify
     show: str

@@ -47,7 +47,7 @@ class NumericEntry(EntryField):
             text_variable: Variable bound to the entry text.
             width: Widget width in characters.
             wrap: If True, values exceeding bounds wrap around.
-            x_scroll_command: Callback to connect a horizontal scrollbar.
+            xscroll_command: Callback to connect a horizontal scrollbar.
         """
         self._show_spin_buttons = show_spin_buttons
         # Use manual numeric stepping to keep formatting reliable while stepping

@@ -40,7 +40,7 @@ class PasswordEntry(EntryField):
             take_focus: Whether the widget can receive focus.
             text_variable: Variable bound to the entry text.
             width: Widget width in characters.
-            x_scroll_command: Callback to connect a horizontal scrollbar.
+            xscroll_command: Callback to connect a horizontal scrollbar.
         """
         self._show_visible_toggle = show_visible_toggle
         self._show_visible_pack = {}

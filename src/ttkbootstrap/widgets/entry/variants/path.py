@@ -50,7 +50,7 @@ class PathEntry(EntryField):
             text_variable: Variable bound to the entry text.
             value: The initial value of the input field.
             width: Widget width in characters.
-            x_scroll_command: Callback to connect a horizontal scrollbar.
+            xscroll_command: Callback to connect a horizontal scrollbar.
         """
         self._dialog_type = dialog_type
         self._dialog_options = dialog_options or {}

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional, Self, Unpack
 
 from ttkbootstrap.events import Event
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.localization.intl_format import FormatSpec, IntlFormatter
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.types import Number, Variable
@@ -153,6 +154,8 @@ class ManualNumericPart(EntryPart):
                 self._on_input_fid = self._signal.subscribe(self._handle_change)
 
     # Override to expose strong typing in configure API
+    @configure_delegate("text_variable")
+    @configure_delegate("textvariable")
     def _configure_text_variable(self, value: Variable = None):
         if value is None:
             return self._signal

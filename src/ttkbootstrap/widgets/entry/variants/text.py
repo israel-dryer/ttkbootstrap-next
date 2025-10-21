@@ -39,6 +39,6 @@ class TextEntry(EntryField):
             text_variable: Variable bound to the entry text.
             value: The initial value of the input field.
             width: Widget width in characters.
-            x_scroll_command: Callback to connect a horizontal scrollbar.
+            xscroll_command: Callback to connect a horizontal scrollbar.
         """
         super().__init__(value=value, label=label, message=message, **kwargs)

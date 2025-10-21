@@ -6,6 +6,7 @@ from typing import Any, Optional, Self, Unpack
 from ttkbootstrap.core.base_widget import BaseWidget
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import Stream
+from ttkbootstrap.interop.runtime.configure import configure_delegate
 from ttkbootstrap.localization.intl_format import FormatSpec, IntlFormatter
 from ttkbootstrap.signals.signal import Signal
 from ttkbootstrap.types import Variable
@@ -25,16 +26,6 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
     """
 
     widget: ttk.Entry
-
-    _configure_methods = {
-        "value": "value",
-        "text": "text",
-        "readonly": "readonly",
-        "signal": "_configure_signal",
-        "value_format": "_configure_value_format",
-        "allow_blank": "_configure_allow_blank",
-        "text_variable": "_configure_text_variable",
-    }
 
     def __init__(
             self,
@@ -190,6 +181,16 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
 
     # ---- Configuration delegates -----
 
+    @configure_delegate("readonly")
+    def readonly(self, value: bool = None):
+        """Get or set readonly state."""
+        if value is None:
+            return "readonly" in self.widget.state()
+        states = ['disabled', 'readonly'] if value else ['!disabled', '!readonly']
+        self.widget.state(states)
+        return self
+
+    @configure_delegate("value_format")
     def _configure_value_format(self, spec: Optional[FormatSpec] = None):
         """Get or set the Intl format spec (None = no Intl parsing/formatting)."""
         if spec is None:
@@ -202,6 +203,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
             )
         return self
 
+    @configure_delegate("allow_blank")
     def _configure_allow_blank(self, flag: Optional[bool] = None):
         """Get or set whether empty display maps to None on commit."""
         if flag is None:
@@ -209,6 +211,7 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._allow_blank = bool(flag)
         return self
 
+    @configure_delegate("signal")
     def _configure_signal(self, value: Signal[str | int] = None):
         """Get or replace the underlying display Signal (StringVar-backed)."""
         if value is None:
@@ -230,6 +233,8 @@ class EntryPart(ValidationMixin, EntryMixin, BaseWidget):
         self._prev_change_text = self._signal()
         return self
 
+    @configure_delegate("text_variable")
+    @configure_delegate("textvariable")
     def _configure_text_variable(self, value: Variable = None):
         if value is None:
             return self._signal

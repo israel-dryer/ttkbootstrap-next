@@ -21,14 +21,6 @@ class EntryMixin:
         self.widget.state(['disabled'])
         return self
 
-    def readonly(self, value: bool = None):
-        """Get or set readonly state."""
-        if value is None:
-            return "readonly" in self.widget.state()
-        states = ['disabled', 'readonly'] if value else ['!disabled', '!readonly']
-        self.widget.state(states)
-        return self
-
     def get_bounding_box(self, index: Index) -> tuple[int, int, int, int] | None:
         """Return bounding box of character at index."""
         return self.widget.bbox(index)
