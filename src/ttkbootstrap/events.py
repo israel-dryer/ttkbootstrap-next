@@ -193,6 +193,8 @@ class Event(StrEnum):
     ITEM_SELECTING = "<<Tkb-ItemSelecting>>"
     ITEM_SELECTED = "<<Tkb-ItemSelected>>"
 
+    ITEM_FOCUSED = "<<Tkb-ItemFocused>>"
+
     ITEM_DESELECTING = "<<Tkb-ItemDeselecting>>"
     ITEM_DESELECTED = "<<Tkb-ItemDeselected>>"
 
