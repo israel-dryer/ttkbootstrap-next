@@ -9,7 +9,7 @@ from ttkbootstrap.core.layout_context import current_container
 from ttkbootstrap.core.mixins.layout import LayoutMixin
 from ttkbootstrap.events import Event
 from ttkbootstrap.interop.runtime.binding import BindingMixin
-from ttkbootstrap.interop.runtime.configure import ConfigureMixin
+from ttkbootstrap.interop.runtime.configure import ConfigureMixin, configure_delegate
 from ttkbootstrap.interop.runtime.focus import FocusMixin
 from ttkbootstrap.interop.runtime.grab import GrabMixIn
 from ttkbootstrap.interop.runtime.schedule import Schedule
@@ -209,6 +209,17 @@ class BaseWidget(
                 pass
             else:
                 self.configure(style=style_name)
+
+    @configure_delegate('surface')
+    def _configure_surface_token(self, value: str):
+        if value is None:
+            return self.surface_token
+        else:
+            self._surface_token = value
+            if hasattr(self, "_style_builder"):
+                self._style_builder.options(surface=value)
+            self.update_style()
+            return self
 
     def __str__(self):
         """Return the Tk path name of the underlying widget."""

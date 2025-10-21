@@ -19,7 +19,6 @@ class BaseLayout(BaseWidget, ContainerMixin):
     - Children execute their own geometry manager using the merged options.
     """
     widget: ttk.Frame
-    _configure_methods = {"surface": "surface"}
 
     def __init__(self, *, surface: str = None, variant: str = None, **kwargs: Unpack[FrameOptions]):
         self._surface_token = surface
@@ -57,15 +56,6 @@ class BaseLayout(BaseWidget, ContainerMixin):
                 }
             },
         )
-
-    def surface(self, value: str = None):
-        """Get or set the surface (background) color of this widget"""
-        if value is None:
-            return self._surface_token
-        else:
-            self._surface_token = value
-            self._style_builder.surface_token(value)
-            return self
 
     def preferred_layout_method(self) -> str:
         """Default preferred geometry for bare frames: pack."""
