@@ -18,6 +18,8 @@ class ListItem(Pack):
         # properties
         self._data = {}
         self._item_index = 0
+        self._focus_state_enabled = kwargs.pop('focus_state_enabled', True)
+        self._focus_color = kwargs.pop('focus_color', None)
         self._show_separator = kwargs.pop('show_separators', False)
         self._dragging_enabled = kwargs.get('dragging_enabled', False)
         self._deleting_enabled = kwargs.get('deleting_enabled', False)
@@ -37,9 +39,9 @@ class ListItem(Pack):
         super().__init__(
             direction="horizontal",
             variant='list-item-separated' if self._show_separator else 'list-item',
-            take_focus=True,
+            take_focus=self._focus_state_enabled,
             padding=(8, 4),
-            builder=dict(select_background=self._selection_background),
+            builder=dict(select_background=self._selection_background, focus_color=self._focus_color),
             parent=kwargs.pop('parent', None))
 
         # composite widgets (guaranteed to exist upon init)
@@ -134,7 +136,8 @@ class ListItem(Pack):
         return None
 
     def _on_mouse_down(self, _):
-        self.focus()
+        if self._focus_state_enabled:
+            self.focus()
         # Let the list handle selection via emitted event
         self.parent.emit(Event.ITEM_CLICK, data=self._data)
         self.select()
@@ -184,11 +187,14 @@ class ListItem(Pack):
                     pass
 
     def _on_focus_in(self, event):
+        if not self._focus_state_enabled: return
         self._set_focus_state(True)
         # Emit event to notify parent list that this record is focused
         self.parent.emit(Event.ITEM_FOCUSED, data=self._data)
 
     def _on_focus_out(self, event):
+        if not self._focus_state_enabled:
+            return None
         # Keep focus styling if focus moved to a descendant of this row
         related = getattr(event, 'related', None)
         try:
@@ -279,6 +285,9 @@ class ListItem(Pack):
 
         is_selected = bool(self.selected or False)
         if is_selected:
+            # In single selection mode, don't allow deselecting the selected item
+            if mode == 'single':
+                return None
             self.parent.emit(Event.ITEM_DESELECTING, data=self.data)
             return False
         else:
@@ -547,20 +556,22 @@ class ListItem(Pack):
         # If this is the first motion event, emit drag start
         if not self._drag_state.get('dragging'):
             self._drag_state['dragging'] = True
-            self.parent.emit(Event.ITEM_DRAG_START, data={
-                **self._data,
-                'source_index': self._item_index,
-                'y_start': self._drag_state['start_y']
-            })
+            self.parent.emit(
+                Event.ITEM_DRAG_START, data={
+                    **self._data,
+                    'source_index': self._item_index,
+                    'y_start': self._drag_state['start_y']
+                })
 
         # Emit drag motion event
-        self.parent.emit(Event.ITEM_DRAGGING, data={
-            **self._data,
-            'source_index': self._item_index,
-            'y_current': event.y_root,
-            'y_start': self._drag_state['start_y'],
-            'delta_y': event.y_root - self._drag_state['start_y']
-        })
+        self.parent.emit(
+            Event.ITEM_DRAGGING, data={
+                **self._data,
+                'source_index': self._item_index,
+                'y_current': event.y_root,
+                'y_start': self._drag_state['start_y'],
+                'delta_y': event.y_root - self._drag_state['start_y']
+            })
 
     def _on_drag_mouse_up(self, event):
         """Mouse released - end drag if we were dragging."""
@@ -569,12 +580,13 @@ class ListItem(Pack):
 
         # Only emit drag end if we actually started dragging
         if self._drag_state.get('dragging'):
-            self.parent.emit(Event.ITEM_DRAG_END, data={
-                **self._data,
-                'source_index': self._item_index,
-                'y_end': event.y_root,
-                'y_start': self._drag_state.get('start_y')
-            })
+            self.parent.emit(
+                Event.ITEM_DRAG_END, data={
+                    **self._data,
+                    'source_index': self._item_index,
+                    'y_end': event.y_root,
+                    'y_start': self._drag_state.get('start_y')
+                })
 
         # Reset drag state
         self._drag_state = {'dragging': False, 'start_y': None}
@@ -614,7 +626,6 @@ class ListItem(Pack):
                     except Exception:
                         pass
 
-
         selected = bool(record.get("selected", False))
         if self._state.get("selected") != selected:
             self._update_selection(selected)
@@ -622,7 +633,7 @@ class ListItem(Pack):
 
         # Handle focus - apply tkinter focus to the widget that should have logical focus
         focused = bool(record.get("focused", False))
-        if self._state.get("focused") != focused:
+        if self._state.get("focused") != focused and self._focus_state_enabled:
             if focused:
                 # This record should have focus - give tkinter focus to this widget
                 try:

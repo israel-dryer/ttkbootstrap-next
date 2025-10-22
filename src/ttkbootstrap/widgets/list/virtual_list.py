@@ -30,10 +30,12 @@ class VirtualList(Pack):
             row_alternation_mode: Literal['even', 'odd'] = "even",
             scrollbar_visible=True,
             show_separators=True,
+            focus_state_enabled=True,
+            focus_color=None,
             search_enabled=False,
             search_expr: list[str] = None,
             search_mode: Literal["contains", "startswith", "endswidth", "equals"] = "contains",
-            selection_background: str = 'primary',
+            selection_background: str = "primary",
             select_by_click: bool = False,
             selection_mode: Literal['single', 'multiple', 'none'] = 'none',
             selection_controls_visible=False,
@@ -55,7 +57,9 @@ class VirtualList(Pack):
                 search_enabled: Display a search entry above the list.
                 search_expr: The field(s) to use when executing the search query.
                 search_mode: The search method to execute.
-                show_separators: Display a separator between list items..
+                show_separators: Display a separator between list items.
+                focus_state_enabled: Allow list items to take focus.
+                focus_color: The color of the focus indicator. Default follows selection color.
                 select_by_click: Select item by clicking the row; instead of only the selection control.
                 selection_mode: Indicates what kind of selection is allowed on list items.
                 selection_controls_visible: Show selection controls when selection is enabled.
@@ -73,11 +77,14 @@ class VirtualList(Pack):
             select_by_click=select_by_click,
             selection_mode=selection_mode,
             selection_controls_visible=selection_controls_visible,
+            focus_state_enabled=focus_state_enabled,
+            focus_color=focus_color,
             row_alternation_enabled=row_alternation_enabled,
             row_alternation_color=row_alternation_color,
             row_alternation_mode=row_alternation_mode,
         )
         self._datasource = items if isinstance(items, DataSourceProtocol) else MemoryDataSource().set_data(items or [])
+        self._focus_state_enabled = focus_state_enabled
         self._row_factory = row_factory or self._default_row_factory
         self._rows: list[ListItem] = []
         self._start_index = 0
@@ -255,6 +262,7 @@ class VirtualList(Pack):
 
     def _on_item_focused(self, event: Any):
         """Handle when a list item receives focus - track which record is focused."""
+        if not self._focus_state_enabled: return;
         record_id = event.data.get('id')
         if record_id and record_id != '__empty__':
             self._focused_record_id = record_id
@@ -376,19 +384,21 @@ class VirtualList(Pack):
                 self._update_rows()
 
                 # Emit success event
-                self._hub.emit(Event.ITEM_REORDERED, data={
-                    'record': moved_record,
-                    'from_index': source,
-                    'to_index': target
-                })
+                self._hub.emit(
+                    Event.ITEM_REORDERED, data={
+                        'record': moved_record,
+                        'from_index': source,
+                        'to_index': target
+                    })
 
         except Exception as e:
             # Handle error - emit failed event
-            self._hub.emit(Event.ITEM_REORDER_FAILED, data={
-                'from_index': source,
-                'to_index': target,
-                'reason': str(e)
-            })
+            self._hub.emit(
+                Event.ITEM_REORDER_FAILED, data={
+                    'from_index': source,
+                    'to_index': target,
+                    'reason': str(e)
+                })
 
     # ----- Drag indicator helpers ------
 

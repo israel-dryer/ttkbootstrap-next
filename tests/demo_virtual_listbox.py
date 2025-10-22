@@ -63,14 +63,14 @@ with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
     ds = MemoryDataSource(page_size=25)
     ds.set_data(records)
 
-    with Pack().attach(fill='both', expand=True):
+    with Pack(padding=2).attach(fill='both', expand=True):
         vl = VirtualList(
             items=ds,
             show_separators=True,
             search_enabled=True,
             search_expr=['text', 'caption'],
-            selection_mode="none",
-            selection_controls_visible=True,
+            selection_mode="single",
+            selection_controls_visible=False,
             select_by_click=True,
         ).attach(fill="both", expand=True)
 

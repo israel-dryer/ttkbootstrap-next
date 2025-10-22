@@ -64,6 +64,9 @@ def build_list_item_style(b: FrameStyleBuilder):
     background_selected = b.color(b.options("select_background"), background)
     background_selected_hover = b.hover(background_selected)
     border_normal = b.border(background) if b.variant.endswith('separated') else background
+    focus_color = b.elevate(background_selected, 5)
+    if b.options("focus_color"):
+        focus_color = b.color(b.options("focus_color"))
 
     normal_img = recolor_image('list-item-separated', background, border_normal)
     hover_img = recolor_image('list-item-separated', background_hover, border_normal)
@@ -71,23 +74,24 @@ def build_list_item_style(b: FrameStyleBuilder):
     selected_hover_img = recolor_image('list-item-separated', background_selected_hover, border_normal)
     pressed_img = recolor_image('list-item-separated', background_pressed, border_normal)
 
-    focus_img = recolor_image('list-item-separated', background_hover, border_normal)
-    focus_hover_img = recolor_image('list-item-separated', background_hover, border_normal)
-    focus_selected_img = recolor_image('list-item-separated', background_selected_hover, border_normal)
-    focus_selected_hover_img = recolor_image('list-item-separated', background_selected_hover, border_normal)
+    focus_img = recolor_image('list-item-focus', background_hover, border_normal, focus_color)
+    focus_pressed_img = recolor_image('list-item-focus', background_pressed, border_normal, focus_color)
+    focus_hover_img = recolor_image('list-item-focus', background_hover, border_normal, focus_color)
+    focus_selected_img = recolor_image('list-item-focus', background_selected_hover, border_normal, focus_color)
+    focus_selected_hover_img = recolor_image('list-item-focus', background_selected_hover, border_normal, focus_color)
 
     # list element
     b.style_create_element(
         ElementImage(f'{ttk_style}.border', normal_img, sticky="nsew", border=8).state_specs(
             [
                 # Most specific combos (first match wins)
-                ('focus selected', focus_selected_hover_img),
-                ('hover selected', selected_hover_img),
+                ('focus selected hover', focus_selected_hover_img),
                 ('focus selected', focus_selected_img),
-                ('selected', selected_img),
-                ('focus pressed', pressed_img),
-                ('pressed', pressed_img),
+                ('hover selected', selected_hover_img),
+                ('focus pressed', focus_pressed_img),
                 ('focus hover', focus_hover_img),
+                ('selected', selected_img),
+                ('pressed', pressed_img),
                 ('hover', hover_img),
                 ('focus', focus_img),
                 ((), normal_img),
