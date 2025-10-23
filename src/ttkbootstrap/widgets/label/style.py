@@ -117,6 +117,31 @@ def build_list_label_style(b: LabelStyleBuilder):
     )
 
 
+@LabelStyleBuilder.register_variant("menu-item")
+def build_menu_item_label_style(b: LabelStyleBuilder):
+    b.build_icon_assets()
+    ttk_style = b.resolve_ttk_name()
+    background = b.color(b.surface_token)
+    background_hover = b.elevate(background, 1)
+    background_pressed = b.elevate(background, 2)
+    foreground_token = b.options('foreground')
+    if foreground_token is None:
+        foreground = b.on_color(background)
+    else:
+        try:
+            foreground = b.color(foreground_token, "text")
+        except TclError:
+            foreground = foreground_token
+
+    b.style_configure(ttk_style, background=background, foreground=foreground)
+    b.style_map(
+        ttk_style,
+        background=[
+            ('pressed', background_pressed),
+            ('hover', background_hover)]
+    )
+
+
 # ----- Icon builders ------
 
 @LabelStyleBuilder.register_variant("prefix-icon-builder")
@@ -138,6 +163,27 @@ def build_default_icon_assets(b: LabelStyleBuilder, icon: dict):
     b.register_stateful_icon(icon, 'pressed', foreground)
     b.register_stateful_icon(icon, 'focus', foreground)
     b.register_stateful_icon(icon, 'disabled', foreground)
+    b.map_stateful_icons()
+
+
+@LabelStyleBuilder.register_variant("menu-item-icon-builder")
+def build_menu_item_icon_assets(b: LabelStyleBuilder, icon: dict):
+    icon['size'] = 14
+    background = b.color(b.surface_token)
+    foreground_token = b.options('foreground')
+    if foreground_token is None:
+        foreground = b.on_color(background)
+    else:
+        try:
+            foreground = b.color(foreground_token, "text")
+        except TclError:
+            foreground = foreground_token
+
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'disabled', foreground)
+    b.register_stateful_icon(icon, 'selected', foreground)
     b.map_stateful_icons()
 
 

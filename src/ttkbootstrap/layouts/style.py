@@ -54,6 +54,39 @@ def build_list_frame_style(b: FrameStyleBuilder):
         ])
 
 
+@FrameStyleBuilder.register_variant("menu-item")
+def build_menu_item_style(b: FrameStyleBuilder):
+    ttk_style = b.resolve_ttk_name()
+    background = b.color(b.surface_token)
+    background_hover = b.elevate(background, 1)
+    background_pressed = b.elevate(background, 2)
+    begin_group = b.options('begin_group') or False
+    border_normal = b.border(background) if begin_group else background
+
+    normal_img = recolor_image('menu-item-separated', background, border_normal)
+    hover_img = recolor_image('menu-item-separated', background_hover, border_normal)
+    pressed_img = recolor_image('menu-item-separated', background_pressed, border_normal)
+
+    # menu item element
+    b.style_create_element(
+        ElementImage(f'{ttk_style}.border', normal_img, sticky="nsew", border=8).state_specs(
+            [
+                # Most specific combos (first match wins)
+                ('pressed', pressed_img),
+                ('hover', hover_img),
+                ((), normal_img),
+            ]
+        )
+    )
+    b.style_create_layout(
+        ttk_style, Element(f'{ttk_style}.border', sticky="nsew").children(
+            [
+                Element(f'{ttk_style}.padding', sticky="")
+            ])
+    )
+    b.style_configure(ttk_style, background=background)
+
+
 @FrameStyleBuilder.register_variant("list-item")
 @FrameStyleBuilder.register_variant("list-item-separated")
 def build_list_item_style(b: FrameStyleBuilder):

@@ -123,6 +123,9 @@ class Icon(ABC):
         if key in Icon._cache:
             return Icon._cache[key]
 
+        if self.name == "none":
+            return create_transparent_icon(self.size)
+
         glyph = self._icon_map.get(self.name)
         if not glyph:
             raise ValueError(f"Icon '{self.name}' not found in icon map.")

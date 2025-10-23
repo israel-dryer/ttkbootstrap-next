@@ -261,6 +261,41 @@ def build_addon_button_style(b: ButtonStyleBuilder):
         background=[('disabled', surface)])
 
 
+@ButtonStyleBuilder.register_variant("menu-item")
+def build_menu_item_button_style(b: ButtonStyleBuilder):
+    b.build_icon_assets()
+    ttk_style = b.resolve_ttk_name()
+
+    surface = b.color(b.surface_token)
+    background_hover = b.elevate(surface, 1)
+    background_pressed = b.elevate(surface, 2)
+
+    # button element
+    b.style_create_layout(
+        ttk_style, Element('Label.border', sticky="nsew").children(
+            [
+                Element('Label.padding', sticky="nsew").children(
+                    [
+                        Element("Label.label", sticky="")
+                    ])
+            ]))
+
+    b.style_configure(
+        ttk_style,
+        background=surface,
+        padding=0,
+        relief='flat',
+        stipple="gray12",
+        font=b.get_font(b.options('size')))
+
+    b.style_map(
+        ttk_style,
+        foreground=[],
+        background=[
+            ('pressed', background_pressed),
+            ('hover', background_hover)])
+
+
 @ButtonStyleBuilder.register_variant("list")
 def build_list_button_style(b: ButtonStyleBuilder):
     b.build_icon_assets()
@@ -380,6 +415,22 @@ def build_addon_icon_assets(b: ButtonStyleBuilder, icon: dict):
     b.register_stateful_icon(icon, 'pressed', foreground)
     b.register_stateful_icon(icon, 'focus', foreground)
     b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.map_stateful_icons()
+
+
+@ButtonStyleBuilder.register_variant("menu-item-icon-builder")
+def build_menu_icon_assets(b: ButtonStyleBuilder, icon: dict):
+    """Create stateful icons for menu item variant"""
+    icon['size'] = 14
+    background = b.color(b.surface_token)
+    foreground = b.on_color(background)
+    foreground_disabled = b.disabled("text")
+
+    b.register_stateful_icon(icon, 'disabled', foreground_disabled)
+    b.register_stateful_icon(icon, 'normal', foreground)
+    b.register_stateful_icon(icon, 'hover', foreground)
+    b.register_stateful_icon(icon, 'pressed', foreground)
+    b.register_stateful_icon(icon, 'selected', foreground)
     b.map_stateful_icons()
 
 

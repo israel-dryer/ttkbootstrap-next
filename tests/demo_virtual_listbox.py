@@ -59,19 +59,16 @@ records = [
     {"id": 50, "text": "Wyoming", "caption": "Cheyenne", "icon": "pin-map"}
 ]
 
+just_text = [{"id": r['id'], "text": r['text'], "icon": r["icon"]} for r in records]
+
 with App("Demo Virtual Listbox", geometry="500x500", theme="dark") as app:
     ds = MemoryDataSource(page_size=25)
     ds.set_data(records)
 
     with Pack(padding=2).attach(fill='both', expand=True):
         vl = VirtualList(
-            items=ds,
+            items=just_text,
             show_separators=True,
-            search_enabled=True,
-            search_expr=['text', 'caption'],
-            selection_mode="single",
-            selection_controls_visible=False,
-            select_by_click=True,
         ).attach(fill="both", expand=True)
 
         vl.on_item_deleting().cancel_when(lambda ev: ev.data['id'] == 105).listen(lambda e: print(e))
