@@ -1,88 +1,139 @@
-![](https://img.shields.io/github/release/israel-dryer/ttkbootstrap.svg)
-[![Downloads](https://pepy.tech/badge/ttkbootstrap)](https://pepy.tech/project/ttkbootstrap)
-[![Downloads](https://pepy.tech/badge/ttkbootstrap/month)](https://pepy.tech/project/ttkbootstrap)
-![](https://img.shields.io/github/issues/israel-dryer/ttkbootstrap.svg)
-![](https://img.shields.io/github/issues-closed/israel-dryer/ttkbootstrap.svg)
-![](https://img.shields.io/github/license/israel-dryer/ttkbootstrap.svg)
-![](https://img.shields.io/github/stars/israel-dryer/ttkbootstrap.svg)
-![](https://img.shields.io/github/forks/israel-dryer/ttkbootstrap.svg)
+# ttkbootstrap-next
 
-# ttkbootstrap
-English | [中文](README_zh.md)
+> **Next-generation theming and layout engine for Tkinter**  
+> Reimagining [`ttkbootstrap`](https://github.com/israel-dryer/ttkbootstrap) with a modern, declarative API, reactive
+> event streams, and unified layout containers.
 
-ttkbootstrap is a Python library that enhances tkinter by providing modern, flat-style themes inspired by Bootstrap. Easily create stylish GUI applications with built-in themes, pre-defined widget styles, and more.
+---
 
-## Documentation
-👀 Check out the [documentation](https://ttkbootstrap.readthedocs.io/en/latest/).
+⚠️ **Project Status:**  
+`ttkbootstrap-next` is currently **under active development** and preparing for its first public release.  
+APIs are evolving rapidly, documentation is incomplete, and the package is **not yet available on PyPI**.  
+If you’d like to follow development or contribute feedback, please ⭐ the repo and watch for announcements.
 
+---
 
-![](https://raw.githubusercontent.com/israel-dryer/ttkbootstrap/master/docs/assets/themes/themes.gif)
+## 💡 Overview
 
-## Features
+`ttkbootstrap-next` is a full re-architecture of the original [
+`ttkbootstrap`](https://github.com/israel-dryer/ttkbootstrap) library — a modern theming and layout framework built on
+top of Tkinter’s classic `ttk` widgets.
 
-✔️ [**Built-in Themes**](https://ttkbootstrap.readthedocs.io/en/latest/themes/)   
-Over a dozen curated dark and light themes.
+This “Next” version explores a **cleaner, more expressive API** that embraces modern GUI design principles while
+retaining full compatibility with Tk’s core concepts.
 
-✔️ [**Pre-defined Styles:**](https://ttkbootstrap.readthedocs.io/en/latest/styleguide/)  
-Loads of beautiful pre-defined widget styles such as **outline** and **round toggle** buttons.
+---
 
-✔️ [**Simple keyword API:**](https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/#use-themed-widgets)  
-Apply colors and types using simple keywords such as **primary** and **striped** instead of the legacy approach of **primary.Striped.Horizontal.TProgressbar**. If you've used Bootstrap for web development, you are already familiar with this approach using css classes.
+## ✨ Core Goals
 
-✔️ [**Lots of new Widgets:**](https://ttkbootstrap.readthedocs.io/en/latest/api/widgets/dateentry/)  
-ttkbootstrap comes with several new beautifully designed widgets such as **Meter**, **DateEntry**, and **Floodgauge**. Additionally, **dialogs** are now themed and fully customizable.
+- **Declarative Layouts**  
+  Unified `PackFrame`, `GridFrame`, and `PageStack` containers with consistent `gap`, `margin`, and `sticky` options.
 
-✔️ [**Built-in Theme Creator:**](https://ttkbootstrap.readthedocs.io/en/latest/themes/themecreator/)  
-Want to create your own theme? Easy! ttkboostrap includes a built-in **theme creator** that enables you to easily build, load, expore, and apply your own custom themes.
+- **Modern Styling System**  
+  Color and surface tokens (`surface`, `variant`, `fg/primary`, `bg/neutral`, etc.) inspired by design systems like
+  Bootstrap 5 and Material 3.
 
-## Installation
-Install ttkbootstrap using pip in the terminal/command prompt!
+- **Reactive Events**  
+  A new Stream API for Tkinter events:
+  ```python
+  widget.on("<Button-1>").cancel_when(lambda e: e.data["id"] == 105).listen(handler)
+  ```
 
-```python
-python -m pip install ttkbootstrap
+- **Stateful Icons**  
+  Dynamic icon registry that adapts to widget state (normal, hover, pressed, disabled, selected).
+
+- **App Context Manager**  
+  Cleaner structure using `App` as the root layout context:
+  ```python
+  from ttkbootstrap_next import App
+  from ttkbootstrap_next.layout import Pack
+  from ttkbootstrap_next.widgets import Button
+
+  with App("Demo") as app:
+      with Pack(direction="vertical", gap=8, padding=16).attach(fill='both', expand=True):
+          Button("Click me").attach()
+  ```
+
+- **Backwards Awareness**  
+  Some portable features (e.g., style tokens, icon registry) will be backported to the classic library where feasible.
+
+---
+
+## 🧩 Relationship to Classic `ttkbootstrap`
+
+| Classic (`ttkbootstrap`) | Next (`ttkbootstrap-next`)  |
+|--------------------------|-----------------------------|
+| Stable, production-ready | Experimental, in-progress   |
+| Backwards-compatible API | Modern, declarative API     |
+| Incremental updates only | Rapid iteration & new ideas |
+| Available on PyPI        | Not yet released            |
+
+Both projects will coexist:
+
+- **`ttkbootstrap`** continues as the stable, widely used library.
+- **`ttkbootstrap-next`** serves as the experimental playground for the next major generation.
+
+---
+
+## 🧱 Current Focus (Q4 2025)
+
+- Completing the event Stream API testing
+- Completing base widget set, including menus, windows, and dialogs
+- Adding CLI tools for quick start
+- Writing developer documentation and migration guide
+- Preparing the first public preview (`v0.1.0`)
+
+---
+
+## 🚀 Development Setup
+
+```bash
+# Clone the repo
+git clone https://github.com/israel-dryer/ttkbootstrap-next.git
+cd ttkbootstrap-next
+
+# (Optional) create a virtual environment
+python -m venv .venv
+source .venv/bin/activate   # or .venv\Scripts\activate on Windows
+
+# Install dependencies (if defined)
+pip install -e .
 ```
 
-## Simple Usage
-Instead of using long, complicated ttk style classes, you can use simple keywords with the "bootstyle" parameter.
+---
 
-To get started, add the import statement at the top of your file in your preferred IDE:
-```python
-import ttkbootstrap as ttk
-```
+## 🧪 Contributing
 
-Then create a window using the ttk.Window(...) and .mainloop() commands.
-And add a couple buttons (b1 and b2) to create your first window!
+Contributions are welcome!  
+This project is currently in **design and refactor phase**, so issues, API feedback, and discussion of layout ergonomics
+are especially appreciated.
 
-```python
-import ttkbootstrap.widgets.button.widget
+- Open issues for questions, bugs, or ideas.
+- Pull requests should target the active development branch (`main` or `release-candidate-2.0` until launch).
+- Please keep discussion focused on `ttkbootstrap-next` — feature requests for stable `ttkbootstrap` should go to that
+  repo.
 
-root = ttk.Window(themename="superhero")
+---
 
-b1 = ttkbootstrap.widgets.button.widget.Button(root, text="Submit", bootstyle="success")
-b1.pack(side=LEFT, padx=5, pady=10)
+## 📜 License
 
-b2 = ttkbootstrap.widgets.button.widget.Button(root, text="Submit", bootstyle="info-outline")
-b2.pack(side=LEFT, padx=5, pady=10)
+Released under the [MIT License](LICENSE).
 
-root.mainloop()
-```
-Here is the desired result:
+---
 
+### 🗓️ Project Status
 
-![Here is the result of the code used above:](beginningresult.png)
+| Stage                   | Status | Notes                                         |
+|-------------------------|:------:|-----------------------------------------------|
+| Planning / Architecture |   ✅    | Core design completed                         |
+| Layout Engine           |   ✅    | Layout engine completed                       |
+| Event / Stream API      |   🚧   | Under test                                    |
+| Style Tokens / Builders |  🏗️   | In progress...                                |
+| Widgets                 |  🏗️   | In progress...                                |
+| CLI Tools & Template    |   ⏳    | Coming soon                                   |
+| Docs & Examples         |   ⏳    | Coming soon                                   |
+| PyPI Release            |   ⏳    | Planned for initial public preview (`v0.1.0`) |
 
-For more detailed usage, please refer to the [**Getting Started page**](https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/)
-This page includes creating buttons, adding widgets, different styles and more. 
+---
 
-The new keyword API is very flexible. The following examples all produce the same result:
-- `bootstyle="info-outline"`
-- `bootstyle="info outline"`
-- `bootstyle=("info", "outline")`
-- `bootstyle=(INFO, OUTLINE)`
-
-## Contributing
-We welcome contributions! If you'd like to contribute to ttkbootstrap, please check out our contributing guidelines.
-
-## Links
-- **Documentation:** https://ttkbootstrap.readthedocs.io/en/latest/  
-- **GitHub:** https://github.com/israel-dryer/ttkbootstrap
+> © 2025 Israel Dryer — ttkbootstrap-next is part of the ttkbootstrap family of open-source projects.
