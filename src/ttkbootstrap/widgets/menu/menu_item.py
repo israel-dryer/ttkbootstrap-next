@@ -8,7 +8,7 @@ type MenuItemType = Literal['button', 'checkbutton', 'radiobutton', 'selectbox',
 
 
 class MenuItem(Grid):
-    def __init__(self, text: str, **kwargs):
+    def __init__(self, **kwargs):
         self._data = {}
         self._item_index = 0
         self._items = []
@@ -16,11 +16,12 @@ class MenuItem(Grid):
         self._item_type: MenuItemType = kwargs.pop('item_type', cast(MenuItemType, 'button'))
         self._begin_group = kwargs.pop("begin_group", False)
         self._icon = kwargs.pop('icon', "none")
-        self._text = text
+        self._image = kwargs.pop('image', "none")
+        self._label = kwargs.pop('label', "")
         self._underline = kwargs.get('underline', None)
         self._command = kwargs.pop('command', None)
-        self._shortcut_text = kwargs.pop('shortcut_text', None)
-        self._shortcut_event = kwargs.pop('shortcut_event', None)
+        self._accelerator = kwargs.pop('accelerator', None)
+        self._command = kwargs.pop('command', None)
 
         super().__init__(
             columns=["24px", 1, "24px"],
@@ -43,14 +44,15 @@ class MenuItem(Grid):
         elif self._icon:
             self._before.configure(icon=self._icon)
 
-        self._center = Label(self._text, parent=self, font="body", variant="menu-item", anchor="w").attach(column=1, sticky="ew")
+        self._center = Label(self._label, parent=self, font="body", variant="menu-item", anchor="w").attach(
+            column=1, sticky="ew")
         if self._underline is not None:
             self._center.configure(underline=self._underline)
 
         self._after = Label(parent=self, variant="menu-item", anchor="center").attach(column=2, sticky="e")
 
-        if self._shortcut_text:
-            self._after.configure(text=self._shortcut_text, font="body", foreground="secondary")
+        if self._accelerator:
+            self._after.configure(text=self._accelerator, font="body", foreground="secondary")
         elif self._item_type == 'cascade':
             self._after.configure(icon="chevron-right")
 

@@ -1,12 +1,31 @@
 # Composite styles for the menu widgets
-from tkinter import TclError
+from tkinter import Menu, TclError
 
 from ttkbootstrap.layouts.style import FrameStyleBuilder
-from ttkbootstrap.style import Element
+from ttkbootstrap.style import Element, StyleManager
 from ttkbootstrap.style.element import ElementImage
 from ttkbootstrap.style.utils import recolor_image
 from ttkbootstrap.widgets.button.style import ButtonStyleBuilder
 from ttkbootstrap.widgets.label.style import LabelStyleBuilder
+
+
+class MenuStyleBuilder(StyleManager):
+
+    def __init__(self, menu: Menu, **kwargs):
+        super().__init__("tkinter", **kwargs)
+        self._window: Menu = menu
+        self.options.set_defaults(surface="background", variant="default")
+
+    @property
+    def window(self):
+        return self._window
+
+
+@MenuStyleBuilder.register_variant("default")
+def build_default_window_style(b: MenuStyleBuilder):
+    background = b.color(b.surface_token or "background")
+    foreground= b.on_color(background)
+    b.window.configure(background=background, foreground=foreground)
 
 
 @FrameStyleBuilder.register_variant("menu-item")
