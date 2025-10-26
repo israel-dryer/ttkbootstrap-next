@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ttkbootstrap"
+name = "ttkbootstrap-next"
 dynamic = ["version"]
-description = "A supercharged theme extension for tkinter that enables on-demand modern flat style themes inspired by Bootstrap."
+description = "Next-generation theming and layout engine for Tkinter with modern, declarative APIs."
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.13"
 license = { file = "LICENSE" }
@@ -18,13 +18,13 @@ keywords = [
     "responsive", "python-gui"
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 3 - Alpha",
     "Environment :: Win32 (MS Windows)",
     "Environment :: X11 Applications :: GTK",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: User Interfaces",
     "Operating System :: OS Independent"
@@ -35,8 +35,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/israel-dryer/ttkbootstrap"
-Documentation = "https://ttkbootstrap.readthedocs.io/en/latest/"
+Homepage = "https://github.com/israel-dryer/ttkbootstrap-next"
+Issues = "https://github.com/israel-dryer/ttkbootstrap-next/issues"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -48,13 +48,14 @@ where = ["src"]
 exclude = ["tests*", "docs*"]
 
 [tool.setuptools.package-data]
-ttkbootstrap = [
+ttkbootstrap_next = [
     "localization/msgs/*.msg",
     "themes/*.json",
     "themes/*.toml",
     "assets/**/*"
 ]
 
+# setuptools-scm: write an importable version file for runtime introspection
 [tool.setuptools_scm]
-version_file = "src/ttkbootstrap/_version.py"
-fallback_version = "2.0.0"
+write_to = "src/ttkbootstrap_next/_version.py"
+fallback_version = "0.1.0"
