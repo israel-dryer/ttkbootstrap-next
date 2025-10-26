@@ -65,7 +65,7 @@ retaining full compatibility with Tk’s core concepts.
 |--------------------------|-----------------------------|
 | Stable, production-ready | Experimental, in-progress   |
 | Backwards-compatible API | Modern, declarative API     |
-| Incremental updates only | Rapid iteration & new ideas |
+| Incremental updates and stable backports from `next` | Rapid iteration & new ideas |
 | Available on PyPI        | Not yet released            |
 
 Both projects will coexist:
