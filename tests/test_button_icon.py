@@ -7,7 +7,7 @@ if os.name == 'nt':
     sys.stdout.reconfigure(encoding='utf-8')
 
 # Add src directory to path
-sys.path.insert(0, r'D:\Development\ttkbootstrap\src')
+sys.path.insert(0, r'D:\Development\ttkbootstrap_next\src')
 
 import tkinter as tk
 from ttkbootstrap_next.widgets.button import Button
