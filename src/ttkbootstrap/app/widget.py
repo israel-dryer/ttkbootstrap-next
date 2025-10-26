@@ -50,7 +50,8 @@ class App(BaseWidget, ContainerMixin):
         # hide until ready to render
         self.widget.withdraw()
         self.widget.title(title)
-        self._theme = ThemeProvider().instance(theme)
+        self._theme = ThemeProvider().instance()
+        self._theme.use(theme)
 
         # register fonts
         if use_default_fonts:
@@ -119,6 +120,18 @@ class App(BaseWidget, ContainerMixin):
 
     def _mount_child_root(self, child, method: str, **opts):
         # (optional) give widgets a chance to validate right before mounting
+        class_name = child.__class__.__name__
+        # Menus are not geometry-managed; skip mounting for any Menu wrappers
+        try:
+            import tkinter as _tk
+            underlying = getattr(child, "widget", None)
+            if isinstance(underlying, _tk.Menu):
+                return
+        except Exception:
+            pass
+        if class_name in ('Menu', 'NativeMenu'):
+            return
+
         if hasattr(child, "_pre_mount_validate"):
             child._pre_mount_validate()
 
