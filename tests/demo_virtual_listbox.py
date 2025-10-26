@@ -1,10 +1,10 @@
 import sys
 
-sys.path.insert(0, r'D:\Development\ttkbootstrap\src')
+sys.path.insert(0, r'D:\Development\ttkbootstrap_next\src')
 
-from ttkbootstrap import App, VirtualList
-from ttkbootstrap.layouts import Pack
-from ttkbootstrap.datasource import MemoryDataSource
+from ttkbootstrap_next import App, VirtualList
+from ttkbootstrap_next.layouts import Pack
+from ttkbootstrap_next.datasource import MemoryDataSource
 
 records = [
     {"id": 1, "text": "Alabama", "caption": "Montgomery", "icon": "pin-map"},

@@ -1,4 +1,4 @@
-from ttkbootstrap import App, TextEntry, DateEntry, Pack, PasswordEntry, PathEntry, NumericEntry, Label
+from ttkbootstrap_next import App, TextEntry, DateEntry, Pack, PasswordEntry, PathEntry, NumericEntry, Label
 
 with App("Entry Demo") as app:
     with Pack(padding=16, gap=8, direction="column", fill_items='x').attach():

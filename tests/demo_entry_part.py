@@ -1,8 +1,8 @@
-from ttkbootstrap.app import App
-from ttkbootstrap.layouts import Grid
-from ttkbootstrap.widgets.entry.shared.entry_mixin import EntryMixin
-from ttkbootstrap.widgets.entry.shared.entry_part import EntryPart
-from ttkbootstrap.widgets.mixins.composite_mixin import CompositeWidgetMixin
+from ttkbootstrap_next.app import App
+from ttkbootstrap_next.layouts import Grid
+from ttkbootstrap_next.widgets.entry.shared.entry_mixin import EntryMixin
+from ttkbootstrap_next.widgets.entry.shared.entry_part import EntryPart
+from ttkbootstrap_next.widgets.mixins.composite_mixin import CompositeWidgetMixin
 
 
 class TestEntry(CompositeWidgetMixin, EntryMixin):

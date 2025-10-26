@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Button
+from ttkbootstrap_next import App, Pack, Button
 
 with App("Demo Place", geometry="400x400") as app:
     with Pack().attach(fill="both", expand=True):

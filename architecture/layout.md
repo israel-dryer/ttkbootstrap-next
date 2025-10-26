@@ -27,8 +27,8 @@ Certain methods may be exposed on the widget itself to make things easier for tk
 
 ```python
 from typing import TypedDict, Literal, Unpack
-from ttkbootstrap.widgets import Frame
-from ttkbootstrap.core.base_widget import BaseWidget
+from ttkbootstrap_next.widgets import Frame
+from ttkbootstrap_next.core.base_widget import BaseWidget
 
 type Sticky = Literal['n', 'e', 's', 'w', 'ns', 'ew', 'nsew']
 

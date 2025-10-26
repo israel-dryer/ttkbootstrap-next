@@ -46,7 +46,7 @@ retaining full compatibility with Tk’s core concepts.
   Cleaner structure using `App` as the root layout context:
   ```python
   from ttkbootstrap_next import App
-  from ttkbootstrap_next.layout import Pack
+  from ttkbootstrap_next.layouts import Pack
   from ttkbootstrap_next.widgets import Button
 
   with App("Demo") as app:

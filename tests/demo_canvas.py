@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Button, Canvas, Pack, Scrollbar
+from ttkbootstrap_next import App, Button, Canvas, Pack, Scrollbar
 
 with App("Demo Canvas - Scrollbar") as app:
     with Pack(padding=16).attach(fill="both", expand=True):

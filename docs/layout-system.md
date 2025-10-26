@@ -1,6 +1,6 @@
 # Layout system
 
-The **ttkbootstrap** layout system introduces a two‑phase model—**describe** (stage intent) and **attach** (mount)—plus
+The **ttkbootstrap_next** layout system introduces a two‑phase model—**describe** (stage intent) and **attach** (mount)—plus
 **container
 contexts** (`with Grid/Pack`) that collect children and flush them in order. It performs **smart method inference** (
 pack/grid/place) and adds high‑level ergonomics on top of Tk: `Grid` with auto‑placement, dense fill, track config,
@@ -39,7 +39,7 @@ If you don’t specify a method, the mixin tries to infer it:
 The library keeps a tiny **container stack** so you can write:
 
 ```python
-from ttkbootstrap import Grid, Label, Button
+from ttkbootstrap_next import Grid, Label, Button
 
 with Grid(rows=..., columns=...) as grid:
     Label(...).layout(row=0, column=0)  # only described here

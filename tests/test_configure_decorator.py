@@ -10,7 +10,7 @@ if os.name == 'nt':
 # Add src directory to path
 sys.path.insert(0, r'D:\Development\ttkbootstrap\src')
 
-from ttkbootstrap.interop.runtime.configure import ConfigureMixin, configure_delegate
+from ttkbootstrap_next.interop.runtime.configure import ConfigureMixin, configure_delegate
 
 
 class TestWidget(ConfigureMixin):

@@ -1,5 +1,5 @@
-from ttkbootstrap import App, Pack, Label, Scale
-from ttkbootstrap.signals.signal import Signal
+from ttkbootstrap_next import App, Pack, Label, Scale
+from ttkbootstrap_next.signals.signal import Signal
 
 with App("Demo Scale") as app:
     # set signals

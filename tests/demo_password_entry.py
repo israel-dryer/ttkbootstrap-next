@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, PasswordEntry
+from ttkbootstrap_next import App, Pack, PasswordEntry
 
 with App("Password Entry Demo", theme="dark") as app:
     with Pack(padding=16).attach(fill="both", expand=True):

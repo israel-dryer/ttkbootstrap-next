@@ -1,5 +1,5 @@
-from ttkbootstrap import App, Pack
-from ttkbootstrap.widgets.menu.menu_item import MenuItem
+from ttkbootstrap_next import App, Pack
+from ttkbootstrap_next.widgets.menu.menu_item import MenuItem
 
 with App() as app:
     with Pack(fill_items='x').attach(fill='x'):

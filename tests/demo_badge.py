@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Badge
+from ttkbootstrap_next import App, Pack, Badge
 
 with App(theme="light") as app:
     with Pack(padding=16, gap=8).attach(fill="both", expand=True):

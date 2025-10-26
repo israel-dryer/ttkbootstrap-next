@@ -1,4 +1,4 @@
-from ttkbootstrap.utils import normalize_icon_position
+from ttkbootstrap_next.utils import normalize_icon_position
 
 result = normalize_icon_position("end", has_text=True, has_icon=False)
 

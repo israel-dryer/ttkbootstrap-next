@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Label, Pack, Radiobutton
+from ttkbootstrap_next import App, Label, Pack, Radiobutton
 
 with App() as app:
     with Pack(fill_items="x", gap=8, padding=16).attach():

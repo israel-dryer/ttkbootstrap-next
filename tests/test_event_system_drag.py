@@ -10,8 +10,8 @@ if os.name == 'nt':
 sys.path.insert(0, r'D:\Development\ttkbootstrap\src')
 
 import tkinter as tk
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.events import Event
+from ttkbootstrap_next.widgets.button import Button
+from ttkbootstrap_next.events import Event
 
 def test_event_system_vs_direct_binding():
     """Compare event system vs direct binding for drag events."""

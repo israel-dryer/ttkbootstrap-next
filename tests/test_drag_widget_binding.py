@@ -10,8 +10,8 @@ if os.name == 'nt':
 sys.path.insert(0, r'D:\Development\ttkbootstrap\src')
 
 import tkinter as tk
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.events import Event
+from ttkbootstrap_next.widgets.button import Button
+from ttkbootstrap_next.events import Event
 
 def test_drag_widget_created_immediately():
     """Test event binding when widget is created immediately."""

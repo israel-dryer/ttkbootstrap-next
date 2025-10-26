@@ -1,0 +1,190 @@
+from tkinter import Variable, ttk
+from typing import Callable, Optional, Union, Unpack, cast
+
+from ttkbootstrap_next.core.base_widget import BaseWidget
+from ttkbootstrap_next.core.mixins.icon import IconMixin
+from ttkbootstrap_next.events import Event
+from ttkbootstrap_next.interop.runtime.binding import Stream, Subscription
+from ttkbootstrap_next.interop.runtime.configure import configure_delegate
+from ttkbootstrap_next.signals.signal import Signal
+from ttkbootstrap_next.style.types import SemanticColor
+from ttkbootstrap_next.types import AltEventHandler, Compound, IconPosition
+from ttkbootstrap_next.utils import assert_valid_keys, merge_build_options, normalize_icon_position, resolve_options
+from ttkbootstrap_next.widgets.button.events import ButtonInvokeEvent
+from ttkbootstrap_next.widgets.button.style import ButtonStyleBuilder
+from ttkbootstrap_next.widgets.button.types import ButtonOptions, ButtonVariant
+
+
+class Button(BaseWidget, IconMixin):
+    """
+    A styled Button widget with fluent configuration and reactive text binding.
+    """
+
+    widget: ttk.Button
+
+    def __init__(
+            self,
+            text: str | Signal = "",
+            *,
+            color: Union[SemanticColor, str] = "primary",
+            variant: ButtonVariant = "solid",
+            icon: str | dict = None,
+            command: Optional[Callable] = None,
+            **kwargs: Unpack[ButtonOptions]
+    ):
+        """Initialize a new Button.
+
+        Args:
+            text: Initial label text.
+
+        Keyword Args:
+            builder: Key-value options passed to the style builder.
+            color: Optional color role.
+            command: Callback fired when the button is invoked.
+            default: Used to set the button that is designated as "default"; in a dialog for example.
+            icon: Optional icon identifier.
+            id: A unique identifier used to query this widget.
+            padding: The padding of the widget in pixels.
+            parent: The parent container of this widget.
+            take_focus: Specifies if the widget accepts focus during keyboard traversal.
+            text_variable: A tkinter string variable bound to the button text.
+            underline: The integer index (0-based) of a character to underline in the text.
+            variant: Optional style variant.
+            width: The width of the widget in pixels.
+        """
+        self._text_signal = text if isinstance(text, Signal) else Signal(text)
+        self._icon = resolve_options(icon, 'name') or None
+        self._has_text = bool((self._text_signal() or ""))
+        self._has_icon = icon is not None
+        self._compound = kwargs.pop('compound', 'auto')
+        self._command = command
+        self._command_sub: Optional[Subscription] = None
+
+        # style builder options
+        build_options = merge_build_options(
+            kwargs.pop('builder', {}),
+            icon=self._icon,
+            icon_only=not self._has_text,
+            color=color,
+            variant=variant
+        )
+        self._style_builder = ButtonStyleBuilder(**build_options)
+
+        compound = normalize_icon_position(self._compound, has_text=self._has_text, has_icon=self._has_icon)
+        parent = kwargs.pop('parent', None)
+        assert_valid_keys(kwargs, ButtonOptions, where="Button")
+
+        tk_options = dict(
+            compound=compound,
+            command=self._handle_invoke,
+            textvariable=self._text_signal.var,
+            **kwargs
+        )
+        super().__init__(ttk.Button, tk_options, parent=parent)
+        if command:
+            self._configure_command(command)
+
+    def signal(self):
+        """The signal bound to the button text"""
+        return self._text_signal
+
+    def is_disabled(self):
+        """Indicates if button is in a disabled state"""
+        return "disabled" in self.widget.state()
+
+    def enable(self):
+        """Enable the button."""
+        self.widget.state(['normal'])
+        return self
+
+    def disable(self):
+        """Disable the button."""
+        self.state(['disabled'])
+        return self
+
+    def invoke(self):
+        """Trigger a button click programmatically."""
+        self.widget.invoke()
+
+    # ---- Event handlers -----
+
+    def _handle_invoke(self, *_):
+        """Trigger the <<Invoke>> event"""
+        self.emit(Event.INVOKE, when="tail")
+
+    def on_invoke(self) -> Stream[ButtonInvokeEvent]:
+        """Convenience alias for the invoke stream"""
+        return self.on(Event.INVOKE)
+
+    # ---- Configuration delegates -----
+
+    @configure_delegate("command")
+    def _configure_command(self, value: AltEventHandler = None):
+        if value is None:
+            return self._command
+        else:
+            if self._command_sub is not None:
+                self._command_sub.unlisten()
+            self._command_sub = self.on_invoke().tap(lambda _: value()).then_stop()
+            return self
+
+    @configure_delegate("text")
+    def _configure_text(self, value: str = None):
+        if value is None:
+            return self._text_signal()
+        self._text_signal.set(value)
+        self._has_text = len(value) > 0
+        if self._compound == "auto":
+            self._configure_compound("auto")  # force automatic adjustment
+        return self
+
+    @configure_delegate("text_signal")
+    def _configure_text_signal(self, value: Signal[str] = None):
+        if value is None:
+            return self._text_signal
+        if self._text_signal:
+            self._text_signal.unsubscribe_all()
+        self._text_signal = value
+        self.widget.configure(textvariable=self._text_signal.var)
+        return self
+
+    @configure_delegate("textvariable")
+    @configure_delegate("text_variable")
+    def _configure_text_variable(self, value: Variable = None):
+        if value is None:
+            return self._text_signal
+        else:
+            return self._configure_text_signal(Signal.from_variable(value))
+
+    @configure_delegate("compound")
+    def _configure_compound(self, value: IconPosition = None):
+        if value is None:
+            return self._compound
+        else:
+            self._compound = value
+            compound = normalize_icon_position(value, has_text=self._has_text, has_icon=self._has_icon)
+            self.widget.configure(compound=cast(Compound, compound))
+            if not self._has_text:
+                self._style_builder.options(icon_only=True)
+            else:
+                self._style_builder.options(icon_only=False)
+            return self
+
+    @configure_delegate("color")
+    def _configure_color(self, value: str = None):
+        if value is None:
+            return self._style_builder.color_token
+        else:
+            self._style_builder.options(color=value)
+            self.update_style()
+            return self
+
+    @configure_delegate("variant")
+    def _configure_variant(self, value: str = None):
+        """Get or set the style variant."""
+        if value is None:
+            return self._style_builder.variant
+        else:
+            self._style_builder.options(variant=value)
+            self.update_style()
+            return self

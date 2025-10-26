@@ -1,7 +1,7 @@
-# ttkbootstrap Project Structure
+# ttkbootstrap_next Project Structure
 
 ```plaintext
-ttkbootstrap/
+ttkbootstrap_next/
 ├── __init__.py
 ├── app.py
 

@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Button, Notebook, Pack
+from ttkbootstrap_next import App, Button, Notebook, Pack
 
 # Context Manager Version
 with App("Notebook Demo", geometry="500x500") as app:

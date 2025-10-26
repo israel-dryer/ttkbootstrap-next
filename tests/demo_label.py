@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Label
+from ttkbootstrap_next import App, Pack, Label
 
 icon = {"name": "house-fill", "size": 24}
 

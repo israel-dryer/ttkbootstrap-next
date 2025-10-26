@@ -1,5 +1,5 @@
-from ttkbootstrap import App, Pack, Badge
-from ttkbootstrap.core.widget_registry import lookup
+from ttkbootstrap_next import App, Pack, Badge
+from ttkbootstrap_next.core.widget_registry import lookup
 
 with App() as app:
     with Pack(padding=16, gap=8):

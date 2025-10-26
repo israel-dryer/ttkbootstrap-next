@@ -5,8 +5,8 @@ from setuptools import setup, Extension
 ext_modules = []
 if sys.platform.startswith("win"):
     winmenu_ext = Extension(
-        "ttkbootstrap.contrib.winmenu._native",
-        sources=["src/ttkbootstrap/contrib/winmenu/_native.c"],
+        "ttkbootstrap_next.contrib.winmenu._native",
+        sources=["src/ttkbootstrap_next/contrib/winmenu/_native.c"],
         libraries=["user32", "gdi32", "uxtheme"],
         optional=True,  # Don't fail if compilation fails
     )

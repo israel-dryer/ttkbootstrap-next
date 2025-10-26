@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Button, Progressbar
+from ttkbootstrap_next import App, Pack, Button, Progressbar
 
 with App("Demo Progressbar") as app:
     with Pack(padding=16, gap=8, fill_items="x").attach(fill="x"):

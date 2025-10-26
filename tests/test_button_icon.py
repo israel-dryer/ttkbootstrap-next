@@ -10,8 +10,8 @@ if os.name == 'nt':
 sys.path.insert(0, r'D:\Development\ttkbootstrap\src')
 
 import tkinter as tk
-from ttkbootstrap.widgets.button import Button
-from ttkbootstrap.core.mixins.icon import IconMixin
+from ttkbootstrap_next.widgets.button import Button
+from ttkbootstrap_next.core.mixins.icon import IconMixin
 
 def test_button_icon():
     """Test that button icon configuration works."""

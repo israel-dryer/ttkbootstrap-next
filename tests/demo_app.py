@@ -1,4 +1,4 @@
-from ttkbootstrap import App
+from ttkbootstrap_next import App
 
 with App("Demo Application") as app:
     pass

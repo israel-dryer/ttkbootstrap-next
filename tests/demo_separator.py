@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Separator
+from ttkbootstrap_next import App, Pack, Separator
 
 with App("Separator Demo", geometry="400x400") as app:
     with Pack(gap=16, direction="vertical", padding=16).attach(fill='x'):

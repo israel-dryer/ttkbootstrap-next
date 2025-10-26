@@ -45,9 +45,9 @@ Widgets that include `IconMixin` get **stateful icon behavior** for free:
 ## Quick usage
 
 ```python
-from ttkbootstrap.icons.lucide import LucideIcon
-from ttkbootstrap.icons.bootstrap import BootstrapIcon
-from ttkbootstrap import ttk
+from ttkbootstrap_next.icons.lucide import LucideIcon
+from ttkbootstrap_next.icons.bootstrap import BootstrapIcon
+from ttkbootstrap_next import ttk
 
 # Direct image for any Tk/ttk widget
 save_img = LucideIcon("save", size=20, color="#2b6cb0").image

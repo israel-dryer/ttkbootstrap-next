@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Button, Frame, Grid
+from ttkbootstrap_next import App, Button, Frame, Grid
 
 
 def greet():

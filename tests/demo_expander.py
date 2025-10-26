@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Button, Checkbutton, Expander, Label, NumericEntry, Pack, TextEntry
+from ttkbootstrap_next import App, Button, Checkbutton, Expander, Label, NumericEntry, Pack, TextEntry
 
 with App("Fieldset Demo", geometry="600x300") as app:
     with Pack(padding=16, gap=16).attach(fill='both', expand=True):

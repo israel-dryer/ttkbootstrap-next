@@ -1,4 +1,4 @@
-# Minimum Compatibility Plan for ttkbootstrap v2
+# Minimum Compatibility Plan for ttkbootstrap_next v2
 
 This plan outlines a **small, sustainable** compatibility layer that preserves the clean v2 architecture while
 minimizing migration pain for v1/Tk users. It focuses on two universal bridges and two widget-specific adapters.
@@ -37,7 +37,7 @@ def to_signal(value_or_var, *, default=None, factory):
     - If it's a Tk var -> wrap via factory.from_var(var)
     - Else -> create new Signal(default or value_or_var)
     """
-from ttkbootstrap.signals import Signal  # avoid import cycles
+from ttkbootstrap_next.signals import Signal  # avoid import cycles
 
 if hasattr(value_or_var, "__class__") and value_or_var.__class__.__name__ == "Signal":
     return value_or_var

@@ -1,6 +1,6 @@
-from ttkbootstrap import App, Label, Pack
-from ttkbootstrap.icons.bootstrap import BootstrapIcon
-from ttkbootstrap.widgets.menu import NativeMenu
+from ttkbootstrap_next import App, Label, Pack
+from ttkbootstrap_next.icons.bootstrap import BootstrapIcon
+from ttkbootstrap_next.widgets.menu import NativeMenu
 from tkinter import ttk
 
 with App(geometry="800x800", theme="dark") as app:

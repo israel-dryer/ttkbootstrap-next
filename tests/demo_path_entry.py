@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, PathEntry, TextEntry
+from ttkbootstrap_next import App, Pack, PathEntry, TextEntry
 
 with App("Demo File Entry") as app:
     with Pack(padding=16, fill_items="x").attach(fill="x"):

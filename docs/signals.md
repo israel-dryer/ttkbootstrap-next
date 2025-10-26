@@ -17,7 +17,7 @@ those traces.
 ## Core API (at a glance)
 
 ```python
-from ttkbootstrap.signals import Signal
+from ttkbootstrap_next.signals import Signal
 
 name = Signal("Alice")  # type: str → StringVar under the hood
 age = Signal(42)  # type: int  → IntVar

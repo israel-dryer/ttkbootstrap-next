@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Checkbutton, Pack
+from ttkbootstrap_next import App, Checkbutton, Pack
 
 with App("Demo CheckButton", theme="dark") as app:
     with Pack(padding=16, gap=8, fill_items="x").attach(padx=10, pady=10):

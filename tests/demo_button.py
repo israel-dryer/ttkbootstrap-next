@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Button, Pack
+from ttkbootstrap_next import App, Button, Pack
 
 icon = {
     "name": "house",

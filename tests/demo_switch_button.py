@@ -1,4 +1,4 @@
-from ttkbootstrap import App, Pack, Switch
+from ttkbootstrap_next import App, Pack, Switch
 
 with App("Demo Switch Button") as app:
     with Pack(padding=16, fill_items="x", gap=16).attach(fill="both", expand=True):

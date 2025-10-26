@@ -1,4 +1,4 @@
-from ttkbootstrap import App, NumericEntry, Pack
+from ttkbootstrap_next import App, NumericEntry, Pack
 
 with App("Number Entry Demo") as app:
     with Pack(padding=16, gap=8, fill_items="x").attach():
