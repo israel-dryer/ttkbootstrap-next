@@ -75,7 +75,7 @@ Both projects will coexist:
 
 ---
 
-## 🧱 Current Focus (Q4 2025)
+## 🧱 Current Focus (Q2 2026)
 
 - Completing the event Stream API testing
 - Completing base widget set, including menus, windows, and dialogs
